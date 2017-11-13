@@ -2,9 +2,8 @@ version: '{build}'
 branches:
   only:
   - master
-clone_folder: c:\projects\cmake-init
+clone_folder: c:\projects\yats
 image:
-- Visual Studio 2013
 - Visual Studio 2015
 - Visual Studio 2017
 configuration:
@@ -15,7 +14,6 @@ platform:
 environment:
   matrix:
   - arch: Win64
-  # - arch: #does not work, Release|x64 not a valid target
 matrix:
   fast_finish: true
 
@@ -27,7 +25,6 @@ init:
 - echo %APPVEYOR_BUILD_WORKER_IMAGE%
 - if "%APPVEYOR_BUILD_WORKER_IMAGE%"=="Visual Studio 2017" ( set generator="Visual Studio 15 2017%arch%" )
 - if "%APPVEYOR_BUILD_WORKER_IMAGE%"=="Visual Studio 2015" ( set generator="Visual Studio 14 2015%arch%" )
-- if "%APPVEYOR_BUILD_WORKER_IMAGE%"=="Visual Studio 2013" ( set generator="Visual Studio 12 2013%arch%" )
 - echo %generator%
 
 before_build:
@@ -41,7 +38,7 @@ before_build:
     cmake .. -G %generator%
     
 build:
-  project: c:\projects\cmake-init\build\template.sln
+  project: c:\projects\yats\build\Yats.sln
   verbosity: minimal
   parallel: true 
 only_commits:

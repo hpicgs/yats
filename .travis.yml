@@ -6,7 +6,7 @@ osx_image: xcode9
 
 install:
 - if [ "$CXX" = "g++" ]; then export CXX="g++-5" CC="gcc-5"; fi
-- if [ "$CXX" = "clang++" ]; then export CXX="clang++-3.7" CC="clang-3.7"; fi
+- if [ "$CXX" = "clang++" ]; then export CXX="clang++-3.9" CC="clang-3.9"; fi
 - echo ${PATH}
 - echo ${CXX}
 - ${CXX} --version
@@ -16,7 +16,7 @@ addons:
   apt:
     sources:
     - ubuntu-toolchain-r-test
-    - llvm-toolchain-precise-3.7
+    - llvm-toolchain-precise-3.9
     - george-edison55-precise-backports
     packages:
     - cmake

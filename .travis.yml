@@ -2,6 +2,7 @@ language: cpp
 
 sudo: required
 dist: trusty
+osx_image: xcode9
 
 install:
 - if [ "$CXX" = "g++" ]; then export CXX="g++-5" CC="gcc-5"; fi
@@ -10,6 +11,7 @@ install:
 - echo ${CXX}
 - ${CXX} --version
 - ${CXX} -v
+
 addons:
   apt:
     sources:
@@ -21,12 +23,12 @@ addons:
     - cmake-data
     - gcc-5
     - g++-5
-    - clang-3.7
+    - clang-3.9
 
 os:
   - linux
   - osx
-
+  
 compiler:
   - gcc
   - clang

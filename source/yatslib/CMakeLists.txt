@@ -11,7 +11,7 @@
 # 
 
 # Target name
-set(target fiblib)
+set(target yatslib)
 
 # Exit here if required dependencies are not met
 message(STATUS "Lib ${target}")
@@ -33,13 +33,15 @@ set(include_path "${CMAKE_CURRENT_SOURCE_DIR}/include/${target}")
 set(source_path  "${CMAKE_CURRENT_SOURCE_DIR}/source")
 
 set(headers
-    ${include_path}/CTFibonacci.h
-    ${include_path}/CTFibonacci.inl
-    ${include_path}/Fibonacci.h
+    ${include_path}/Output.h
+    ${include_path}/Input.h
+    ${include_path}/Nodecontainer.h
+    ${include_path}/Nodeconfigurator.h
+    ${include_path}/Pipeline.h
 )
 
 set(sources
-    ${source_path}/Fibonacci.cpp
+    ${source_path}/main.cpp
 )
 
 # Group source files

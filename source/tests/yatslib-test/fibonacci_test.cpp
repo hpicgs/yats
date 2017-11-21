@@ -1,0 +1,34 @@
+
+#include <gmock/gmock.h>
+
+
+#include <yatslib/Pipeline.h>
+
+class Source
+{
+public:
+	int run()
+	{
+		std::cout << "Send 42" << std::endl;
+		return 42;
+	}
+};
+
+class Target
+{
+public:
+	void run(int value)
+	{
+		std::cout << "Received " << value << std::endl;
+	}
+};
+
+TEST(interface_creation, simple)
+{
+	Pipeline pipeline;
+
+	auto sourceconfigurator = pipeline.add<Source>("ultra");
+	auto targetconfigurator = pipeline.add<Target>("ultimate");
+
+	sourceconfigurator->output() >> targetconfigurator->input();
+}

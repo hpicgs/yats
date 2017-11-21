@@ -38,7 +38,7 @@ before_build:
     cmake .. -G %generator%
     
 build:
-  project: c:\projects\yats\build\Yats.sln
+  project: c:\projects\yats\build\ALL_BUILD.vcxproj
   verbosity: minimal
   parallel: true 
 only_commits:

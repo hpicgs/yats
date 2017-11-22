@@ -23,6 +23,7 @@ public:
 	}
 };
 
+
 TEST(interface_creation, simple)
 {
 	Pipeline pipeline;
@@ -31,4 +32,6 @@ TEST(interface_creation, simple)
 	auto targetconfigurator = pipeline.add<Target>("ultimate");
 
 	sourceconfigurator->output() >> targetconfigurator->input();
+
+	pipeline.run();
 }

@@ -29,18 +29,9 @@ class Nodeconfigurator : public AbstractNodeconfigurator
 {
 public:
 	
-	template <typename T, typename S, typename... args>
-	void fun(T(S::*)(args...))
-	{
-		std::cout << typeid(T).name() << std::endl;
-	}
+	using Helper = decltype(Helper(&Node::run));
 
-	Nodeconfigurator()
-	{
-		fun(&Node::run);
-	}
-
-
+	Nodeconfigurator() = default;
 
 	std::unique_ptr<AbstractNodecontainer> make() const override
 	{
@@ -49,15 +40,16 @@ public:
 
 	Input input() override
 	{
-		Input i;
-		return i;
+		return i[0];
 	}
 
 	Output output() override
 	{
-		Output o;
-		return o;
+		return o[0];
 	}
 
 private:
+
+	std::vector<Input> i;
+	std::vector<Output> o;
 };

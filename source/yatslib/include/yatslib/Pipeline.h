@@ -6,6 +6,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <vector>
 
 class Pipeline
 {
@@ -18,6 +19,15 @@ public:
 	{
 		m_nodes[name] = std::make_unique<Nodeconfigurator<Node>>();
 		return static_cast<Nodeconfigurator<Node>*>(m_nodes[name].get());
+	}
+
+	void run()
+	{
+		std::vector<std::unique_ptr<AbstractNodecontainer>> nodes;
+		for (auto &elem : m_nodes)
+		{
+			nodes.emplace_back(elem.second->make());
+		}
 	}
 
 private:

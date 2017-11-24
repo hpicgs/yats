@@ -20,7 +20,8 @@ message(STATUS "Test ${target}")
 
 set(sources
     main.cpp
-    fibonacci_test.cpp
+    yats_test.cpp
+	util_test.cpp
 )
 
 

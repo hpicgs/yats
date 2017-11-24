@@ -38,6 +38,7 @@ set(headers
     ${include_path}/Nodecontainer.h
     ${include_path}/Nodeconfigurator.h
     ${include_path}/Pipeline.h
+	${include_path}/Util.h
 )
 
 set(sources

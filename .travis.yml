@@ -34,7 +34,8 @@ env:
   global:
     - CMAKE_OPTIONS="-DOPTION_BUILD_EXAMPLES=On"
   matrix:
-    - CMAKE_CONFIGURATION=release BUILD_DIR=build
+    - CMAKE_CONFIGURATION=release BUILD_DIR=build_release
+    - CMAKE_CONFIGURATION=debug BUILD_DIR=build_debug
 
 matrix:
   exclude:
@@ -45,3 +46,10 @@ script:
   - mkdir build
   - cd build
   - cmake .. && make
+
+notifications:
+  email: false
+
+branches:
+  only:
+    - master

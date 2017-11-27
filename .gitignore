@@ -15,6 +15,7 @@
 # Build dir
 build*
 debug_build
+cmake-build*
 release_build
 /bin
 /lib
@@ -27,6 +28,7 @@ CMakeLists.txt.user.*
 # IDE project files
 *.sublime-project
 *.sublime-workspace
+.idea
 
 # Local config windows
 _configure.bat

@@ -1,5 +1,4 @@
-# YaTS
-## Yet another Task Scheduler
+# YaTS - Yet another Task Scheduler
 
 ![Build Status](https://travis-ci.org/hpicgs/yats.svg?branch=master)
 

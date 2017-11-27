@@ -29,7 +29,7 @@ class Nodeconfigurator : public AbstractNodeconfigurator
 {
 public:
 	
-	using Helper = decltype(Helper(&Node::run));
+	using Helper = decltype(MakeHelper(&Node::run));
 
 	Nodeconfigurator() = default;
 

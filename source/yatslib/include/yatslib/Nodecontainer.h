@@ -28,7 +28,7 @@ struct NodeHelper
 
 
 template <typename T, typename S, typename... args>
-static constexpr NodeHelper<T, args...> Helper(T(S::*)(args...))
+static constexpr NodeHelper<T, args...> MakeHelper(T(S::*)(args...))
 {
 }
 
@@ -38,7 +38,7 @@ class Nodecontainer : public AbstractNodecontainer
 {
 public:
 
-	using Helper = decltype(Helper(&Node::run));
+	using Helper = decltype(MakeHelper(&Node::run));
 
 	Nodecontainer()
 		: m_current(0)

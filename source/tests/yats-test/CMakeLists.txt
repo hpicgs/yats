@@ -3,18 +3,15 @@
 # External dependencies
 # 
 
-# find_package(THIRDPARTY REQUIRED)
-
+find_package(${META_PROJECT_NAME} REQUIRED HINTS "${CMAKE_CURRENT_SOURCE_DIR}/../../../")
 
 # 
 # Executable name and options
 # 
 
 # Target name
-set(target fibcmd)
-
-# Exit here if required dependencies are not met
-message(STATUS "Example ${target}")
+set(target yats-test)
+message(STATUS "Test ${target}")
 
 
 # 
@@ -23,6 +20,8 @@ message(STATUS "Example ${target}")
 
 set(sources
     main.cpp
+    yats_test.cpp
+    util_test.cpp
 )
 
 
@@ -32,12 +31,8 @@ set(sources
 
 # Build executable
 add_executable(${target}
-    MACOSX_BUNDLE
     ${sources}
 )
-
-# Create namespaced alias
-add_executable(${META_PROJECT_NAME}::${target} ALIAS ${target})
 
 
 # 
@@ -69,10 +64,9 @@ target_include_directories(${target}
 target_link_libraries(${target}
     PRIVATE
     ${DEFAULT_LIBRARIES}
-    ${META_PROJECT_NAME}::baselib
-    ${META_PROJECT_NAME}::fiblib
+    yats-include
+    gmock-dev
 )
-
 
 # 
 # Compile definitions
@@ -101,25 +95,4 @@ target_compile_options(${target}
 target_link_libraries(${target}
     PRIVATE
     ${DEFAULT_LINKER_OPTIONS}
-)
-
-
-#
-# Target Health
-#
-
-perform_health_checks(
-    ${target}
-    ${sources}
-)
-
-
-# 
-# Deployment
-# 
-
-# Executable
-install(TARGETS ${target}
-    RUNTIME DESTINATION ${INSTALL_BIN} COMPONENT examples
-    BUNDLE  DESTINATION ${INSTALL_BIN} COMPONENT examples
 )

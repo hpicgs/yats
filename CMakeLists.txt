@@ -22,16 +22,9 @@ set_policy(CMP0063 NEW) # ENABLE CMP0063: Honor visibility properties for all ta
 # Include cmake modules
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
-include(GenerateExportHeader)
-
-set(WriterCompilerDetectionHeaderFound NOTFOUND)
-include(WriteCompilerDetectionHeader OPTIONAL RESULT_VARIABLE WriterCompilerDetectionHeaderFound)
-
 # Include custom cmake modules
 include(cmake/GetGitRevisionDescription.cmake)
 include(cmake/HealthCheck.cmake)
-include(cmake/GenerateTemplateExportHeader.cmake)
-
 
 # 
 # Project description and (meta) information
@@ -67,11 +60,10 @@ string(TOUPPER ${META_PROJECT_ID} META_PROJECT_ID)
 # 
 
 # Project options
-option(BUILD_SHARED_LIBS     "Build shared instead of static libraries."              ON)
 option(OPTION_SELF_CONTAINED "Create a self-contained install with all dependencies." OFF)
 option(OPTION_BUILD_TESTS    "Build tests."                                           ON)
 option(OPTION_BUILD_DOCS     "Build documentation."                                   OFF)
-option(OPTION_BUILD_EXAMPLES "Build examples."                                        OFF)
+option(OPTION_BUILD_EXAMPLES "Build examples."                                        ON)
 
 
 # 

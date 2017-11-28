@@ -2,7 +2,7 @@
 #include <gmock/gmock.h>
 
 
-#include <yatslib/Util.h>
+#include <yats/Util.h>
 
 
 TEST(is_unique_ptr_test, util_test)

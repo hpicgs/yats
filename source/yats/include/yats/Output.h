@@ -1,7 +1,6 @@
 #pragma once
 
-#include <yatslib/yatslib_api.h>
-#include <yatslib/Input.h>
+#include <yats/Input.h>
 
 
 class Output

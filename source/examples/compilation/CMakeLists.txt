@@ -3,18 +3,7 @@
 # External dependencies
 # 
 
-find_package(Qt5Core    5.1)
-find_package(Qt5Gui     5.1)
-find_package(Qt5Widgets 5.1)
-
-# Enable automoc
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTOUIC ON)
-set(AUTOMOC_MOC_OPTIONS PROPERTIES FOLDER CMakeAutomocTargets)
-set_property(GLOBAL PROPERTY AUTOMOC_FOLDER CMakeAutomocTargets)
-
-# ENABLE CMP0020: Automatically link Qt executables to qtmain target on Windows.
-set_policy(CMP0020 NEW)
+# find_package(THIRDPARTY REQUIRED)
 
 
 # 
@@ -22,15 +11,10 @@ set_policy(CMP0020 NEW)
 # 
 
 # Target name
-set(target fibgui)
+set(target compilation)
 
 # Exit here if required dependencies are not met
-if (NOT Qt5Core_FOUND)
-    message(STATUS "Example ${target} skipped: Qt5 not found")
-    return()
-else()
-    message(STATUS "Example ${target}")
-endif()
+message(STATUS "Example ${target}")
 
 
 # 
@@ -39,9 +23,6 @@ endif()
 
 set(sources
     main.cpp
-    MainWindow.cpp
-    MainWindow.h
-    MainWindow.ui
 )
 
 
@@ -77,7 +58,6 @@ set_target_properties(${target}
 target_include_directories(${target}
     PRIVATE
     ${DEFAULT_INCLUDE_DIRECTORIES}
-    ${CMAKE_CURRENT_BINARY_DIR}
     ${PROJECT_BINARY_DIR}/source/include
 )
 
@@ -89,11 +69,7 @@ target_include_directories(${target}
 target_link_libraries(${target}
     PRIVATE
     ${DEFAULT_LIBRARIES}
-    Qt5::Core
-    Qt5::Gui
-    Qt5::Widgets
-    ${META_PROJECT_NAME}::baselib
-    ${META_PROJECT_NAME}::fiblib
+    yats-include
 )
 
 

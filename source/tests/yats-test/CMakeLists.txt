@@ -10,7 +10,7 @@ find_package(${META_PROJECT_NAME} REQUIRED HINTS "${CMAKE_CURRENT_SOURCE_DIR}/..
 # 
 
 # Target name
-set(target yatslib-test)
+set(target yats-test)
 message(STATUS "Test ${target}")
 
 
@@ -21,7 +21,7 @@ message(STATUS "Test ${target}")
 set(sources
     main.cpp
     yats_test.cpp
-	util_test.cpp
+    util_test.cpp
 )
 
 
@@ -33,9 +33,6 @@ set(sources
 add_executable(${target}
     ${sources}
 )
-
-# Create namespaced alias
-add_executable(${META_PROJECT_NAME}::${target} ALIAS ${target})
 
 
 # 
@@ -67,10 +64,9 @@ target_include_directories(${target}
 target_link_libraries(${target}
     PRIVATE
     ${DEFAULT_LIBRARIES}
-    ${META_PROJECT_NAME}::yatslib
+    yats-include
     gmock-dev
 )
-
 
 # 
 # Compile definitions

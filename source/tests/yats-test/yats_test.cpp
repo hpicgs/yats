@@ -2,7 +2,7 @@
 #include <gmock/gmock.h>
 
 
-#include <yatslib/Pipeline.h>
+#include <yats/Pipeline.h>
 
 class Source
 {

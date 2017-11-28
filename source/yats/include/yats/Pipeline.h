@@ -1,6 +1,6 @@
 #pragma once
 
-#include <yatslib/Nodeconfigurator.h>
+#include <yats/Nodeconfigurator.h>
 
 #include <map>
 #include <memory>

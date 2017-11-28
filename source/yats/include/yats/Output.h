@@ -1,6 +1,6 @@
 #pragma once
 
-#include <yatslib/Input.h>
+#include <yats/Input.h>
 
 
 class Output

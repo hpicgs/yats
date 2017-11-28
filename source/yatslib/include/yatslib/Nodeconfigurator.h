@@ -1,11 +1,11 @@
 #pragma once
 
-#include <yatslib/yatslib_api.h>
 #include <yatslib/Nodecontainer.h>
 #include <yatslib/Output.h>
 
 #include <iostream>
 #include <memory>
+
 
 class AbstractNodeconfigurator
 {

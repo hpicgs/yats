@@ -1,12 +1,12 @@
 #pragma once
 
-#include <yatslib/yatslib_api.h>
 #include <yatslib/Nodeconfigurator.h>
 
 #include <map>
 #include <memory>
 #include <string>
 #include <vector>
+
 
 class Pipeline
 {

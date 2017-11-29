@@ -5,21 +5,29 @@
 #include <yats/Util.h>
 
 
-TEST(is_unique_ptr_test, util_test)
+TEST(util_test, is_unique_ptr_test)
 {
 	ASSERT_TRUE(is_unique_ptr_v<std::unique_ptr<int>>);
 	ASSERT_FALSE(is_unique_ptr_v<std::shared_ptr<int>>);
 	ASSERT_FALSE(is_unique_ptr_v<int>);
+	ASSERT_FALSE(is_unique_ptr_v<int*>);
+	ASSERT_FALSE(is_unique_ptr_v<int&>);
+	ASSERT_FALSE(is_unique_ptr_v<const int&>);
+	ASSERT_FALSE(is_unique_ptr_v<void>);
 }
 
-TEST(is_shared_ptr_test, util_test)
+TEST(util_test, is_shared_ptr_test)
 {
 	ASSERT_TRUE(is_shared_ptr_v<std::shared_ptr<int>>);
 	ASSERT_FALSE(is_shared_ptr_v<std::unique_ptr<int>>);
 	ASSERT_FALSE(is_shared_ptr_v<int>);
+	ASSERT_FALSE(is_shared_ptr_v<int*>);
+	ASSERT_FALSE(is_shared_ptr_v<int&>);
+	ASSERT_FALSE(is_shared_ptr_v<const int&>);
+	ASSERT_FALSE(is_shared_ptr_v<void>);
 }
 
-TEST(has_options_test, util_test)
+TEST(util_test, has_options_test)
 {
 	struct static_options
 	{
@@ -44,7 +52,7 @@ TEST(has_options_test, util_test)
 
 }
 
-TEST(has_run_test, util_test)
+TEST(util_test, has_run_test)
 {
 	struct static_run
 	{

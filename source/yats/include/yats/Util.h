@@ -4,21 +4,6 @@
 
 
 template<typename T>
-struct has_options
-{
-	//TODO: use the real option
-	using Option = int;
-
-	template<typename U, Option(*)()> struct SFINAE {};
-	template<typename U> static char test_function(SFINAE<U, &U::options>*);
-	template<typename U> static int test_function(...);
-	static constexpr bool value = sizeof(test_function<T>(0)) == sizeof(char);
-};
-
-template<typename T>
-constexpr bool has_options_v = has_options<T>::value;
-
-template<typename T>
 struct has_run
 {
 	template<typename U> static char test_function(decltype(&U::run));

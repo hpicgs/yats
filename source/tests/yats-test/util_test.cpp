@@ -27,31 +27,6 @@ TEST(util_test, is_shared_ptr_test)
 	ASSERT_FALSE(is_shared_ptr_v<void>);
 }
 
-TEST(util_test, has_options_test)
-{
-	struct static_options
-	{
-		//TODO: temporary as long as we don't have any Option object
-		static has_options<int>::Option options() { return has_options<int>::Option(); }
-	};
-
-	struct member_options
-	{
-		//TODO: temporary as long as we don't have any Option object
-		has_options<int>::Option options() { return has_options<int>::Option(); }
-	};
-
-	struct no_options
-	{
-		int i;
-	};
-
-	ASSERT_TRUE(has_options_v<static_options>);
-	ASSERT_FALSE(has_options_v<member_options>);
-	ASSERT_FALSE(has_options_v<no_options>);
-
-}
-
 TEST(util_test, has_run_test)
 {
 	struct static_run

@@ -1,12 +1,14 @@
+
 #pragma once
+
 #include <stdexcept>
+
 
 class OutputProxy;
 
 // Allows the connection of an output to the input.
 class InputProxy
 {
-	friend OutputProxy;
 public:
 	InputProxy(const InputProxy& input) = delete;
 
@@ -18,8 +20,9 @@ public:
 		}
 		m_output = &output;
 	}
+
 protected:
-	OutputProxy* m_output;
 	InputProxy() = default;
-private:
+
+	OutputProxy* m_output;
 };

@@ -1,8 +1,12 @@
+
 #pragma once
+
 #include <stdexcept>
+
 #include <yats/InputProxy.h>
 
-// Allows the connection of an Output to the input.
+
+// Allows the connection of an input to the output.
 class OutputProxy
 {
 public:
@@ -10,14 +14,10 @@ public:
 
 	OutputProxy& operator>>(InputProxy& input)
 	{
-		if (input.m_output != nullptr)
-		{
-			throw std::logic_error("Input already connected.");
-		}
-		input.m_output = this;
+		input << *this;
 		return *this;
 	}
+
 protected:
 	OutputProxy() = default;
-private:
 };

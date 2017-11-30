@@ -23,10 +23,11 @@ message(STATUS "Header Only Library ${target}")
 set(include_path "${CMAKE_CURRENT_SOURCE_DIR}/include/${target}")
 
 set(headers
-    ${include_path}/Output.h
     ${include_path}/Input.h
+    ${include_path}/InputProxy.h
     ${include_path}/Nodecontainer.h
     ${include_path}/Nodeconfigurator.h
+    ${include_path}/OutputProxy.h
     ${include_path}/Pipeline.h
 	${include_path}/Util.h
 )

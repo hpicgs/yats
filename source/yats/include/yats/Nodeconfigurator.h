@@ -1,24 +1,28 @@
 #pragma once
 
-#include <yats/Nodecontainer.h>
-#include <yats/Output.h>
-
 #include <iostream>
 #include <memory>
 #include <vector>
 
+#include <yats/InputProxy.h>
+#include <yats/Nodecontainer.h>
+#include <yats/OutputProxy.h>
 
-class AbstractNodeconfigurator
+
+/**/
+class AbstractTaskConfigurator
 {
 public:
-	AbstractNodeconfigurator() = default;
-	virtual ~AbstractNodeconfigurator() = default;
+	AbstractTaskConfigurator() = default;
+	virtual ~AbstractTaskConfigurator() = default;
 
 	virtual std::unique_ptr<AbstractNodecontainer> make() const = 0;
 
-	virtual Input input() = 0;
+	virtual InputProxy input(const std::string& name) = 0;
+	virtual InputProxy input(size_t id) = 0;
 
-	virtual Output output() = 0;
+	virtual OutputProxy output(const std::string& name) = 0;
+	virtual OutputProxy output(size_t id) = 0;
 
 private:
 

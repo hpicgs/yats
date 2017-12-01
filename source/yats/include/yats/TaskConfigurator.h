@@ -1,3 +1,4 @@
+
 #pragma once
 
 #include <memory>
@@ -29,13 +30,13 @@ template <typename Node>
 class TaskConfigurator : public AbstractTaskConfigurator
 {
 public:
-	
+
 	using Helper = decltype(MakeHelper(&Node::run));
 
 	TaskConfigurator()
 	{
-		parseInputParameter<0>();
-		parseOutputParameter<0>();
+		parseInputParameters();
+		parseOutputParameters();
 	}
 
 	std::unique_ptr<AbstractNodecontainer> make() const override
@@ -66,6 +67,11 @@ public:
 	}
 
 protected:
+	void parseInputParameters()
+	{
+		parseInputParameter<0>();
+	}
+
 	template<size_t Index>
 	std::enable_if_t<Index == Helper::NUM_PARAMETERS> parseInputParameter()
 	{
@@ -80,18 +86,30 @@ protected:
 		parseInputParameter<Index + 1>();
 	}
 
-	template<size_t Index>
-	std::enable_if_t<Index == std::tuple_size_v<typename Helper::RETURN>> parseOutputParameter()
+	template<typename T = typename Helper::RETURN>
+	std::enable_if_t<std::is_same_v<T, void>> parseOutputParameters()
 	{
 
 	}
 
-	template<size_t Index>
-	std::enable_if_t<Index < std::tuple_size_v<typename Helper::RETURN>> parseOutputParameter()
+	template<typename T = typename Helper::RETURN>
+	std::enable_if_t<!std::is_same_v<T, void>> parseOutputParameters()
+	{
+		parseOutputParameter<0, std::tuple_size_v<typename Helper::RETURN>>();
+	}
+
+	template<size_t Index, size_t Max>
+	std::enable_if_t<Index == Max> parseOutputParameter()
+	{
+
+	}
+
+	template<size_t Index, size_t Max>
+	std::enable_if_t<Index < Max> parseOutputParameter()
 	{
 		using currentOutput = std::tuple_element_t<Index, Helper::RETURN>;
 		m_outputs[currentOutput::ID] = OutputProxy();
-		parseOutputParameter<Index + 1>();
+		parseOutputParameter<Index + 1, Max>();
 	}
 
 	std::map<size_t, InputProxy> m_inputs;

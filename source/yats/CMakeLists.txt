@@ -26,7 +26,7 @@ set(headers
     ${include_path}/Input.h
     ${include_path}/InputProxy.h
     ${include_path}/Nodecontainer.h
-    ${include_path}/Nodeconfigurator.h
+    ${include_path}/TaskConfigurator.h
     ${include_path}/OutputProxy.h
     ${include_path}/Pipeline.h
 	${include_path}/Util.h

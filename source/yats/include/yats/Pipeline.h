@@ -1,11 +1,11 @@
 #pragma once
 
-#include <yats/Nodeconfigurator.h>
-
 #include <map>
 #include <memory>
 #include <string>
 #include <vector>
+
+#include "TaskConfigurator.h"
 
 
 class Pipeline
@@ -15,10 +15,10 @@ public:
 	Pipeline() = default;
 
 	template <typename Node>
-	Nodeconfigurator<Node>* add(const std::string &name)
+	TaskConfigurator<Node>* add(const std::string &name)
 	{
 		m_nodes[name] = std::make_unique<Nodeconfigurator<Node>>();
-		return static_cast<Nodeconfigurator<Node>*>(m_nodes[name].get());
+		return static_cast<TaskConfigurator<Node>*>(m_nodes[name].get());
 	}
 
 	void run()
@@ -32,5 +32,5 @@ public:
 
 private:
 
-	std::map<std::string, std::unique_ptr<AbstractNodeconfigurator>> m_nodes;
+	std::map<std::string, std::unique_ptr<AbstractTaskConfigurator>> m_nodes;
 };

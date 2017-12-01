@@ -10,6 +10,7 @@ class OutputProxy;
 class InputProxy
 {
 public:
+	InputProxy() = default;
 	InputProxy(const InputProxy& input) = delete;
 
 	void operator<<(OutputProxy& output)
@@ -22,7 +23,5 @@ public:
 	}
 
 protected:
-	InputProxy() = default;
-
 	OutputProxy* m_output;
 };

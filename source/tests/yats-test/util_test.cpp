@@ -14,6 +14,14 @@ TEST(util_test, is_unique_ptr_test)
 	ASSERT_FALSE(is_unique_ptr_v<int&>);
 	ASSERT_FALSE(is_unique_ptr_v<const int&>);
 	ASSERT_FALSE(is_unique_ptr_v<void>);
+
+	struct no_unique_ptr
+	{
+		char dummy;
+	};
+
+	ASSERT_FALSE(is_unique_ptr_v<no_unique_ptr>);
+	ASSERT_FALSE(is_unique_ptr_v<no_unique_ptr*>);
 }
 
 TEST(util_test, is_shared_ptr_test)
@@ -25,6 +33,14 @@ TEST(util_test, is_shared_ptr_test)
 	ASSERT_FALSE(is_shared_ptr_v<int&>);
 	ASSERT_FALSE(is_shared_ptr_v<const int&>);
 	ASSERT_FALSE(is_shared_ptr_v<void>);
+
+	struct no_shared_ptr
+	{
+		char dummy;
+	};
+
+	ASSERT_FALSE(is_unique_ptr_v<no_shared_ptr>);
+	ASSERT_FALSE(is_unique_ptr_v<no_shared_ptr*>);
 }
 
 TEST(util_test, has_run_test)

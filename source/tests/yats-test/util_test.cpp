@@ -5,46 +5,45 @@
 #include <yats/Util.h>
 
 
-TEST(is_unique_ptr_test, util_test)
+TEST(util_test, is_unique_ptr_test)
 {
-	ASSERT_TRUE(is_unique_ptr_v<std::unique_ptr<int>>);
-	ASSERT_FALSE(is_unique_ptr_v<std::shared_ptr<int>>);
-	ASSERT_FALSE(is_unique_ptr_v<int>);
-}
+	EXPECT_TRUE(is_unique_ptr_v<std::unique_ptr<int>>);
+	EXPECT_FALSE(is_unique_ptr_v<std::shared_ptr<int>>);
+	EXPECT_FALSE(is_unique_ptr_v<int>);
+	EXPECT_FALSE(is_unique_ptr_v<int*>);
+	EXPECT_FALSE(is_unique_ptr_v<int&>);
+	EXPECT_FALSE(is_unique_ptr_v<const int&>);
+	EXPECT_FALSE(is_unique_ptr_v<void>);
 
-TEST(is_shared_ptr_test, util_test)
-{
-	ASSERT_TRUE(is_shared_ptr_v<std::shared_ptr<int>>);
-	ASSERT_FALSE(is_shared_ptr_v<std::unique_ptr<int>>);
-	ASSERT_FALSE(is_shared_ptr_v<int>);
-}
-
-TEST(has_options_test, util_test)
-{
-	struct static_options
+	struct no_unique_ptr
 	{
-		//TODO: temporary as long as we don't have any Option object
-		static has_options<int>::Option options() { return has_options<int>::Option(); }
+		char dummy;
 	};
 
-	struct member_options
-	{
-		//TODO: temporary as long as we don't have any Option object
-		has_options<int>::Option options() { return has_options<int>::Option(); }
-	};
-
-	struct no_options
-	{
-		int i;
-	};
-
-	ASSERT_TRUE(has_options_v<static_options>);
-	ASSERT_FALSE(has_options_v<member_options>);
-	ASSERT_FALSE(has_options_v<no_options>);
-
+	EXPECT_FALSE(is_unique_ptr_v<no_unique_ptr>);
+	EXPECT_FALSE(is_unique_ptr_v<no_unique_ptr*>);
 }
 
-TEST(has_run_test, util_test)
+TEST(util_test, is_shared_ptr_test)
+{
+	EXPECT_TRUE(is_shared_ptr_v<std::shared_ptr<int>>);
+	EXPECT_FALSE(is_shared_ptr_v<std::unique_ptr<int>>);
+	EXPECT_FALSE(is_shared_ptr_v<int>);
+	EXPECT_FALSE(is_shared_ptr_v<int*>);
+	EXPECT_FALSE(is_shared_ptr_v<int&>);
+	EXPECT_FALSE(is_shared_ptr_v<const int&>);
+	EXPECT_FALSE(is_shared_ptr_v<void>);
+
+	struct no_shared_ptr
+	{
+		char dummy;
+	};
+
+	EXPECT_FALSE(is_unique_ptr_v<no_shared_ptr>);
+	EXPECT_FALSE(is_unique_ptr_v<no_shared_ptr*>);
+}
+
+TEST(util_test, has_run_test)
 {
 	struct static_run
 	{
@@ -61,7 +60,7 @@ TEST(has_run_test, util_test)
 		int i;
 	};
 
-	ASSERT_TRUE(has_run_v<member_run>);
-	ASSERT_TRUE(has_run_v<static_run>);
-	ASSERT_FALSE(has_run_v<no_run>);
+	EXPECT_TRUE(has_run_v<member_run>);
+	EXPECT_TRUE(has_run_v<static_run>);
+	EXPECT_FALSE(has_run_v<no_run>);
 }

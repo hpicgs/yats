@@ -75,19 +75,19 @@ protected:
 	template<size_t Index>
 	std::enable_if_t<Index < Helper::NUM_PARAMETERS> parseInputParameter()
 	{
-		using currentInput = std::tuple_element_t<Index, Helper::PARAMETERS>;
+		using currentInput = std::tuple_element_t<Index, Helper::PARAMETER>;
 		m_inputs[currentInput::ID] = InputProxy();
 		parseInputParameter<Index + 1>();
 	}
 
 	template<size_t Index>
-	std::enable_if_t<Index == std::tuple_size_v<Helper::RETURN>> parseOutputParameter()
+	std::enable_if_t<Index == std::tuple_size_v<typename Helper::RETURN>> parseOutputParameter()
 	{
 
 	}
 
 	template<size_t Index>
-	std::enable_if_t<Index < std::tuple_size_v<Helper::RETURN>> parseOutputParameter()
+	std::enable_if_t<Index < std::tuple_size_v<typename Helper::RETURN>> parseOutputParameter()
 	{
 		using currentOutput = std::tuple_element_t<Index, Helper::RETURN>;
 		m_outputs[currentOutput::ID] = OutputProxy();

@@ -17,7 +17,7 @@ public:
 	template <typename Node>
 	TaskConfigurator<Node>* add(const std::string &name)
 	{
-		m_nodes[name] = std::make_unique<Nodeconfigurator<Node>>();
+		m_nodes[name] = std::make_unique<TaskConfigurator<Node>>();
 		return static_cast<TaskConfigurator<Node>*>(m_nodes[name].get());
 	}
 

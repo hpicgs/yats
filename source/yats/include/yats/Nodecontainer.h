@@ -51,7 +51,7 @@ public:
 
 private:
 
-	typename Helper::PARAMETER m_parameter;
+	//typename Helper::PARAMETER m_parameter;
 	Node m_node;
 	int m_current;
 };

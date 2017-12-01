@@ -20,6 +20,7 @@ message(STATUS "Test ${target}")
 
 set(sources
     main.cpp
+    taskconfigurator_test.cpp
     yats_test.cpp
     util_test.cpp
 )

@@ -52,7 +52,7 @@ public:
 
 	InputProxy& input(size_t id) override
 	{
-		return m_inputs[id];
+		return m_inputs.at(id);
 	}
 
 	OutputProxy& output(const std::string& name) override
@@ -63,7 +63,7 @@ public:
 
 	OutputProxy& output(size_t id) override
 	{
-		return m_outputs[id];
+		return m_outputs.at(id);
 	}
 
 protected:

@@ -73,29 +73,29 @@ protected:
 	}
 
 	template<size_t Index>
-	std::enable_if_t<Index == Helper::NUM_PARAMETERS> parseInputParameter()
+	std::enable_if_t<Index == Helper::ParameterCount> parseInputParameter()
 	{
 
 	}
 
 	template<size_t Index>
-	std::enable_if_t<Index < Helper::NUM_PARAMETERS> parseInputParameter()
+	std::enable_if_t<Index < Helper::ParameterCount> parseInputParameter()
 	{
-		using currentInput = std::tuple_element_t<Index, Helper::PARAMETER>;
+		using currentInput = std::tuple_element_t<Index, typename Helper::WrappedInput>;
 		m_inputs[currentInput::ID] = InputConnector();
 		parseInputParameter<Index + 1>();
 	}
 
-	template<typename T = typename Helper::RETURN>
+	template<typename T = typename Helper::ReturnType>
 	std::enable_if_t<std::is_same_v<T, void>> parseOutputParameters()
 	{
 
 	}
 
-	template<typename T = typename Helper::RETURN>
+	template<typename T = typename Helper::ReturnType>
 	std::enable_if_t<!std::is_same_v<T, void>> parseOutputParameters()
 	{
-		parseOutputParameter<0, std::tuple_size_v<typename Helper::RETURN>>();
+		parseOutputParameter<0, std::tuple_size_v<typename Helper::ReturnType>>();
 	}
 
 	template<size_t Index, size_t Max>
@@ -107,7 +107,7 @@ protected:
 	template<size_t Index, size_t Max>
 	std::enable_if_t<Index < Max> parseOutputParameter()
 	{
-		using currentOutput = std::tuple_element_t<Index, Helper::RETURN>;
+		using currentOutput = std::tuple_element_t<Index, Helper::ReturnType>;
 		m_outputs[currentOutput::ID] = OutputConnector();
 		parseOutputParameter<Index + 1, Max>();
 	}

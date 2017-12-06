@@ -17,17 +17,22 @@ private:
 };
 
 
-template <typename T, typename... args>
+template <typename Return, typename... ParameterTypes>
 struct NodeHelper
 {
-	using RETURN = T;
-	using PARAMETER = std::tuple<args...>;
-	static constexpr size_t NUM_PARAMETERS = sizeof...(args);
+	template <typename CompoundType>
+	static typename CompoundType::value_type transform();
+
+	using WrappedInput = std::tuple<ParameterTypes...>;
+	using Input = std::tuple<decltype(transform<ParameterTypes>())...>;
+	using ReturnType = Return;
+
+	static constexpr size_t ParameterCount = sizeof...(ParameterTypes);
 };
 
 
-template <typename T, typename S, typename... args>
-static constexpr NodeHelper<T, args...> MakeHelper(T(S::*)(args...))
+template <typename ReturnType, typename TaskType, typename... ParameterTypes>
+static constexpr NodeHelper<ReturnType, ParameterTypes...> MakeHelper(ReturnType(TaskType::*)(ParameterTypes...))
 {
 }
 
@@ -46,12 +51,12 @@ public:
 
 	bool canRun() const override
 	{
-		return m_current == Helper::NUM_PARAMETERS;
+		return m_current == Helper::ParameterCount;
 	}
 
 private:
 
-	//typename Helper::PARAMETER m_parameter;
+	typename Helper::Input m_parameter;
 	Node m_node;
 	int m_current;
 };

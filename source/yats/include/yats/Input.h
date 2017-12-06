@@ -2,7 +2,7 @@
 
 
 /// <summary>
-/// <para>Hallo</para>
+/// <para>Main class to represent an input</para>
 /// <para><c>T</c> Type of input value</para>
 /// <para><c>Id</c> Unique identifier of input</para>
 /// </summary>

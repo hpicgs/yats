@@ -7,15 +7,12 @@
 template<uint64_t> 
 struct is_compiletime_constant
 {
-	constexpr static bool T = true;
 };
 
 TEST(identifier_test, is_compiletime_constant)
 {
-	is_compiletime_constant<"value"_id> value1;
-	is_compiletime_constant<id("value")> value2;
-
-	EXPECT_EQ(value1.T, value2.T);
+	volatile is_compiletime_constant<"value"_id> value1;
+	volatile is_compiletime_constant<id("value")> value2;
 }
 
 TEST(identifier_test, different_syntax_is_same)

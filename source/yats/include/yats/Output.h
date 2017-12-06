@@ -1,4 +1,6 @@
+
 #pragma once
+
 
 /// <summary>
 /// <para>Main class to represent an output</para>
@@ -18,8 +20,7 @@ public:
 
 	operator const T&() const { return m_value; }
 	operator T&() { return m_value; }
-	//T& operator*() { return m_value; }
+
 protected:
 	T m_value;
-private:
 };

@@ -12,7 +12,8 @@ class InputConnector
 {
 public:
 	InputConnector() : m_output(nullptr) {}
-	InputConnector(const InputConnector& input) = delete;
+	InputConnector(const InputConnector& other) = delete;
+	InputConnector(InputConnector&& other) = default;
 
 	/// <summary>Connects output to input.</summary>
 	/// <param name="output">Reference to output to connect.</param>
@@ -25,6 +26,9 @@ public:
 		}
 		m_output = &output;
 	}
+
+	InputConnector& operator=(const InputConnector& other) = delete;
+	InputConnector& operator=(InputConnector&& other) = default;
 
 protected:
 	OutputConnector* m_output;

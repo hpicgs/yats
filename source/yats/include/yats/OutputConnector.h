@@ -15,11 +15,15 @@ class OutputConnector
 {
 public:
 	OutputConnector() = default;
-	OutputConnector(const OutputConnector& output) = delete;
+	OutputConnector(const OutputConnector& other) = delete;
+	OutputConnector(OutputConnector&& other) = default;
 
 	OutputConnector& operator>>(InputConnector& input)
 	{
 		input << *this;
 		return *this;
 	}
+
+	OutputConnector& operator=(const OutputConnector& other) = delete;
+	OutputConnector& operator=(OutputConnector&& other) = default;
 };

@@ -4,9 +4,9 @@
 #include <memory>
 #include <map>
 
-#include "InputProxy.h"
+#include "InputConnector.h"
 #include "Nodecontainer.h"
-#include "OutputProxy.h"
+#include "OutputConnector.h"
 
 
 /**/
@@ -18,11 +18,11 @@ public:
 
 	virtual std::unique_ptr<AbstractNodecontainer> make() const = 0;
 
-	virtual InputProxy& input(const std::string& name) = 0;
-	virtual InputProxy& input(size_t id) = 0;
+	virtual InputConnector& input(const std::string& name) = 0;
+	virtual InputConnector& input(size_t id) = 0;
 
-	virtual OutputProxy& output(const std::string& name) = 0;
-	virtual OutputProxy& output(size_t id) = 0;
+	virtual OutputConnector& output(const std::string& name) = 0;
+	virtual OutputConnector& output(size_t id) = 0;
 };
 
 
@@ -44,24 +44,24 @@ public:
 		return std::make_unique<Nodecontainer<Node>>();
 	}
 
-	InputProxy& input(const std::string& name) override
+	InputConnector& input(const std::string& name) override
 	{
 		//TODO convert name to id
-		return InputProxy();
+		return InputConnector();
 	}
 
-	InputProxy& input(size_t id) override
+	InputConnector& input(size_t id) override
 	{
 		return m_inputs.at(id);
 	}
 
-	OutputProxy& output(const std::string& name) override
+	OutputConnector& output(const std::string& name) override
 	{
 		//TODO convert name to id
-		return OutputProxy();
+		return OutputConnector();
 	}
 
-	OutputProxy& output(size_t id) override
+	OutputConnector& output(size_t id) override
 	{
 		return m_outputs.at(id);
 	}
@@ -82,7 +82,7 @@ protected:
 	std::enable_if_t<Index < Helper::NUM_PARAMETERS> parseInputParameter()
 	{
 		using currentInput = std::tuple_element_t<Index, Helper::PARAMETER>;
-		m_inputs[currentInput::ID] = InputProxy();
+		m_inputs[currentInput::ID] = InputConnector();
 		parseInputParameter<Index + 1>();
 	}
 
@@ -108,10 +108,10 @@ protected:
 	std::enable_if_t<Index < Max> parseOutputParameter()
 	{
 		using currentOutput = std::tuple_element_t<Index, Helper::RETURN>;
-		m_outputs[currentOutput::ID] = OutputProxy();
+		m_outputs[currentOutput::ID] = OutputConnector();
 		parseOutputParameter<Index + 1, Max>();
 	}
 
-	std::map<size_t, InputProxy> m_inputs;
-	std::map<size_t, OutputProxy> m_outputs;
+	std::map<size_t, InputConnector> m_inputs;
+	std::map<size_t, OutputConnector> m_outputs;
 };

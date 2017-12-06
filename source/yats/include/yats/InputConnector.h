@@ -4,20 +4,20 @@
 #include <stdexcept>
 
 
-class OutputProxy;
+class OutputConnector;
 
 /// <summary>Allows connecting an output (the source) to an input (the target).</summary>
 /// <remarks>Each input may only be connected to one output.</remarks>
-class InputProxy
+class InputConnector
 {
 public:
-	InputProxy() : m_output(nullptr) {}
-	InputProxy(const InputProxy& input) = delete;
+	InputConnector() : m_output(nullptr) {}
+	InputConnector(const InputConnector& input) = delete;
 
 	/// <summary>Connects output to input.</summary>
 	/// <param name="output">Reference to output to connect.</param>
 	/// <exception cref="logic_error">Thrown when input is already connected to other output.</exception>
-	void operator<<(OutputProxy& output)
+	void operator<<(OutputConnector& output)
 	{
 		if (m_output != nullptr)
 		{
@@ -27,5 +27,5 @@ public:
 	}
 
 protected:
-	OutputProxy* m_output;
+	OutputConnector* m_output;
 };

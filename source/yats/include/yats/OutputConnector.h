@@ -4,20 +4,20 @@
 #include <stdexcept>
 #include <tuple>
 
-#include "InputProxy.h"
+#include "InputConnector.h"
 
 
 template<typename... Args>
 using OutputBundle = std::tuple<Args...>;
 
 // Allows the connection of an input to the output.
-class OutputProxy
+class OutputConnector
 {
 public:
-	OutputProxy() = default;
-	OutputProxy(const OutputProxy& output) = delete;
+	OutputConnector() = default;
+	OutputConnector(const OutputConnector& output) = delete;
 
-	OutputProxy& operator>>(InputProxy& input)
+	OutputConnector& operator>>(InputConnector& input)
 	{
 		input << *this;
 		return *this;

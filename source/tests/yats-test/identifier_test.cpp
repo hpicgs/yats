@@ -7,13 +7,15 @@
 template<uint64_t> 
 struct is_compiletime_constant
 {
-	static const bool T = true;
+	constexpr static bool T = true;
 };
 
 TEST(identifier_test, is_compiletime_constant)
 {
-	EXPECT_TRUE(is_compiletime_constant<"value"_id>::T);
-	EXPECT_TRUE(is_compiletime_constant<id("value")>::T);
+	is_compiletime_constant<"value"_id> value1;
+	is_compiletime_constant<id("value")> value2;
+
+	EXPECT_EQ(value1.T, value2.T);
 }
 
 TEST(identifier_test, different_syntax_is_same)
@@ -23,7 +25,8 @@ TEST(identifier_test, different_syntax_is_same)
 
 TEST(identifier_test, supports_full_range)
 {
-	for (int i = std::numeric_limits<char>::min(); i < std::numeric_limits<char>::max(); ++i)
+	// Test if every possible character returns a valid output.
+	for (int i = std::numeric_limits<char>::min(); i <= std::numeric_limits<char>::max(); ++i)
 	{
 		EXPECT_LT(lookup(static_cast<char>(i)), 32);
 	}
@@ -33,19 +36,18 @@ TEST(identifier_test, is_case_insensitive)
 {
 	EXPECT_EQ(id("value"), id("Value"));
 	EXPECT_EQ(id("value"), id("VALUE"));
-	EXPECT_EQ(id("valUE"), id("VALUE"));
+	EXPECT_EQ(id("valUE"), id("vALUE"));
 }
 
 TEST(identifier_test, ignores_characters_after_max_length)
 {
-	EXPECT_EQ(id("123456789012"),
-              id("1234567890123"));
+	EXPECT_EQ(id("123456789012"), id("1234567890123"));
 
-	EXPECT_EQ(id("1234567890124"),
-		      id("1234567890123"));
+	EXPECT_EQ(id("1234567890124"), id("1234567890123"));
 }
 
 TEST(identifier_test, handles_special_characters)
 {
+	// Every special character that is not supported gets converted to '_'.
 	EXPECT_EQ(id("123#()[]"), id("___#____"));
 }

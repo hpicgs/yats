@@ -94,7 +94,7 @@ protected:
 	template<typename T = typename Helper::ReturnType>
 	std::enable_if_t<!std::is_same<T, void>::value> parseOutputParameters()
 	{
-		parseOutputParameter<0, std::tuple_size_v<typename Helper::ReturnType>>();
+		parseOutputParameter<0, std::tuple_size<typename Helper::ReturnType>::value>();
 	}
 
 	template<size_t Index, size_t Max>

@@ -2,6 +2,9 @@
 #pragma once
 
 
+template<typename... Args>
+using OutputBundle = std::tuple<Args...>;
+
 /// <summary>
 /// <para>Main class to represent an output</para>
 /// <para><c>T</c> Type of output value</para>

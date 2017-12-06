@@ -7,9 +7,6 @@
 #include "InputConnector.h"
 
 
-template<typename... Args>
-using OutputBundle = std::tuple<Args...>;
-
 class AbstractTaskConfigurator;
 
 // Allows the connection of an input to the output.

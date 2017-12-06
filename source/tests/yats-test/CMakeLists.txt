@@ -19,6 +19,7 @@ message(STATUS "Test ${target}")
 # 
 
 set(sources
+    identifier_test.cpp
     main.cpp
     yats_test.cpp
     util_test.cpp

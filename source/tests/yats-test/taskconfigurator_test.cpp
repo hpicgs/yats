@@ -111,3 +111,39 @@ TEST(taskconfigurator_test, multiple_returns_multiple_parameters)
 	EXPECT_NO_THROW(configurator.input(1));
 	EXPECT_NO_THROW(configurator.output(1));
 }
+
+TEST(taskconfigurator_test, get_input_output_by_id)
+{
+	struct Task
+	{
+		OutputBundle<Output<int, 123>> run(Input<int, 321> input)
+		{
+			return { input + 1 };
+		}
+	};
+
+	TaskConfigurator<Task> configurator;
+	EXPECT_NO_THROW(configurator.input(321));
+	EXPECT_NO_THROW(configurator.output(123));
+
+	EXPECT_ANY_THROW(configurator.input(0));
+	EXPECT_ANY_THROW(configurator.output(0));
+}
+
+TEST(taskconfigurator_test, get_input_output_by_name)
+{
+	struct Task
+	{
+		OutputBundle<Output<int, "output"_id>> run(Input<int, "input"_id> input)
+		{
+			return { input + 1 };
+		}
+	};
+
+	TaskConfigurator<Task> configurator;
+	EXPECT_NO_THROW(configurator.input("input"));
+	EXPECT_NO_THROW(configurator.output("output"));
+
+	EXPECT_ANY_THROW(configurator.input("output"));
+	EXPECT_ANY_THROW(configurator.output("input"));
+}

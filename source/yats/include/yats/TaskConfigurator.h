@@ -4,6 +4,7 @@
 #include <memory>
 #include <map>
 
+#include "Identifier.h"
 #include "InputConnector.h"
 #include "Nodecontainer.h"
 #include "OutputConnector.h"
@@ -46,8 +47,7 @@ public:
 
 	InputConnector& input(const std::string& name) override
 	{
-		//TODO convert name to id
-		return InputConnector(this);
+		return m_inputs.at(id(name.c_str()));
 	}
 
 	InputConnector& input(size_t id) override
@@ -57,8 +57,7 @@ public:
 
 	OutputConnector& output(const std::string& name) override
 	{
-		//TODO convert name to id
-		return OutputConnector(this);
+		return m_outputs.at(id(name.c_str()));
 	}
 
 	OutputConnector& output(size_t id) override

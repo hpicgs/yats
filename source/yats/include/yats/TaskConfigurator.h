@@ -106,7 +106,7 @@ protected:
 	template<size_t Index, size_t Max>
 	std::enable_if_t<Index < Max> parseOutputParameter()
 	{
-		using currentOutput = std::tuple_element_t<Index, Helper::ReturnType>;
+		using currentOutput = std::tuple_element_t<Index, typename Helper::ReturnType>;
 		m_outputs.insert({ currentOutput::ID, OutputConnector(this) });
 		parseOutputParameter<Index + 1, Max>();
 	}

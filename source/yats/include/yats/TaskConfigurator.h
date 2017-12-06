@@ -47,7 +47,7 @@ public:
 	InputConnector& input(const std::string& name) override
 	{
 		//TODO convert name to id
-		return InputConnector();
+		return InputConnector(this);
 	}
 
 	InputConnector& input(size_t id) override
@@ -58,7 +58,7 @@ public:
 	OutputConnector& output(const std::string& name) override
 	{
 		//TODO convert name to id
-		return OutputConnector();
+		return OutputConnector(this);
 	}
 
 	OutputConnector& output(size_t id) override
@@ -82,7 +82,7 @@ protected:
 	std::enable_if_t<Index < Helper::ParameterCount> parseInputParameter()
 	{
 		using currentInput = std::tuple_element_t<Index, typename Helper::WrappedInput>;
-		m_inputs[currentInput::ID] = InputConnector();
+		m_inputs.insert({ currentInput::ID, InputConnector(this) });
 		parseInputParameter<Index + 1>();
 	}
 
@@ -108,7 +108,7 @@ protected:
 	std::enable_if_t<Index < Max> parseOutputParameter()
 	{
 		using currentOutput = std::tuple_element_t<Index, Helper::ReturnType>;
-		m_outputs[currentOutput::ID] = OutputConnector();
+		m_outputs.insert({ currentOutput::ID, OutputConnector(this) });
 		parseOutputParameter<Index + 1, Max>();
 	}
 

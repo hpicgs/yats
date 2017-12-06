@@ -10,11 +10,13 @@
 template<typename... Args>
 using OutputBundle = std::tuple<Args...>;
 
+class AbstractTaskConfigurator;
+
 // Allows the connection of an input to the output.
 class OutputConnector
 {
 public:
-	OutputConnector() = default;
+	explicit OutputConnector(const AbstractTaskConfigurator* const owner) : m_owner(owner) {}
 	OutputConnector(const OutputConnector& other) = delete;
 	OutputConnector(OutputConnector&& other) = default;
 
@@ -26,4 +28,7 @@ public:
 
 	OutputConnector& operator=(const OutputConnector& other) = delete;
 	OutputConnector& operator=(OutputConnector&& other) = default;
+
+protected:
+	const AbstractTaskConfigurator* const m_owner;
 };

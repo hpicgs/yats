@@ -1,4 +1,3 @@
-
 #pragma once
 
 #include <stdexcept>
@@ -6,6 +5,8 @@
 
 #include "InputConnector.h"
 
+namespace yats
+{
 
 class AbstractTaskConfigurator;
 
@@ -29,3 +30,5 @@ public:
 protected:
 	const AbstractTaskConfigurator* const m_owner;
 };
+
+}  // namespace yats

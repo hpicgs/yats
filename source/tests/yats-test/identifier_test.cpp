@@ -1,10 +1,12 @@
-
 #include <gmock/gmock.h>
 
 
 #include <yats/Identifier.h>
 
-template<uint64_t> 
+namespace yats
+{
+
+template <uint64_t>
 void is_compiletime_constant()
 {
 }
@@ -48,3 +50,5 @@ TEST(identifier_test, handles_special_characters)
 	// Every special character that is not supported gets converted to '_'.
 	EXPECT_EQ(id("123#()[]"), id("___#____"));
 }
+
+}  // namespace yats

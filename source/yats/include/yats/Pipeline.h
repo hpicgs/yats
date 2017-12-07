@@ -7,6 +7,8 @@
 
 #include "TaskConfigurator.h"
 
+namespace yats
+{
 
 class Pipeline
 {
@@ -34,3 +36,5 @@ private:
 
 	std::map<std::string, std::unique_ptr<AbstractTaskConfigurator>> m_nodes;
 };
+
+}  // namespace yats

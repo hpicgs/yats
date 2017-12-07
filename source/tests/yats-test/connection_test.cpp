@@ -1,10 +1,11 @@
-
 #include <gmock/gmock.h>
 
 
 #include <yats/InputConnector.h>
 #include <yats/OutputConnector.h>
 
+namespace yats
+{
 
 TEST(connection_test, one_input_one_output)
 {
@@ -42,3 +43,5 @@ TEST(connection_test, multiple_input_one_output)
 	EXPECT_NO_THROW(input1 << output);
 	EXPECT_NO_THROW(input2 << output);
 }
+
+} // namespace yats

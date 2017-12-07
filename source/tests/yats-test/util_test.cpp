@@ -1,9 +1,9 @@
-
 #include <gmock/gmock.h>
-
 
 #include <yats/Util.h>
 
+namespace yats
+{
 
 TEST(util_test, is_unique_ptr_test)
 {
@@ -64,3 +64,5 @@ TEST(util_test, has_run_test)
 	EXPECT_TRUE(has_run_v<static_run>);
 	EXPECT_FALSE(has_run_v<no_run>);
 }
+
+}  // namespace yats

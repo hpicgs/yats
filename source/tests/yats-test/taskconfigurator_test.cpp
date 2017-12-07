@@ -1,10 +1,11 @@
-
 #include <gmock/gmock.h>
 
 #include <yats/Input.h>
 #include <yats/Output.h>
 #include <yats/TaskConfigurator.h>
 
+namespace yats
+{
 
 template<typename T>
 class OpenTaskConfigurator : public TaskConfigurator<T>
@@ -147,3 +148,5 @@ TEST(taskconfigurator_test, get_input_output_by_name)
 	EXPECT_ANY_THROW(configurator.input("output"));
 	EXPECT_ANY_THROW(configurator.output("input"));
 }
+
+}  // namespace yats

@@ -1,8 +1,9 @@
-
 #include <gmock/gmock.h>
 
-
 #include <yats/Pipeline.h>
+
+namespace yats
+{
 
 class Source
 {
@@ -35,3 +36,5 @@ TEST(interface_creation, simple)
 
 	//pipeline.run();
 }
+
+}  // namespace yats

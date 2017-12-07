@@ -2,6 +2,9 @@
 
 #include <tuple>
 
+namespace yats
+{
+
 class AbstractNodecontainer
 {
 public:
@@ -60,3 +63,5 @@ private:
 	Node m_node;
 	int m_current;
 };
+
+} // namespace yats

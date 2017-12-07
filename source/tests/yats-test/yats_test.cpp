@@ -1,6 +1,4 @@
-
 #include <gmock/gmock.h>
-
 
 #include <yats/Pipeline.h>
 
@@ -26,7 +24,7 @@ public:
 
 TEST(interface_creation, simple)
 {
-	Pipeline pipeline;
+	yats::Pipeline pipeline;
 
 	//auto sourceconfigurator = pipeline.add<Source>("ultra");
 	//auto targetconfigurator = pipeline.add<Target>("ultimate");

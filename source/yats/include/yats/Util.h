@@ -2,6 +2,8 @@
 
 #include <memory>
 
+namespace yats
+{
 
 template<typename T>
 struct has_run
@@ -47,3 +49,5 @@ struct is_shared_ptr<void>
 
 template<typename T>
 constexpr bool is_shared_ptr_v = is_shared_ptr<T>::value;
+
+}  // namespace yats

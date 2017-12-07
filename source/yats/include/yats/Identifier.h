@@ -3,6 +3,9 @@
 #include <cstdint>
 #include <cstdlib>
 
+namespace yats
+{
+
 //! This function transformes a character to a smaller alphabet.
 constexpr int lookup(char character)
 {
@@ -77,3 +80,5 @@ constexpr uint64_t operator "" _id(const char *string, size_t length)
 {
 	return name(string, length);
 }
+
+}  // namespace yats

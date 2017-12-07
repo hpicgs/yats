@@ -1,7 +1,8 @@
 #pragma once
 
 #include <string>
-#include "TaskConfigurator.h"
+
+#include <yats/TaskConfigurator.h>
 
 namespace yats
 {

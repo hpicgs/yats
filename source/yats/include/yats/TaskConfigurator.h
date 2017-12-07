@@ -3,10 +3,10 @@
 #include <memory>
 #include <map>
 
-#include "Identifier.h"
-#include "InputConnector.h"
-#include "Nodecontainer.h"
-#include "OutputConnector.h"
+#include <yats/Identifier.h>
+#include <yats/InputConnector.h>
+#include <yats/Nodecontainer.h>
+#include <yats/OutputConnector.h>
 
 namespace yats
 {

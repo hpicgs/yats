@@ -81,7 +81,7 @@ protected:
 	std::enable_if_t<Index < Helper::ParameterCount> parseInputParameter()
 	{
 		using currentInput = std::tuple_element_t<Index, typename Helper::WrappedInput>;
-		m_inputs.insert({ currentInput::ID, InputConnector(this) });
+		m_inputs.insert(std::make_pair(currentInput::ID, InputConnector(this)));
 		parseInputParameter<Index + 1>();
 	}
 
@@ -107,7 +107,7 @@ protected:
 	std::enable_if_t<Index < Max> parseOutputParameter()
 	{
 		using currentOutput = std::tuple_element_t<Index, typename Helper::ReturnType>;
-		m_outputs.insert({ currentOutput::ID, OutputConnector(this) });
+		m_outputs.insert(std::make_pair(currentOutput::ID, OutputConnector(this)));
 		parseOutputParameter<Index + 1, Max>();
 	}
 

@@ -59,7 +59,7 @@ TEST(taskconfigurator_test, return_no_parameters)
 	{
 		OutputBundle<Output<int, 0>> run()
 		{
-			return 0;
+			return std::make_tuple(0);
 		}
 	};
 
@@ -78,7 +78,7 @@ TEST(taskconfigurator_test, return_parameters)
 	{
 		OutputBundle<Output<int, 0>> run(Input<int, 0> input)
 		{
-			return { static_cast<int>(input) };
+			return std::make_tuple(static_cast<int>(input));
 		}
 	};
 
@@ -97,7 +97,7 @@ TEST(taskconfigurator_test, multiple_returns_multiple_parameters)
 	{
 		OutputBundle<Output<int, 0>, Output<int, 1>> run(Input<int, 0> input0, Input<int, 1> input1)
 		{
-			return { input0 + input1, input0 - input1 };
+			return std::make_tuple(input0 + input1, input0 - input1);
 		}
 	};
 
@@ -118,7 +118,7 @@ TEST(taskconfigurator_test, get_input_output_by_id)
 	{
 		OutputBundle<Output<int, 123>> run(Input<int, 321> input)
 		{
-			return { input + 1 };
+			return std::make_tuple(input + 1 );
 		}
 	};
 
@@ -136,7 +136,7 @@ TEST(taskconfigurator_test, get_input_output_by_name)
 	{
 		OutputBundle<Output<int, "output"_id>> run(Input<int, "input"_id> input)
 		{
-			return { input + 1 };
+			return std::make_tuple(input + 1);
 		}
 	};
 

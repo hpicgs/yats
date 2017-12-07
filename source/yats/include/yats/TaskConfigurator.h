@@ -21,10 +21,10 @@ public:
 	virtual std::unique_ptr<AbstractTaskContainer> make() const = 0;
 
 	virtual InputConnector& input(const std::string& name) = 0;
-	virtual InputConnector& input(size_t id) = 0;
+	virtual InputConnector& input(uint64_t id) = 0;
 
 	virtual OutputConnector& output(const std::string& name) = 0;
-	virtual OutputConnector& output(size_t id) = 0;
+	virtual OutputConnector& output(uint64_t id) = 0;
 };
 
 
@@ -51,7 +51,7 @@ public:
 		return m_inputs.at(id(name.c_str()));
 	}
 
-	InputConnector& input(size_t id) override
+	InputConnector& input(uint64_t id) override
 	{
 		return m_inputs.at(id);
 	}
@@ -61,7 +61,7 @@ public:
 		return m_outputs.at(id(name.c_str()));
 	}
 
-	OutputConnector& output(size_t id) override
+	OutputConnector& output(uint64_t id) override
 	{
 		return m_outputs.at(id);
 	}

@@ -11,12 +11,12 @@ using OutputBundle = std::tuple<Args...>;
 /// <para><c>T</c> Type of output value</para>
 /// <para><c>Id</c> Unique identifier of output</para>
 /// </summary>
-template<typename T, size_t Id>
+template<typename T, uint64_t Id>
 class Output
 {
 public:
 	using value_type = T;
-	constexpr static size_t ID = Id;
+	constexpr static uint64_t ID = Id;
 
 	/// <summary>Creates a new Output object.</summary>
 	/// <param name = "value">Initial value of output</param>
@@ -29,7 +29,7 @@ protected:
 	T m_value;
 };
 
-template<typename T, size_t Id>
-constexpr size_t Output<T, Id>::ID;
+template<typename T, uint64_t Id>
+constexpr uint64_t Output<T, Id>::ID;
 
 } // namespace yats

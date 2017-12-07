@@ -8,12 +8,12 @@ namespace yats
 /// <para><c>T</c> Type of input value</para>
 /// <para><c>Id</c> Unique identifier of input</para>
 /// </summary>
-template<typename T, size_t Id>
+template<typename T, uint64_t Id>
 class Input
 {
 public:
 	using value_type = T;
-	constexpr static size_t ID = Id;
+	constexpr static uint64_t ID = Id;
 
 	/// <summary>Creates a new Input object.</summary>
 	/// <param name = "value">Initial value of input</param>
@@ -26,7 +26,7 @@ protected:
 	T m_value;
 };
 
-template<typename T, size_t Id>
-constexpr size_t Input<T, Id>::ID;
+template<typename T, uint64_t Id>
+constexpr uint64_t Input<T, Id>::ID;
 
 }  // namespace yats

@@ -1,4 +1,3 @@
-
 #pragma once
 
 #include <memory>
@@ -9,6 +8,8 @@
 #include "Nodecontainer.h"
 #include "OutputConnector.h"
 
+namespace yats
+{
 
 /**/
 class AbstractTaskConfigurator
@@ -114,3 +115,5 @@ protected:
 	std::map<size_t, InputConnector> m_inputs;
 	std::map<size_t, OutputConnector> m_outputs;
 };
+
+}  // namespace yats

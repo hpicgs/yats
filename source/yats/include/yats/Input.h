@@ -1,6 +1,7 @@
-
 #pragma once
 
+namespace yats
+{
 
 /// <summary>
 /// <para>Main class to represent an input</para>
@@ -25,3 +26,4 @@ protected:
 	T m_value;
 };
 
+}  // namespace yats

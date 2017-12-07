@@ -1,6 +1,7 @@
-
 #pragma once
 
+namespace yats
+{
 
 template<typename... Args>
 using OutputBundle = std::tuple<Args...>;
@@ -27,3 +28,5 @@ public:
 protected:
 	T m_value;
 };
+
+} // namespace yats

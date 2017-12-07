@@ -1,8 +1,9 @@
-
 #pragma once
 
 #include <stdexcept>
 
+namespace yats
+{
 
 class AbstractTaskConfigurator;
 class OutputConnector;
@@ -35,3 +36,5 @@ protected:
 	const AbstractTaskConfigurator* const m_owner;
 	OutputConnector* m_output;
 };
+
+}  // namespace yats

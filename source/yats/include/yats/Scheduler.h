@@ -1,6 +1,8 @@
 #pragma once
 
 #include <string>
+#include <vector>
+
 #include "TaskConfigurator.h"
 
 namespace yats
@@ -16,7 +18,22 @@ public:
 
 	void run()
 	{
+		// TODO(anyone): Initial iteration to find first task to run
+		auto* first_task = new Nodecontainer();
+		schedule(first_task);
 
+		// Run through entire pipeline
+		while (auto* task = next_task())
+		{
+			task->run();
+			for (auto* follower : following_tasks(task))
+			{
+				if (can_run(follower))
+				{
+					schedule(follower);
+				}
+			}
+		}
 	}
 
 protected:

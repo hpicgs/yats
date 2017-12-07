@@ -2,9 +2,6 @@
 
 #include <yats/Pipeline.h>
 
-namespace yats
-{
-
 class Source
 {
 public:
@@ -27,7 +24,7 @@ public:
 
 TEST(interface_creation, simple)
 {
-	Pipeline pipeline;
+	yats::Pipeline pipeline;
 
 	//auto sourceconfigurator = pipeline.add<Source>("ultra");
 	//auto targetconfigurator = pipeline.add<Target>("ultimate");
@@ -36,5 +33,3 @@ TEST(interface_creation, simple)
 
 	//pipeline.run();
 }
-
-}  // namespace yats

@@ -45,7 +45,7 @@ TEST(util_test, has_run_test)
 {
 	struct static_run
 	{
-		static float run(float, int, char) {}
+		static float run(float, int, char) { return 0.f; }
 	};
 
 	struct member_run

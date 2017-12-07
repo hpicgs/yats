@@ -13,7 +13,7 @@ class Input
 {
 public:
 	using value_type = T;
-	static constexpr size_t ID = Id;
+	constexpr static size_t ID = Id;
 
 	/// <summary>Creates a new Input object.</summary>
 	/// <param name = "value">Initial value of input</param>
@@ -25,5 +25,8 @@ public:
 protected:
 	T m_value;
 };
+
+template<typename T, size_t Id>
+constexpr size_t Input<T, Id>::ID;
 
 }  // namespace yats

@@ -16,7 +16,7 @@ class Output
 {
 public:
 	using value_type = T;
-	static constexpr size_t ID = Id;
+	constexpr static size_t ID = Id;
 
 	/// <summary>Creates a new Output object.</summary>
 	/// <param name = "value">Initial value of output</param>
@@ -28,5 +28,8 @@ public:
 protected:
 	T m_value;
 };
+
+template<typename T, size_t Id>
+constexpr size_t Output<T, Id>::ID;
 
 } // namespace yats

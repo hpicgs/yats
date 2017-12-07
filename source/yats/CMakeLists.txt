@@ -30,6 +30,7 @@ set(headers
     ${include_path}/Output.h
     ${include_path}/OutputConnector.h
     ${include_path}/Pipeline.h
+	${include_path}/Scheduler.h
     ${include_path}/TaskConfigurator.h
 	${include_path}/Util.h
 )

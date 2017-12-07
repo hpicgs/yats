@@ -25,7 +25,7 @@ public:
 
 	void run()
 	{
-		std::vector<std::unique_ptr<AbstractNodecontainer>> nodes;
+		std::vector<std::unique_ptr<AbstractTaskContainer>> nodes;
 		for (auto &elem : m_nodes)
 		{
 			nodes.emplace_back(elem.second->make());

@@ -5,7 +5,7 @@
 
 #include <yats/Identifier.h>
 #include <yats/InputConnector.h>
-#include <yats/Nodecontainer.h>
+#include <yats/TaskContainer.h>
 #include <yats/OutputConnector.h>
 
 namespace yats
@@ -18,7 +18,7 @@ public:
 	AbstractTaskConfigurator() = default;
 	virtual ~AbstractTaskConfigurator() = default;
 
-	virtual std::unique_ptr<AbstractNodecontainer> make() const = 0;
+	virtual std::unique_ptr<AbstractTaskContainer> make() const = 0;
 
 	virtual InputConnector& input(const std::string& name) = 0;
 	virtual InputConnector& input(size_t id) = 0;
@@ -28,12 +28,12 @@ public:
 };
 
 
-template <typename Node>
+template <typename Task>
 class TaskConfigurator : public AbstractTaskConfigurator
 {
 public:
 
-	using Helper = decltype(MakeHelper(&Node::run));
+	using Helper = decltype(MakeHelper(&Task::run));
 
 	TaskConfigurator()
 	{
@@ -41,9 +41,9 @@ public:
 		parseOutputParameters();
 	}
 
-	std::unique_ptr<AbstractNodecontainer> make() const override
+	std::unique_ptr<AbstractTaskContainer> make() const override
 	{
-		return std::make_unique<Nodecontainer<Node>>();
+		return std::make_unique<TaskContainer<Task>>();
 	}
 
 	InputConnector& input(const std::string& name) override

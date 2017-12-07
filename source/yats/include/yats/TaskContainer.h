@@ -5,12 +5,12 @@
 namespace yats
 {
 
-class AbstractNodecontainer
+class AbstractTaskContainer
 {
 public:
-	AbstractNodecontainer() = default;
+	AbstractTaskContainer() = default;
 
-	virtual ~AbstractNodecontainer() = default;
+	virtual ~AbstractTaskContainer() = default;
 
 	virtual bool canRun() const = 0;
 
@@ -41,13 +41,13 @@ static constexpr NodeHelper<ReturnType, ParameterTypes...> MakeHelper(ReturnType
 
 
 template <typename Node>
-class Nodecontainer : public AbstractNodecontainer
+class TaskContainer : public AbstractTaskContainer
 {
 public:
 
 	using Helper = decltype(MakeHelper(&Node::run));
 
-	Nodecontainer()
+	TaskContainer()
 		: m_current(0)
 	{
 	}

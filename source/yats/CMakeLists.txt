@@ -26,12 +26,12 @@ set(headers
     ${include_path}/Identifier.h
     ${include_path}/Input.h
     ${include_path}/InputConnector.h
-    ${include_path}/Nodecontainer.h
     ${include_path}/Output.h
     ${include_path}/OutputConnector.h
     ${include_path}/Pipeline.h
 	${include_path}/Scheduler.h
     ${include_path}/TaskConfigurator.h
+    ${include_path}/TaskContainer.h
 	${include_path}/Util.h
 )
 

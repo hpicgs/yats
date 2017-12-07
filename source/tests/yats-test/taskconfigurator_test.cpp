@@ -10,8 +10,8 @@ template<typename T>
 class OpenTaskConfigurator : public TaskConfigurator<T>
 {
 public:
-	const std::map<size_t, InputConnector>& inputs() const { return m_inputs; }
-	const std::map<size_t, OutputConnector>& outputs() const { return m_outputs; }
+	const std::map<size_t, InputConnector>& inputs() const { return TaskConfigurator<T>::m_inputs; }
+	const std::map<size_t, OutputConnector>& outputs() const { return TaskConfigurator<T>::m_outputs; }
 };
 
 

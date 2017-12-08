@@ -1,22 +1,23 @@
-
 #include <gmock/gmock.h>
 
 
 #include <yats/Identifier.h>
 
-template<uint64_t> 
+template <uint64_t>
 void is_compiletime_constant()
 {
 }
 
 TEST(identifier_test, is_compiletime_constant)
 {
+	using namespace yats;
 	is_compiletime_constant<"value"_id>();
 	is_compiletime_constant<id("value")>();
 }
 
 TEST(identifier_test, different_syntax_is_same)
 {
+	using namespace yats;
 	EXPECT_EQ("value"_id, id("value"));
 }
 
@@ -25,7 +26,7 @@ TEST(identifier_test, supports_full_range)
 	// Test if every possible character returns a valid output.
 	for (int i = std::numeric_limits<char>::min(); i <= std::numeric_limits<char>::max(); ++i)
 	{
-		EXPECT_LT(lookup(static_cast<char>(i)), 32);
+		EXPECT_LT(yats::lookup(static_cast<char>(i)), 32);
 	}
 }
 

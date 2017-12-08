@@ -20,13 +20,13 @@ public:
 
 	/// <summary>Creates a new Output object.</summary>
 	/// <param name = "value">Initial value of output</param>
-	Output(T value) : m_value{ value } {}
+	Output(value_type value) : m_value{ value } {}
 
-	operator const T&() const { return m_value; }
-	operator T&() { return m_value; }
+	operator const value_type&() const { return m_value; }
+	operator value_type&() { return m_value; }
 
 protected:
-	T m_value;
+	value_type m_value;
 };
 
 template<typename T, uint64_t Id>

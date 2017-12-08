@@ -112,8 +112,8 @@ protected:
 		parseOutputParameter<Index + 1, Max>();
 	}
 
-	std::map<size_t, InputConnector> m_inputs;
-	std::map<size_t, OutputConnector> m_outputs;
+	std::map<uint64_t, InputConnector> m_inputs;
+	std::map<uint64_t, OutputConnector> m_outputs;
 };
 
 }  // namespace yats

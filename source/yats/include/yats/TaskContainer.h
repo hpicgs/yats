@@ -2,6 +2,8 @@
 
 #include <tuple>
 
+#include <yats/Util.h>
+
 namespace yats
 {
 
@@ -18,26 +20,6 @@ private:
 
 
 };
-
-
-template <typename Return, typename... ParameterTypes>
-struct TaskHelper
-{
-	template <typename CompoundType>
-	static typename CompoundType::value_type transform();
-
-	using WrappedInput = std::tuple<ParameterTypes...>;
-	using Input = std::tuple<decltype(transform<ParameterTypes>())...>;
-	using ReturnType = Return;
-
-	static constexpr size_t ParameterCount = sizeof...(ParameterTypes);
-};
-
-
-template <typename ReturnType, typename TaskType, typename... ParameterTypes>
-static constexpr TaskHelper<ReturnType, ParameterTypes...> MakeHelper(ReturnType(TaskType::*)(ParameterTypes...))
-{
-}
 
 
 template <typename Task>

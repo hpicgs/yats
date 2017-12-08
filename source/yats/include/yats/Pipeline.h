@@ -16,25 +16,25 @@ public:
 
 	Pipeline() = default;
 
-	template <typename Node>
-	TaskConfigurator<Node>* add(const std::string &name)
+	template <typename Task>
+	TaskConfigurator<Task>* add(const std::string &name)
 	{
-		m_nodes[name] = std::make_unique<TaskConfigurator<Node>>();
-		return static_cast<TaskConfigurator<Node>*>(m_nodes[name].get());
+		m_tasks[name] = std::make_unique<TaskConfigurator<Task>>();
+		return static_cast<TaskConfigurator<Task>*>(m_tasks[name].get());
 	}
 
 	void run()
 	{
-		std::vector<std::unique_ptr<AbstractTaskContainer>> nodes;
-		for (auto &elem : m_nodes)
+		std::vector<std::unique_ptr<AbstractTaskContainer>> tasks;
+		for (auto &elem : m_tasks)
 		{
-			nodes.emplace_back(elem.second->make());
+			tasks.emplace_back(elem.second->make());
 		}
 	}
 
 private:
 
-	std::map<std::string, std::unique_ptr<AbstractTaskConfigurator>> m_nodes;
+	std::map<std::string, std::unique_ptr<AbstractTaskConfigurator>> m_tasks;
 };
 
 }  // namespace yats

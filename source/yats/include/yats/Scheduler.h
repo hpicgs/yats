@@ -21,7 +21,7 @@ public:
 	}
 
 protected:
-	bool can_run(AbstractNodecontainer* task_container)
+	bool can_run(Abstractcontainer* task_container)
 	{
 		return false;
 	}

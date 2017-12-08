@@ -21,7 +21,7 @@ private:
 
 
 template <typename Return, typename... ParameterTypes>
-struct NodeHelper
+struct TaskHelper
 {
 	template <typename CompoundType>
 	static typename CompoundType::value_type transform();
@@ -35,17 +35,17 @@ struct NodeHelper
 
 
 template <typename ReturnType, typename TaskType, typename... ParameterTypes>
-static constexpr NodeHelper<ReturnType, ParameterTypes...> MakeHelper(ReturnType(TaskType::*)(ParameterTypes...))
+static constexpr TaskHelper<ReturnType, ParameterTypes...> MakeHelper(ReturnType(TaskType::*)(ParameterTypes...))
 {
 }
 
 
-template <typename Node>
+template <typename Task>
 class TaskContainer : public AbstractTaskContainer
 {
 public:
 
-	using Helper = decltype(MakeHelper(&Node::run));
+	using Helper = decltype(MakeHelper(&Task::run));
 
 	TaskContainer()
 		: m_current(0)
@@ -60,7 +60,7 @@ public:
 private:
 
 	typename Helper::Input m_parameter;
-	Node m_node;
+	Task m_task;
 	int m_current;
 };
 

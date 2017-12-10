@@ -11,7 +11,7 @@ namespace yats
 class Scheduler
 {
 public:
-	explicit Scheduler(const std::map<std::string, std::shared_ptr<AbstractTaskConfigurator>>& task_configurators)
+	explicit Scheduler(const std::map<std::string, std::unique_ptr<AbstractTaskConfigurator>>& task_configurators)
 	{
 
 	}

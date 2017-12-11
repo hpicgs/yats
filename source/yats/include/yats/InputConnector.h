@@ -1,19 +1,20 @@
 #pragma once
 
 #include <stdexcept>
+#include <yats/AbstractConnector.h>
 
 namespace yats
 {
 
-class AbstractTaskConfigurator;
 class OutputConnector;
 
 /// <summary>Allows connecting an output (the source) to an input (the target).</summary>
 /// <remarks>Each input may only be connected to one output.</remarks>
-class InputConnector
+template <typename T>
+class InputConnector : public AbstractConnector
 {
 public:
-	explicit InputConnector(const AbstractTaskConfigurator* const owner) : m_owner(owner), m_output(nullptr) {}
+	explicit InputConnector(const AbstractTaskConfigurator* const owner) : AbstractConnector(owner),  m_output(nullptr) {}
 	InputConnector(const InputConnector& other) = delete;
 	InputConnector(InputConnector&& other) = default;
 
@@ -33,7 +34,6 @@ public:
 	InputConnector& operator=(InputConnector&& other) = default;
 
 protected:
-	const AbstractTaskConfigurator* const m_owner;
 	OutputConnector* m_output;
 };
 

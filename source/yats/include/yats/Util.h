@@ -56,6 +56,28 @@ template<typename T>
 constexpr bool is_shared_ptr_v = is_shared_ptr<T>::value;
 
 
+template<typename T>
+struct ReturnWrapper;
+
+template<typename... ParameterTypes>
+struct ReturnWrapper<std::tuple<ParameterTypes...>>
+{
+	template <typename CompoundType>
+	static std::vector<std::function<void(typename CompoundType::value_type)>> transform_callback();
+
+	using Callbacks = std::tuple<decltype(transform_callback<ParameterTypes>())...>;
+
+	static constexpr size_t ParameterCount = sizeof...(ParameterTypes);
+};
+
+template<>
+struct ReturnWrapper<void>
+{
+	using Callbacks = std::tuple<>;
+
+	static constexpr size_t ParameterCount = 0;
+};
+
 template <typename Return, typename... ParameterTypes>
 struct TaskHelper
 {
@@ -69,28 +91,6 @@ struct TaskHelper
 	using Input = std::tuple<decltype(transform_base<ParameterTypes>())...>;
 	using InputQueue = std::tuple<decltype(transform_queue<ParameterTypes>())...>;
 	using ReturnType = Return;
-
-	template<typename T> 
-	struct ReturnWrapper;
-
-	template<typename... ParameterTypes>
-	struct ReturnWrapper<std::tuple<ParameterTypes...>>
-	{
-		template <typename CompoundType>
-		static std::vector<std::function<void(typename CompoundType::value_type)>> transform_callback();
-
-		using Callbacks = std::tuple<decltype(transform_callback<ParameterTypes>())...>;
-
-		static constexpr size_t ParameterCount = sizeof...(ParameterTypes);
-	};
-
-	template<>
-	struct ReturnWrapper<void>
-	{
-		using Callbacks = std::tuple<>;
-
-		static constexpr size_t ParameterCount = 0;
-	};
 
 	using ReturnCallbacks = typename ReturnWrapper<ReturnType>::Callbacks;
 

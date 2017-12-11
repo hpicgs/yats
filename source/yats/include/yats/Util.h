@@ -100,4 +100,11 @@ struct TaskHelper
 template <typename ReturnType, typename TaskType, typename... ParameterTypes>
 static constexpr TaskHelper<ReturnType, ParameterTypes...> MakeHelper(ReturnType(TaskType::*)(ParameterTypes...));
 
+
+template <typename ReturnType, typename... ParameterTypes>
+ReturnType invoke(std::function<ReturnType(ParameterTypes...)> runnable, std::tuple<ParameterTypes...> arguments)
+{
+
+}
+
 }  // namespace yats

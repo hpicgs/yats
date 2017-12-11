@@ -1,6 +1,9 @@
 #pragma once
 
+#include <functional>
 #include <memory>
+#include <queue>
+#include <vector>
 
 namespace yats
 {
@@ -57,11 +60,39 @@ template <typename Return, typename... ParameterTypes>
 struct TaskHelper
 {
 	template <typename CompoundType>
-	static typename CompoundType::value_type transform();
+	static typename CompoundType::value_type transform_base();
+
+	template <typename CompoundType>
+	static std::queue<typename CompoundType::value_type> transform_queue();
 
 	using WrappedInput = std::tuple<ParameterTypes...>;
-	using Input = std::tuple<decltype(transform<ParameterTypes>())...>;
+	using Input = std::tuple<decltype(transform_base<ParameterTypes>())...>;
+	using InputQueue = std::tuple<decltype(transform_queue<ParameterTypes>())...>;
 	using ReturnType = Return;
+
+	template<typename T> 
+	struct ReturnWrapper;
+
+	template<typename... ParameterTypes>
+	struct ReturnWrapper<std::tuple<ParameterTypes...>>
+	{
+		template <typename CompoundType>
+		static std::vector<std::function<void(typename CompoundType::value_type)>> transform_callback();
+
+		using Callbacks = std::tuple<decltype(transform_callback<ParameterTypes>())...>;
+
+		static constexpr size_t ParameterCount = sizeof...(ParameterTypes);
+	};
+
+	template<>
+	struct ReturnWrapper<void>
+	{
+		using Callbacks = std::tuple<>;
+
+		static constexpr size_t ParameterCount = 0;
+	};
+
+	using ReturnCallbacks = typename ReturnWrapper<ReturnType>::Callbacks;
 
 	static constexpr size_t ParameterCount = sizeof...(ParameterTypes);
 };

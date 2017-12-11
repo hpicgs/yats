@@ -14,7 +14,7 @@ public:
 
 	virtual ~AbstractTaskContainer() = default;
 
-	virtual bool canRun() const = 0;
+	virtual void run() = 0;
 
 private:
 
@@ -34,14 +34,15 @@ public:
 	{
 	}
 
-	bool canRun() const override
+	void run() override
 	{
-		return m_current == Helper::ParameterCount;
+
 	}
 
 private:
 
-	typename Helper::Input m_parameter;
+	typename Helper::InputQueue m_input;
+	typename Helper::ReturnCallbacks m_output;
 	Task m_task;
 	int m_current;
 };

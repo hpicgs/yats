@@ -7,7 +7,7 @@ namespace yats
 {
 
 template <typename T>
-class OutputConnector<T>;
+class OutputConnector;
 
 class AbstractInputConnector : public AbstractConnector
 {
@@ -19,7 +19,7 @@ public:
 /// <summary>Allows connecting an output (the source) to an input (the target).</summary>
 /// <remarks>Each input may only be connected to one output.</remarks>
 template <typename T>
-class InputConnector : public AbstractConnector
+class InputConnector : public AbstractInputConnector
 {
 public:
 	explicit InputConnector(const AbstractTaskConfigurator* const owner)

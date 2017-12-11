@@ -19,7 +19,7 @@ public:
 
 // Allows the connection of an input to the output.
 template <typename T>
-class OutputConnector : public AbstractConnector
+class OutputConnector : public AbstractOutputConnector
 {
 public:
 	explicit OutputConnector(const AbstractTaskConfigurator* const owner)

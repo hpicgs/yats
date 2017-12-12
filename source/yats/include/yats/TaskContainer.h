@@ -62,7 +62,7 @@ private:
 		return value;
 	}
 
-	template <size_t index = 0, typename OutputType = std::enable_if_t<!std::is_same<typename Helper::ReturnType, void>::value>>
+	template <size_t index = 0, typename OutputType = std::enable_if_t<!std::is_same<typename Helper::ReturnType, void>::value, typename Helper::ReturnType>>
 	std::enable_if_t<index < Helper::OutputParameterCount> write(OutputType &output)
 	{
 		auto &value = std::get<index>(output);
@@ -74,7 +74,7 @@ private:
 		write<index + 1>(output);
 	}
 
-	template <size_t index, typename OutputType = std::enable_if_t<!std::is_same<typename Helper::ReturnType, void>::value>>
+	template <size_t index, typename OutputType = std::enable_if_t<!std::is_same<typename Helper::ReturnType, void>::value, typename Helper::ReturnType>>
 	std::enable_if_t<index == Helper::OutputParameterCount> write(OutputType &)
 	{
 	}

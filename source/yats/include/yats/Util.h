@@ -66,7 +66,6 @@ struct ReturnWrapper<std::tuple<ParameterTypes...>>
 	static std::vector<std::function<void(typename CompoundType::value_type)>> transform_callback();
 
 	using Callbacks = std::tuple<decltype(transform_callback<ParameterTypes>())...>;
-	using InstantiatableReturnType = std::tuple<ParameterTypes...>;
 
 	static constexpr size_t ParameterCount = sizeof...(ParameterTypes);
 };

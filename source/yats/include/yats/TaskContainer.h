@@ -62,7 +62,7 @@ private:
 		return value;
 	}
 	
-	template <size_t index = 0, typename Output = ReturnWrapper<typename Helper::ReturnType>::InstantiatableReturnType>
+	template <size_t index = 0, typename Output = typename ReturnWrapper<typename Helper::ReturnType>::InstantiatableReturnType>
 	std::enable_if_t<index < Helper::OutputParameterCount> write(Output &output)
 	{
 		auto &value = std::get<index>(output);
@@ -74,7 +74,7 @@ private:
 		write<index + 1>(output);
 	}
 
-	template <size_t index, typename Output = ReturnWrapper<typename Helper::ReturnType>::InstantiatableReturnType>
+	template <size_t index, typename Output = typename ReturnWrapper<typename Helper::ReturnType>::InstantiatableReturnType>
 	std::enable_if_t<index == Helper::OutputParameterCount> write(Output &)
 	{
 	}

@@ -6,14 +6,27 @@
 namespace yats
 {
 
-template <typename T>
-class OutputConnector;
+class AbstractOutputConnector;
 
 class AbstractInputConnector : public AbstractConnector
 {
 public:
 	explicit AbstractInputConnector(const AbstractTaskConfigurator* const owner)
-		: AbstractConnector(owner) {}
+		: AbstractConnector(owner), m_output(nullptr) {}
+
+	/// <summary>Connects output to input.</summary>
+	/// <param name="output">Reference to output to connect.</param>
+	/// <exception cref="logic_error">Thrown when input is already connected to other output.</exception>
+	void operator<<(AbstractOutputConnector& output)
+	{
+		if (m_output != nullptr)
+		{
+			throw std::logic_error("Input already connected.");
+		}
+		m_output = &output;
+	}
+protected:
+	AbstractOutputConnector* m_output;
 };
 
 /// <summary>Allows connecting an output (the source) to an input (the target).</summary>
@@ -23,27 +36,12 @@ class InputConnector : public AbstractInputConnector
 {
 public:
 	explicit InputConnector(const AbstractTaskConfigurator* const owner)
-		: AbstractInputConnector(owner),  m_output(nullptr) {}
+		: AbstractInputConnector(owner) {}
 	InputConnector(const InputConnector<T>& other) = delete;
 	InputConnector(InputConnector<T>&& other) = default;
 
-	/// <summary>Connects output to input.</summary>
-	/// <param name="output">Reference to output to connect.</param>
-	/// <exception cref="logic_error">Thrown when input is already connected to other output.</exception>
-	void operator<<(OutputConnector<T>& output)
-	{
-		if (m_output != nullptr)
-		{
-			throw std::logic_error("Input already connected.");
-		}
-		m_output = &output;
-	}
-
 	InputConnector<T>& operator=(const InputConnector<T>& other) = delete;
 	InputConnector<T>& operator=(InputConnector<T>&& other) = default;
-
-protected:
-	OutputConnector<T>* m_output;
 };
 
 }  // namespace yats

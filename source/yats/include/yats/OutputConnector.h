@@ -14,6 +14,12 @@ class AbstractOutputConnector : public AbstractConnector
 public:
 	explicit AbstractOutputConnector(const AbstractTaskConfigurator* const owner)
 		: AbstractConnector(owner) {}
+
+	AbstractOutputConnector& operator>>(AbstractInputConnector& input)
+	{
+		input << *this;
+		return *this;
+	}
 };
 
 
@@ -27,16 +33,8 @@ public:
 	OutputConnector(const OutputConnector<T>& other) = delete;
 	OutputConnector(OutputConnector<T>&& other) = default;
 
-	OutputConnector<T>& operator>>(InputConnector<T>& input)
-	{
-		input << *this;
-		return *this;
-	}
-
 	OutputConnector<T>& operator=(const OutputConnector<T>& other) = delete;
 	OutputConnector<T>& operator=(OutputConnector<T>&& other) = default;
-
-protected:
 };
 
 }  // namespace yats

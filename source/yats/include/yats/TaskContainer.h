@@ -60,7 +60,7 @@ private:
 	}
 
 	template <size_t... index, typename T = Helper::ReturnType, typename SFINAE = std::enable_if_t<std::is_same<T, void>::value>>
-	SFINAE invoke(std::integer_sequence<size_t, index...>)
+	void invoke(std::integer_sequence<size_t, index...>)
 	{
 		m_task.run(get<index>()...);
 	}

@@ -34,29 +34,17 @@ public:
 
 	void run() override
 	{
-		call();
+		invoke(std::make_index_sequence<Helper::ParameterCount>());
 	}
 
 private:
 
-	template <typename T = Helper::ReturnType>
-	std::enable_if_t<!std::is_same<T, void>::value> call()
+	template <size_t... index, typename T = Helper::ReturnType, typename SFINAE = std::enable_if_t<!std::is_same<T, void>::value, size_t>>
+	void invoke(std::integer_sequence<SFINAE, index...>)
 	{
-		auto values = invoke(std::make_index_sequence<Helper::ParameterCount>());
+		auto values = m_task.run(get<index>()...);
 
 		// write values
-	}
-
-	template <typename T = Helper::ReturnType>
-	std::enable_if_t<std::is_same<T, void>::value> call()
-	{
-		invoke(std::make_index_sequence<Helper::ParameterCount>());
-	}
-
-	template <size_t... index, typename T = Helper::ReturnType, typename SFINAE = std::enable_if_t<!std::is_same<T, void>::value>>
-	auto invoke(std::integer_sequence<size_t, index...>)
-	{
-		return m_task.run(get<index>()...);
 	}
 
 	template <size_t... index, typename T = Helper::ReturnType, typename SFINAE = std::enable_if_t<std::is_same<T, void>::value>>

@@ -95,6 +95,7 @@ struct TaskHelper
 	using ReturnCallbacks = typename ReturnWrapper<ReturnType>::Callbacks;
 
 	static constexpr size_t ParameterCount = sizeof...(ParameterTypes);
+	static constexpr size_t OutputParameterCount = typename ReturnWrapper<ReturnType>::ParameterCount;
 };
 
 template <typename ReturnType, typename TaskType, typename... ParameterTypes>

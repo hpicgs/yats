@@ -42,9 +42,8 @@ private:
 	template <size_t... index, typename T = typename Helper::ReturnType, typename SFINAE = std::enable_if_t<!std::is_same<T, void>::value, size_t>>
 	void invoke(std::integer_sequence<SFINAE, index...>)
 	{
-		auto values = m_task.run(get<index>()...);
-
-		// write values
+		auto output = m_task.run(get<index>()...);
+		write(output);
 	}
 
 	template <size_t... index, typename T = typename Helper::ReturnType, typename SFINAE = std::enable_if_t<std::is_same<T, void>::value>>
@@ -61,6 +60,23 @@ private:
 		elem.pop();
 
 		return value;
+	}
+
+	template <size_t index = 0, typename OutputType = std::enable_if_t<!std::is_same<typename Helper::ReturnType, void>::value>>
+	std::enable_if_t<index < Helper::OutputParameterCount> write(OutputType &output)
+	{
+		auto &value = std::get<index>(output);
+		for (auto &current : std::get<index>(m_output))
+		{
+			current(value);
+		}
+
+		write<index + 1>(output);
+	}
+
+	template <size_t index, typename OutputType = std::enable_if_t<!std::is_same<typename Helper::ReturnType, void>::value>>
+	std::enable_if_t<index == Helper::OutputParameterCount> write(OutputType &)
+	{
 	}
 
 	typename Helper::InputQueue m_input;

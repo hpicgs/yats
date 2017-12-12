@@ -39,7 +39,7 @@ public:
 
 private:
 
-	template <size_t... index, typename T = Helper::ReturnType, typename SFINAE = std::enable_if_t<!std::is_same<T, void>::value, size_t>>
+	template <size_t... index, typename T = typename Helper::ReturnType, typename SFINAE = std::enable_if_t<!std::is_same<T, void>::value, size_t>>
 	void invoke(std::integer_sequence<SFINAE, index...>)
 	{
 		auto values = m_task.run(get<index>()...);
@@ -47,7 +47,7 @@ private:
 		// write values
 	}
 
-	template <size_t... index, typename T = Helper::ReturnType, typename SFINAE = std::enable_if_t<std::is_same<T, void>::value>>
+	template <size_t... index, typename T = typename Helper::ReturnType, typename SFINAE = std::enable_if_t<std::is_same<T, void>::value>>
 	void invoke(std::integer_sequence<size_t, index...>)
 	{
 		m_task.run(get<index>()...);

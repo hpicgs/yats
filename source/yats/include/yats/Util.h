@@ -69,4 +69,24 @@ struct TaskHelper
 template <typename ReturnType, typename TaskType, typename... ParameterTypes>
 static constexpr TaskHelper<ReturnType, ParameterTypes...> MakeHelper(ReturnType(TaskType::*)(ParameterTypes...));
 
+template<uint64_t Id, typename... Args>
+struct Parser;
+
+template<uint64_t Id, typename First, typename... Args>
+struct Parser<Id, First, Args...>
+{
+	template<uint64_t LocalId = Id, typename F = First, typename Dummy = std::enable_if_t<F::ID != LocalId, F>>
+	static constexpr decltype(Parser<Id, Args...>::parse()) parse();
+
+	template<uint64_t LocalId = Id, typename F = First, typename Dummy = std::enable_if_t<F::ID == LocalId, F>>
+	static constexpr typename F::value_type parse();
+};
+
+template<uint64_t Id, typename First>
+struct Parser<Id, First>
+{
+	template<uint64_t LocalId = Id, typename F = First, typename Dummy = std::enable_if_t<F::ID == LocalId, F>>
+	static constexpr typename F::value_type parse();
+};
+
 }  // namespace yats

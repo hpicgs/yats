@@ -1,6 +1,7 @@
 #include <gmock/gmock.h>
 
 #include <yats/Util.h>
+#include <yats/Input.h>
 
 
 TEST(util_test, is_unique_ptr_test)
@@ -61,4 +62,11 @@ TEST(util_test, has_run_test)
 	EXPECT_TRUE(yats::has_run_v<member_run>);
 	EXPECT_TRUE(yats::has_run_v<static_run>);
 	EXPECT_FALSE(yats::has_run_v<no_run>);
+}
+
+TEST(util_test, get_value_type_test)
+{
+	using TestTuple = std::tuple<yats::Input<int, 123>, yats::Input<float, 321>>;
+
+	decltype(yats::Parser<321, yats::Input<int, 321>>::parse()) i;
 }

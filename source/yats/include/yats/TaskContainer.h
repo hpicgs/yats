@@ -55,9 +55,9 @@ private:
 	template <size_t index>
 	auto get()
 	{
-		auto elem = std::get<index>(m_input);
-		auto value = elem.front();
-		elem.pop();
+		auto queue = std::get<index>(m_input);
+		auto value = queue.front();
+		queue.pop();
 
 		return value;
 	}
@@ -66,9 +66,9 @@ private:
 	std::enable_if_t<index < Helper::OutputParameterCount> write(Output &output)
 	{
 		auto &value = std::get<index>(output);
-		for (auto &current : std::get<index>(m_output))
+		for (auto &callback : std::get<index>(m_output))
 		{
-			current(value);
+			callback(value);
 		}
 
 		write<index + 1>(output);

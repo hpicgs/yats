@@ -78,8 +78,6 @@ struct ReturnWrapper<void>
 	static constexpr size_t ParameterCount = 0;
 };
 
-
-
 template <typename Return, typename... ParameterTypes>
 struct TaskHelper
 {
@@ -89,12 +87,16 @@ struct TaskHelper
 	template <typename CompoundType>
 	static std::queue<typename CompoundType::value_type> transform_queue();
 
+	template <typename CompoundType>
+	static std::function<void(typename CompoundType::value_type)> transform_function();
+
 	using WrappedInput = std::tuple<ParameterTypes...>;
 	using Input = std::tuple<decltype(transform_base<ParameterTypes>())...>;
 	using InputQueue = std::tuple<decltype(transform_queue<ParameterTypes>())...>;
 	using ReturnType = Return;
 
 	using ReturnCallbacks = typename ReturnWrapper<ReturnType>::Callbacks;
+	using InputCallbacks = std::tuple<decltype(transform_function<ParameterTypes>())...>;
 
 	static constexpr size_t ParameterCount = sizeof...(ParameterTypes);
 	static constexpr size_t OutputParameterCount = ReturnWrapper<ReturnType>::ParameterCount;

@@ -13,15 +13,13 @@ class Scheduler
 public:
 	explicit Scheduler(const std::map<std::string, std::unique_ptr<AbstractTaskConfigurator>>& task_configurators)
 	{
-
+		// TODO(anyone): Do initial run to find first runnable task
+		AbstractTaskContainer* first_task = nullptr;
+		schedule(first_task);
 	}
 
 	void run()
 	{
-		// TODO(anyone): Do initial run to find first runnable task
-		AbstractTaskContainer* first_task = nullptr;
-		schedule(first_task);
-
 		while (auto* task = next_task())
 		{
 			task->run();

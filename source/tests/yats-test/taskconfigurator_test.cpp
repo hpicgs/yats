@@ -155,7 +155,6 @@ TEST(taskconfigurator_test, yo)
 	{
 		void run()
 		{
-
 		}
 	};
 

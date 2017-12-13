@@ -32,6 +32,11 @@ public:
 	InputConnector& operator=(const InputConnector& other) = delete;
 	InputConnector& operator=(InputConnector&& other) = default;
 
+	OutputConnector* source()
+	{
+		return m_output;
+	}
+
 protected:
 	const AbstractTaskConfigurator* const m_owner;
 	OutputConnector* m_output;

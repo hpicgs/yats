@@ -8,11 +8,11 @@ namespace yats
 
 class AbstractOutputConnector;
 
-class AbstractInputConnector : public AbstractConnector
+class AbstractInputConnector
 {
 public:
 	explicit AbstractInputConnector(const AbstractTaskConfigurator* const owner)
-		: AbstractConnector(owner), m_output(nullptr) {}
+		: m_owner(owner), m_output(nullptr) {}
 
 	/// <summary>Connects output to input.</summary>
 	/// <param name="output">Reference to output to connect.</param>
@@ -26,6 +26,7 @@ public:
 		m_output = &output;
 	}
 protected:
+	const AbstractTaskConfigurator* const m_owner;
 	AbstractOutputConnector* m_output;
 };
 

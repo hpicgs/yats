@@ -9,17 +9,19 @@
 namespace yats
 {
 
-class AbstractOutputConnector : public AbstractConnector
+class AbstractOutputConnector
 {
 public:
 	explicit AbstractOutputConnector(const AbstractTaskConfigurator* const owner)
-		: AbstractConnector(owner) {}
+		: m_owner(owner) {}
 
 	AbstractOutputConnector& operator>>(AbstractInputConnector& input)
 	{
 		input << *this;
 		return *this;
 	}
+protected:
+	const AbstractTaskConfigurator* const m_owner;
 };
 
 

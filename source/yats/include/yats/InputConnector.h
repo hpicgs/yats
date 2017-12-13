@@ -1,12 +1,12 @@
 #pragma once
 
 #include <stdexcept>
-#include <yats/AbstractConnector.h>
 
 namespace yats
 {
 
 class AbstractOutputConnector;
+class AbstractTaskConfigurator;
 
 class AbstractInputConnector
 {

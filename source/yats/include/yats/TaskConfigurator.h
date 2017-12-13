@@ -13,11 +13,10 @@ namespace yats
 
 class AbstractConnectionHelper
 {
-
 };
 
 template <typename Task>
-class ConnectionHelper
+class ConnectionHelper : public AbstractConnectionHelper
 {
 public:
 
@@ -33,11 +32,13 @@ private:
 	template <size_t... index>
 	static typename Helper::InputCallbacks generateCallbacks(typename Helper::InputQueue &queue, std::integer_sequence<size_t, index...>)
 	{
+		// Prevent a warning about unused parameter when handling a run function with no parameters.
+		(void) queue;
 		return std::make_tuple(generateCallback<index>(queue)...);
 	}
 
 	template <size_t index>
-	static std::tuple_element_t<index, typename Helper::InputCallbacks> generateCallback(typename Helper::InputQueue &queue)
+	static typename std::tuple_element_t<index, typename Helper::InputCallbacks> generateCallback(typename Helper::InputQueue &queue)
 	{
 		using ParameterType = std::tuple_element_t<index, typename Helper::InputQueue>::value_type;
 		return [&current = std::get<index>(queue)](ParameterType input) mutable
@@ -65,6 +66,8 @@ public:
 
 	virtual OutputConnector& output(const std::string& name) = 0;
 	virtual OutputConnector& output(uint64_t id) = 0;
+
+	virtual std::unique_ptr<AbstractConnectionHelper> make2() const = 0;
 };
 
 
@@ -114,11 +117,12 @@ public:
 			confs.push_back(c.second.get());
 		}
 
-		// Instantiate the InputQueues
-		// Instantiate the ReturnCallbacks
-		// Instantiate connection functions.
+		std::vector<std::unique_ptr<AbstractConnectionHelper>> helpers;
+		for (auto c : confs)
+		{
+			helpers.emplace_back(c->make2());
+		}
 
-		// For each InputQueue instantiate the set functions
 		// Lookup the OutputConnector from the InputConnector
 		// Throw if a InputConnector has a nullptr OutputConnector
 		// Add the function to the correct ReturnCallback list that is assosiated with the OutputConnector
@@ -126,12 +130,12 @@ public:
 		// Construct all TaskContainer
 	}
 
-protected:
-
-	std::unique_ptr<AbstractConnectionHelper> make()
+	std::unique_ptr<AbstractConnectionHelper> make2() const override
 	{
 		return std::make_unique<ConnectionHelper<Task>>();
 	}
+
+protected:
 
 	void parseInputParameters()
 	{

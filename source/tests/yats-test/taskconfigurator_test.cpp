@@ -146,3 +146,19 @@ TEST(taskconfigurator_test, get_input_output_by_name)
 	EXPECT_ANY_THROW(configurator.input("output"));
 	EXPECT_ANY_THROW(configurator.output("input"));
 }
+
+TEST(taskconfigurator_test, yo)
+{
+	std::map<std::string, std::unique_ptr<yats::AbstractTaskConfigurator>> yo;
+
+	struct Task
+	{
+		void run()
+		{
+
+		}
+	};
+
+	yats::TaskConfigurator<Task>::build(yo);
+}
+

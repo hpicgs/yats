@@ -11,6 +11,47 @@
 namespace yats
 {
 
+class AbstractConnectionHelper
+{
+};
+
+template <typename Task>
+class ConnectionHelper : public AbstractConnectionHelper
+{
+public:
+
+	using Helper = decltype(MakeHelper(&Task::run));
+
+	ConnectionHelper()
+		: m_callbacks(generateCallbacks(m_input, std::make_index_sequence<Helper::ParameterCount>()))
+	{
+	}
+
+private:
+
+	template <size_t... index>
+	static typename Helper::InputCallbacks generateCallbacks(typename Helper::InputQueue &queue, std::integer_sequence<size_t, index...>)
+	{
+		// Prevent a warning about unused parameter when handling a run function with no parameters.
+		(void) queue;
+		return std::make_tuple(generateCallback<index>(queue)...);
+	}
+
+	template <size_t index>
+	static typename std::tuple_element_t<index, typename Helper::InputCallbacks> generateCallback(typename Helper::InputQueue &queue)
+	{
+		using ParameterType = std::tuple_element_t<index, typename Helper::InputQueue>::value_type;
+		return [&current = std::get<index>(queue)](ParameterType input) mutable
+		{
+			current.push(input);
+		};
+	}
+
+	typename Helper::InputQueue m_input;
+	typename Helper::ReturnCallbacks m_output;
+	typename Helper::InputCallbacks m_callbacks;
+};
+
 /**/
 class AbstractTaskConfigurator
 {
@@ -25,6 +66,8 @@ public:
 
 	virtual OutputConnector& output(const std::string& name) = 0;
 	virtual OutputConnector& output(uint64_t id) = 0;
+
+	virtual std::unique_ptr<AbstractConnectionHelper> make2() const = 0;
 };
 
 
@@ -66,7 +109,34 @@ public:
 		return m_outputs.at(id);
 	}
 
+	static void build(std::map<std::string, std::unique_ptr<AbstractTaskConfigurator>> &configurators)
+	{
+		std::vector<AbstractTaskConfigurator*> confs;
+		for (auto &c : configurators)
+		{
+			confs.push_back(c.second.get());
+		}
+
+		std::vector<std::unique_ptr<AbstractConnectionHelper>> helpers;
+		for (auto c : confs)
+		{
+			helpers.emplace_back(c->make2());
+		}
+
+		// Lookup the OutputConnector from the InputConnector
+		// Throw if a InputConnector has a nullptr OutputConnector
+		// Add the function to the correct ReturnCallback list that is assosiated with the OutputConnector
+
+		// Construct all TaskContainer
+	}
+
+	std::unique_ptr<AbstractConnectionHelper> make2() const override
+	{
+		return std::make_unique<ConnectionHelper<Task>>();
+	}
+
 protected:
+
 	void parseInputParameters()
 	{
 		parseInputParameter<0>();

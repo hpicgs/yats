@@ -1,6 +1,9 @@
 #pragma once
 
+#include <functional>
 #include <memory>
+#include <queue>
+#include <vector>
 
 namespace yats
 {
@@ -53,17 +56,50 @@ template<typename T>
 constexpr bool is_shared_ptr_v = is_shared_ptr<T>::value;
 
 
+template<typename T>
+struct ReturnWrapper;
+
+template<typename... ParameterTypes>
+struct ReturnWrapper<std::tuple<ParameterTypes...>>
+{
+	template <typename CompoundType>
+	static std::vector<std::function<void(typename CompoundType::value_type)>> transform_callback();
+
+	using Callbacks = std::tuple<decltype(transform_callback<ParameterTypes>())...>;
+
+	static constexpr size_t ParameterCount = sizeof...(ParameterTypes);
+};
+
+template<>
+struct ReturnWrapper<void>
+{
+	using Callbacks = std::tuple<>;
+
+	static constexpr size_t ParameterCount = 0;
+};
+
 template <typename Return, typename... ParameterTypes>
 struct TaskHelper
 {
 	template <typename CompoundType>
-	static typename CompoundType::value_type transform();
+	static typename CompoundType::value_type transform_base();
+
+	template <typename CompoundType>
+	static std::queue<typename CompoundType::value_type> transform_queue();
+
+	template <typename CompoundType>
+	static std::function<void(typename CompoundType::value_type)> transform_function();
 
 	using WrappedInput = std::tuple<ParameterTypes...>;
-	using Input = std::tuple<decltype(transform<ParameterTypes>())...>;
+	using Input = std::tuple<decltype(transform_base<ParameterTypes>())...>;
+	using InputQueue = std::tuple<decltype(transform_queue<ParameterTypes>())...>;
 	using ReturnType = Return;
 
+	using ReturnCallbacks = typename ReturnWrapper<ReturnType>::Callbacks;
+	using InputCallbacks = std::tuple<decltype(transform_function<ParameterTypes>())...>;
+
 	static constexpr size_t ParameterCount = sizeof...(ParameterTypes);
+	static constexpr size_t OutputParameterCount = ReturnWrapper<ReturnType>::ParameterCount;
 };
 
 template <typename ReturnType, typename TaskType, typename... ParameterTypes>

@@ -87,5 +87,4 @@ add_test_without_ctest(yats-test)
 # GTest and GMock IDE folder
 #
 
-set_target_properties(gtest gtest_main gmock gmock_main PROPERTIES FOLDER "${IDE_FOLDER}"
-)
+set_target_properties(gtest gtest_main gmock gmock_main PROPERTIES FOLDER "${IDE_FOLDER}")

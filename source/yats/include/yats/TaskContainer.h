@@ -30,7 +30,11 @@ public:
 
 	using Helper = decltype(MakeHelper(&Task::run));
 
-	TaskContainer() = default;
+	TaskContainer(typename Helper::InputQueue input, typename Helper::ReturnCallbacks output)
+		: m_input(std::move(input))
+		, m_output(std::move(output))
+	{
+	}
 
 	void run() override
 	{
@@ -55,7 +59,7 @@ private:
 	template <size_t index>
 	auto get()
 	{
-		auto queue = std::get<index>(m_input);
+		auto queue = std::get<index>(*m_input);
 		auto value = queue.front();
 		queue.pop();
 

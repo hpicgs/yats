@@ -92,7 +92,8 @@ struct TaskHelper
 
 	using WrappedInput = std::tuple<ParameterTypes...>;
 	using Input = std::tuple<decltype(transform_base<ParameterTypes>())...>;
-	using InputQueue = std::tuple<decltype(transform_queue<ParameterTypes>())...>;
+	using InputQueueBase = std::tuple<decltype(transform_queue<ParameterTypes>())...>;
+	using InputQueue = std::unique_ptr<InputQueueBase>;
 	using ReturnType = Return;
 
 	using ReturnCallbacks = typename ReturnWrapper<ReturnType>::Callbacks;

@@ -22,8 +22,9 @@ public:
 
 	using Helper = decltype(MakeHelper(&Task::run));
 
-	ConnectionHelper(std::map<uint64_t, InputConnector> &inputs, std::map<uint64_t, OutputConnector> &outputs)
-		: m_callbacks(generateCallbacks(m_input, std::make_index_sequence<Helper::ParameterCount>()))
+	ConnectionHelper(const std::map<uint64_t, InputConnector> &, const std::map<uint64_t, OutputConnector> &)
+		: m_input(std::make_unique<typename Helper::InputQueueBase>())
+		, m_callbacks(generateCallbacks(m_input, std::make_index_sequence<Helper::ParameterCount>()))
 	{
 	}
 
@@ -40,8 +41,8 @@ private:
 	template <size_t index>
 	static typename std::tuple_element_t<index, typename Helper::InputCallbacks> generateCallback(typename Helper::InputQueue &queue)
 	{
-		using ParameterType = std::tuple_element_t<index, typename Helper::InputQueue>::value_type;
-		return [&current = std::get<index>(queue)](ParameterType input) mutable
+		using ParameterType = std::tuple_element_t<index, typename Helper::InputQueueBase>::value_type;
+		return [&current = std::get<index>(*queue)](ParameterType input) mutable
 		{
 			current.push(input);
 		};
@@ -67,9 +68,6 @@ public:
 	virtual OutputConnector& output(const std::string& name) = 0;
 	virtual OutputConnector& output(uint64_t id) = 0;
 
-	virtual std::vector<const InputConnector*> inputs() const = 0;
-	virtual std::vector<const OutputConnector*> outputs() const = 0;
-
 	virtual std::unique_ptr<AbstractConnectionHelper> make2() const = 0;
 };
 
@@ -89,7 +87,8 @@ public:
 
 	std::unique_ptr<AbstractTaskContainer> make() const override
 	{
-		return std::make_unique<TaskContainer<Task>>();
+		return nullptr;
+		//return std::make_unique<TaskContainer<Task>>();
 	}
 
 	InputConnector& input(const std::string& name) override
@@ -126,6 +125,7 @@ public:
 			helpers.emplace_back(c->make2());
 		}
 
+		/*
 		std::map<OutputConnector*, size_t> outputOwner;
 		for (size_t i = 0; i < confs.size(); ++i)
 		{
@@ -144,6 +144,7 @@ public:
 				auto id = outputOwner[input->source()];
 			}
 		}
+		*/
 
 		// Throw if a InputConnector has a nullptr OutputConnector
 		// Add the function to the correct ReturnCallback list that is assosiated with the OutputConnector
@@ -154,26 +155,6 @@ public:
 	std::unique_ptr<AbstractConnectionHelper> make2() const override
 	{
 		return std::make_unique<ConnectionHelper<Task>>(m_inputs, m_outputs);
-	}
-
-	std::vector<const InputConnector*> inputs() const
-	{
-		std::vector<const InputConnector*> in;
-		for (auto &e : m_inputs)
-		{
-			in.push_back(&e.second);
-		}
-		return in;
-	}
-
-	std::vector<const OutputConnector*> outputs() const
-	{
-		std::vector<const OutputConnector*> out;
-		for (auto &e : m_outputs)
-		{
-			out.push_back(&e.second);
-		}
-		return out;
 	}
 
 protected:

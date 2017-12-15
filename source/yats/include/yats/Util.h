@@ -69,24 +69,36 @@ struct TaskHelper
 template <typename ReturnType, typename TaskType, typename... ParameterTypes>
 static constexpr TaskHelper<ReturnType, ParameterTypes...> MakeHelper(ReturnType(TaskType::*)(ParameterTypes...));
 
-template<uint64_t Id, typename... Args>
-struct Parser;
-
-template<uint64_t Id, typename First, typename... Args>
-struct Parser<Id, First, Args...>
+template<uint64_t Id, typename T>
+struct get_value_type
 {
-	template<uint64_t LocalId = Id, typename F = First, typename Dummy = std::enable_if_t<F::ID != LocalId, F>>
-	static constexpr decltype(Parser<Id, Args...>::parse()) parse();
+	template<typename... Args>
+	struct Parser;
 
-	template<uint64_t LocalId = Id, typename F = First, typename Dummy = std::enable_if_t<F::ID == LocalId, F>>
-	static constexpr typename F::value_type parse();
+	template<typename First, typename... Args>
+	struct Parser<First, Args...>
+	{
+		template<uint64_t LocalId = Id, typename F = First>
+		static constexpr decltype(std::enable_if_t<F::ID != LocalId, Parser<Args...>>::parse()) parse();
+
+		template<uint64_t LocalId = Id, typename F = First>
+		static constexpr typename std::enable_if_t<F::ID == LocalId, F>::value_type parse();
+	};
+
+	template<typename First>
+	struct Parser<First>
+	{
+		template<uint64_t LocalId = Id, typename F = First>
+		static constexpr typename std::enable_if_t<F::ID == LocalId, F>::value_type parse();
+	};
+
+	template<typename... Args>
+	static constexpr Parser<Args...> Help(std::tuple<Args...>);
+
+	using type = decltype(Help(std::declval<T>()));
 };
 
-template<uint64_t Id, typename First>
-struct Parser<Id, First>
-{
-	template<uint64_t LocalId = Id, typename F = First, typename Dummy = std::enable_if_t<F::ID == LocalId, F>>
-	static constexpr typename F::value_type parse();
-};
+template<uint64_t Id, typename T>
+using get_value_type_t = typename get_value_type<Id, T>::type;
 
 }  // namespace yats

@@ -2,6 +2,7 @@
 
 #include <yats/Util.h>
 #include <yats/Input.h>
+#include <yats/Output.h>
 
 
 TEST(util_test, is_unique_ptr_test)
@@ -66,7 +67,18 @@ TEST(util_test, has_run_test)
 
 TEST(util_test, get_value_type_test)
 {
-	using TestTuple = std::tuple<yats::Input<int, 123>, yats::Input<float, 321>>;
+	struct Test {};
 
-	decltype(yats::Parser<321, yats::Input<int, 321>>::parse()) i;
+	using TestTuple1 = yats::OutputBundle<yats::Output<Test, 0>>;
+	using TestTuple2 = std::tuple<yats::Input<float, 321>, yats::Input<int, 123>>;
+
+	typename yats::get_value_type_t<0, TestTuple1> single_type;
+	typename yats::get_value_type_t<123, TestTuple2> int_type;
+	typename yats::get_value_type_t<321, TestTuple2> float_type;
+
+	(void)single_type;
+	(void)int_type;
+	(void)float_type;
+
+	SUCCEED();
 }

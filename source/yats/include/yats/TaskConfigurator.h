@@ -41,7 +41,7 @@ private:
 	template <size_t index>
 	static typename std::tuple_element_t<index, typename Helper::InputCallbacks> generateCallback(typename Helper::InputQueue &queue)
 	{
-		using ParameterType = std::tuple_element_t<index, typename Helper::InputQueueBase>::value_type;
+		using ParameterType = typename std::tuple_element_t<index, typename Helper::InputQueueBase>::value_type;
 		return [&current = std::get<index>(*queue)](ParameterType input) mutable
 		{
 			current.push(input);

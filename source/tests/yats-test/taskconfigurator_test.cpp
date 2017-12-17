@@ -135,5 +135,5 @@ TEST(taskconfigurator_test, yo)
 		}
 	};
 
-	yats::TaskConfigurator<Task>::build(yo);
+	yats::AbstractTaskConfigurator::build(yo);
 }

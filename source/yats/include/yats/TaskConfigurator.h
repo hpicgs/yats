@@ -44,7 +44,7 @@ protected:
 	static Locations<LocationType> map(const SequenceType &outputs, std::index_sequence<index...>)
 	{
 		// Prevent a warning about unused parameter when handling a run function with no parameters.
-		(void)outputs;
+		(void) outputs;
 		return { std::make_pair(&std::get<index>(outputs), index)... };
 	}
 
@@ -78,6 +78,16 @@ public:
 	{
 		auto locationId = m_in.at(connector);
 		return get(locationId);
+	}
+
+	typename Helper::InputQueue queue()
+	{
+		return std::move(m_input);
+	}
+
+	typename Helper::ReturnCallbacks callbacks()
+	{
+		return std::move(m_output);
 	}
 
 private:
@@ -154,7 +164,7 @@ public:
 	AbstractTaskConfigurator() = default;
 	virtual ~AbstractTaskConfigurator() = default;
 
-	virtual std::unique_ptr<AbstractTaskContainer> make() const = 0;
+	virtual std::unique_ptr<AbstractTaskContainer> make(std::unique_ptr<AbstractConnectionHelper> helper) const = 0;
 	virtual std::unique_ptr<AbstractConnectionHelper> make2() const = 0;
 
 	virtual AbstractInputConnector& input(const std::string& name) = 0;
@@ -162,6 +172,52 @@ public:
 
 	virtual AbstractOutputConnector& output(const std::string& name) = 0;
 	virtual AbstractOutputConnector& output(uint64_t id) = 0;
+
+	static std::vector<std::unique_ptr<AbstractTaskContainer>> build(std::map<std::string, std::unique_ptr<AbstractTaskConfigurator>> &configurators)
+	{
+		std::vector<AbstractTaskConfigurator*> confs;
+		for (auto &c : configurators)
+		{
+			confs.push_back(c.second.get());
+		}
+
+		std::vector<std::unique_ptr<AbstractConnectionHelper>> helpers;
+		for (auto c : confs)
+		{
+			helpers.emplace_back(c->make2());
+		}
+
+
+		std::map<const AbstractOutputConnector*, size_t> outputOwner;
+		for (size_t i = 0; i < confs.size(); ++i)
+		{
+			auto outputs = helpers[i]->outputs();
+			for (auto output : outputs)
+			{
+				outputOwner.emplace(output.first, i);
+			}
+		}
+
+		for (auto &c : helpers)
+		{
+			auto inputs = c->inputs();
+			for (auto input : inputs)
+			{
+				auto sourceLocation = input.first->output();
+				auto sourceTaskId = outputOwner.at(sourceLocation);
+
+				helpers[sourceTaskId]->bind(sourceLocation, c->target(input.first));
+			}
+		}
+
+		std::vector<std::unique_ptr<AbstractTaskContainer>> tasks;
+		for (size_t i = 0; i < confs.size(); ++i)
+		{
+			tasks.emplace_back(confs[i]->make(std::move(helpers[i])));
+		}
+
+		return tasks;
+	}
 };
 
 
@@ -194,53 +250,10 @@ public:
 		return find<typename Helper::ReturnBase, AbstractOutputConnector>(m_outputs, id);
 	}
 
-	static void build(std::map<std::string, std::unique_ptr<AbstractTaskConfigurator>> &configurators)
+	std::unique_ptr<AbstractTaskContainer> make(std::unique_ptr<AbstractConnectionHelper> helper) const override
 	{
-		std::vector<AbstractTaskConfigurator*> confs;
-		for (auto &c : configurators)
-		{
-			confs.push_back(c.second.get());
-		}
-
-		std::vector<std::unique_ptr<AbstractConnectionHelper>> helpers;
-		for (auto c : confs)
-		{
-			helpers.emplace_back(c->make2());
-		}
-
-		
-		std::map<const AbstractOutputConnector*, size_t> outputOwner;
-		for (size_t i = 0; i < confs.size(); ++i)
-		{
-			auto outputs = helpers[i]->outputs();
-			for (auto output : outputs)
-			{
-				outputOwner.emplace(output.first, i);
-			}
-		}
-
-		for (auto &c : helpers)
-		{
-			auto inputs = c->inputs();
-			for (auto input : inputs)
-			{
-				auto sourceLocation = input.first->output();
-				auto sourceTaskId = outputOwner[sourceLocation];
-
-				helpers[sourceTaskId]->bind(sourceLocation, c->target(input.first));
-			}
-		}
-
-		// Throw if a InputConnector has a nullptr OutputConnector
-		// Add the function to the correct ReturnCallback list that is assosiated with the OutputConnector
-
-		// Construct all TaskContainer
-	}
-
-	std::unique_ptr<AbstractTaskContainer> make() const override
-	{
-		return nullptr;
-		//return std::make_unique<TaskContainer<Task>>();
+		auto c = static_cast<ConnectionHelper<Task>*>(helper.get());
+		return std::make_unique<TaskContainer<Task>>(c->queue(), c->callbacks());
 	}
 
 	std::unique_ptr<AbstractConnectionHelper> make2() const override

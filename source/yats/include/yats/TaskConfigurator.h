@@ -186,12 +186,12 @@ public:
 
 	AbstractOutputConnector& output(const std::string& name) override
 	{
-		return find<typename Helper::ReturnType, AbstractOutputConnector>(m_outputs, id(name.c_str()));
+		return find<typename Helper::ReturnBase, AbstractOutputConnector>(m_outputs, id(name.c_str()));
 	}
 
 	AbstractOutputConnector& output(uint64_t id) override
 	{
-		return find<typename Helper::ReturnType, AbstractOutputConnector>(m_outputs, id);
+		return find<typename Helper::ReturnBase, AbstractOutputConnector>(m_outputs, id);
 	}
 
 	static void build(std::map<std::string, std::unique_ptr<AbstractTaskConfigurator>> &configurators)

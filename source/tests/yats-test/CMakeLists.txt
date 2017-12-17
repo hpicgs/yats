@@ -100,10 +100,3 @@ target_link_libraries(${target}
     PRIVATE
     ${DEFAULT_LINKER_OPTIONS}
 )
-
-
-#
-# Target health
-#
-
-perform_health_checks(${target})

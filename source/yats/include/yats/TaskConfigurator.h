@@ -21,11 +21,19 @@ class ConnectionHelper : public AbstractConnectionHelper
 public:
 
 	using Helper = decltype(MakeHelper(&Task::run));
+	using Locations = std::map<AbstractOutputConnector*, size_t>;
+	using Sequence = std::make_index_sequence<std::tuple_size_v<typename Helper::OutputConfiguration>>;
 
-	ConnectionHelper(/*const std::map<uint64_t, InputConnector> &, const std::map<uint64_t, OutputConnector> &*/)
+	ConnectionHelper(typename Helper::OutputConfiguration &outputs)
 		: m_input(std::make_unique<typename Helper::InputQueueBase>())
 		, m_callbacks(generateCallbacks(m_input, std::make_index_sequence<Helper::ParameterCount>()))
+		, m_locations(map(outputs))
 	{
+	}
+
+	void bind()
+	{
+
 	}
 
 private:
@@ -48,9 +56,25 @@ private:
 		};
 	}
 
+	template <size_t... nn, typename seq = Sequence>
+	static Locations map(typename Helper::OutputConfiguration &outputs, std::index_sequence<size_t, nn...> sequence = seq())
+	{
+		//Locations locations = { make_pair<index>(outputs)... };
+		//return locations;
+
+		return { std::make_pair(&std::get<index>(outputs), index)... };
+	}
+
+	//template <size_t index>
+	//static typename Locations::value_type make_pair(typename Helper::OutputConfiguration &outputs)
+	//{
+	//	return std::make_pair(&std::get<index>(outputs), index);
+	//}
+
 	typename Helper::InputQueue m_input;
 	typename Helper::ReturnCallbacks m_output;
 	typename Helper::InputCallbacks m_callbacks;
+	Locations m_locations;
 };
 
 /**/

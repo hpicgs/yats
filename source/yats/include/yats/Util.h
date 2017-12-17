@@ -76,7 +76,7 @@ struct has_unique_ids
 	{
 		constexpr size_t size = std::tuple_size<T>::value;
 		uint64_t ids[size] = {};
-		write<0>(ids);
+		write(ids);
 
 		for (size_t i = 0; i < size; ++i)
 		{
@@ -91,7 +91,7 @@ struct has_unique_ids
 		return true;
 	}
 
-	template<uint64_t Index>
+	template<uint64_t Index = 0>
 	static constexpr std::enable_if_t<Index < std::tuple_size<T>::value, void> write(uint64_t* ids)
 	{
 		ids[Index] = std::tuple_element_t<Index, T>::ID;

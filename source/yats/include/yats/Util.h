@@ -69,6 +69,13 @@ struct ReturnWrapper<std::tuple<ParameterTypes...>>
 
 	using Callbacks = std::tuple<decltype(transform_callback<ParameterTypes>())...>;
 
+	template <typename CompoundType>
+	static OutputConnector<typename CompoundType::value_type> transform_output();
+
+	using OutputConfiguration = std::tuple<decltype(transform_output<ParameterTypes>())...>;
+
+	using Base = std::tuple<ParameterTypes...>;
+
 	static constexpr size_t ParameterCount = sizeof...(ParameterTypes);
 };
 
@@ -76,6 +83,8 @@ template<>
 struct ReturnWrapper<void>
 {
 	using Callbacks = std::tuple<>;
+	using OutputConfiguration = std::tuple<>;
+	using Base = std::tuple<>;
 
 	static constexpr size_t ParameterCount = 0;
 };
@@ -98,17 +107,16 @@ struct TaskHelper
 	using InputQueue = std::unique_ptr<InputQueueBase>;
 	using ReturnType = Return;
 
+	using ReturnBase = typename ReturnWrapper<ReturnType>::Base;
+
 	using ReturnCallbacks = typename ReturnWrapper<ReturnType>::Callbacks;
 	using InputCallbacks = std::tuple<decltype(transform_function<ParameterTypes>())...>;
 
 	template <typename CompoundType>
 	static InputConnector<typename CompoundType::value_type> transform_input();
 
-	template <typename CompoundType>
-	static OutputConnector<typename CompoundType::value_type> transform_output();
-
 	using InputConfiguration = std::tuple<decltype(transform_input<ParameterTypes>())...>;
-	using OutputConfiguration = std::tuple<decltype(transform_output<ParameterTypes>())...>;
+	using OutputConfiguration = typename ReturnWrapper<ReturnType>::OutputConfiguration;
 
 	static constexpr size_t ParameterCount = sizeof...(ParameterTypes);
 	static constexpr size_t OutputParameterCount = ReturnWrapper<ReturnType>::ParameterCount;

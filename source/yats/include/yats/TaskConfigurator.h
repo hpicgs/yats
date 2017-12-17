@@ -82,22 +82,22 @@ public:
 
 	AbstractInputConnector& input(const std::string& name) override
 	{
-		return find<Helper::ParameterCount, AbstractInputConnector>(m_inputs, id(name.c_str()));
+		return find<typename Helper::WrappedInput, AbstractInputConnector>(m_inputs, id(name.c_str()));
 	}
 
 	AbstractInputConnector& input(uint64_t id) override
 	{
-		return find<Helper::ParameterCount, AbstractInputConnector>(m_inputs, id);
+		return find<typename Helper::WrappedInput, AbstractInputConnector>(m_inputs, id);
 	}
 
 	AbstractOutputConnector& output(const std::string& name) override
 	{
-		return find<Helper::OutputParameterCount, AbstractOutputConnector>(m_outputs, id(name.c_str()));
+		return find<typename Helper::ReturnBase, AbstractOutputConnector>(m_outputs, id(name.c_str()));
 	}
 
 	AbstractOutputConnector& output(uint64_t id) override
 	{
-		return find<Helper::OutputParameterCount, AbstractOutputConnector>(m_outputs, id);
+		return find<typename Helper::ReturnBase, AbstractOutputConnector>(m_outputs, id);
 	}
 
 	static void build(std::map<std::string, std::unique_ptr<AbstractTaskConfigurator>> &configurators)
@@ -154,10 +154,10 @@ public:
 
 protected:
 
-	template <size_t ParameterCount, typename Return, typename Parameter>
+	template <typename IdTuple, typename Return, typename Parameter>
 	Return& find(Parameter &tuple, uint64_t id)
 	{
-		auto connector = get<ParameterCount, Return>(tuple, id);
+		auto connector = get<IdTuple, Return>(tuple, id);
 		if (connector)
 		{
 			return *connector;
@@ -165,19 +165,19 @@ protected:
 		throw std::runtime_error("Id not found.");
 	}
 
-	template <size_t ParameterCount, typename Return, size_t Index = 0, typename Parameter = int>
-	std::enable_if_t<Index < ParameterCount, Return*> get(Parameter &tuple, uint64_t id)
+	template <typename IdTuple, typename Return, size_t Index = 0, typename Parameter = int>
+	std::enable_if_t<Index < std::tuple_size<IdTuple>::value, Return*> get(Parameter &tuple, uint64_t id)
 	{
 		auto elem = &std::get<Index>(tuple);
-		if (id == std::tuple_element_t<Index, typename Helper::WrappedInput>::ID)
+		if (id == std::tuple_element_t<Index, IdTuple>::ID)
 		{
 			return elem;
 		}
-		return get<ParameterCount, Return, Index + 1>(tuple, id);
+		return get<IdTuple, Return, Index + 1>(tuple, id);
 	}
 
-	template <size_t ParameterCount, typename Return, size_t Index = 0, typename Parameter = int>
-	std::enable_if_t<Index == ParameterCount, Return*> get(Parameter &, uint64_t)
+	template <typename IdTuple, typename Return, size_t Index = 0, typename Parameter = int>
+	std::enable_if_t<Index == std::tuple_size<IdTuple>::value, Return*> get(Parameter &, uint64_t)
 	{
 		return nullptr;
 	}

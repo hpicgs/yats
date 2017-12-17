@@ -105,7 +105,7 @@ private:
 	{
 		if (index == locationId)
 		{
-			using Parameter = std::tuple_element_t<index, Helper::ReturnBase>;
+			using Parameter = std::tuple_element_t<index, typename Helper::ReturnBase>;
 			auto callback = static_cast<Functional<Parameter>*>(rawCallback);
 			std::get<index>(m_output).push_back(callback->func());
 		}
@@ -126,7 +126,7 @@ private:
 	{
 		if (index == locationId)
 		{
-			using Parameter = std::tuple_element_t<index, Helper::Input>;
+			using Parameter = std::tuple_element_t<index, typename Helper::Input>;
 			auto& callback = std::get<index>(m_callbacks);
 			return std::make_unique<Functional<Parameter>>(callback);
 		}

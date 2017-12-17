@@ -95,7 +95,7 @@ struct get_value_type
 	template<typename... Args>
 	static constexpr Parser<Args...> Help(std::tuple<Args...>);
 
-	using type = decltype(Help(std::declval<T>()));
+	using type = decltype(decltype(Help(std::declval<T>()))::parse());
 };
 
 template<uint64_t Id, typename T>

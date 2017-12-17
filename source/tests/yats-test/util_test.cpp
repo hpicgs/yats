@@ -76,9 +76,11 @@ TEST(util_test, get_value_type_test)
 	typename yats::get_value_type_t<123, TestTuple2> int_type;
 	typename yats::get_value_type_t<321, TestTuple2> float_type;
 
-	(void)single_type;
-	(void)int_type;
-	(void)float_type;
+	constexpr auto yes1 = std::is_same<decltype(single_type), Test>::value;
+	constexpr auto yes2 = std::is_same<decltype(int_type), int>::value;
+	constexpr auto yes3 = std::is_same<decltype(float_type), float>::value;
 
-	SUCCEED();
+	EXPECT_TRUE(yes1);
+	EXPECT_TRUE(yes2);
+	EXPECT_TRUE(yes3);
 }

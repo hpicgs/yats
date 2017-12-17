@@ -13,6 +13,33 @@ namespace yats
 
 class AbstractConnectionHelper
 {
+public:
+
+	template <typename Type>
+	using Locations = std::map<const Type*, size_t>;
+
+	AbstractConnectionHelper(Locations<AbstractInputConnector> input, Locations<AbstractOutputConnector> output)
+		: m_input(input)
+		, m_output(output)
+	{
+	}
+
+	virtual void bind() = 0;
+	
+	const auto& inputs()
+	{
+		return m_input;
+	}
+
+	const auto& outputs()
+	{
+		return m_output;
+	}
+
+protected:
+
+	const Locations<AbstractInputConnector> m_input;
+	const Locations<AbstractOutputConnector> m_output;
 };
 
 template <typename Task>
@@ -21,17 +48,17 @@ class ConnectionHelper : public AbstractConnectionHelper
 public:
 
 	using Helper = decltype(MakeHelper(&Task::run));
-	using Locations = std::map<const AbstractOutputConnector*, size_t>;
-	//using Sequence = std::make_index_sequence<std::tuple_size_v<typename Helper::OutputConfiguration>>;
+	using InputSequence = std::make_index_sequence<std::tuple_size<typename Helper::InputConfiguration>::value>;
+	using OutputSequence = std::make_index_sequence<std::tuple_size<typename Helper::OutputConfiguration>::value>;
 
-	ConnectionHelper(const typename Helper::OutputConfiguration &outputs)
-		: m_input(std::make_unique<typename Helper::InputQueueBase>())
+	ConnectionHelper(const typename Helper::InputConfiguration &inputs, const typename Helper::OutputConfiguration &outputs)
+		: AbstractConnectionHelper(map<AbstractInputConnector>(inputs, InputSequence()), map<AbstractOutputConnector>(outputs, OutputSequence()))
+		, m_input(std::make_unique<typename Helper::InputQueueBase>())
 		, m_callbacks(generateCallbacks(m_input, std::make_index_sequence<Helper::ParameterCount>()))
-		, m_locations(map(outputs, std::make_index_sequence<std::tuple_size_v<typename Helper::OutputConfiguration>>()))
 	{
 	}
 
-	void bind()
+	void bind() override
 	{
 
 	}
@@ -56,8 +83,8 @@ private:
 		};
 	}
 
-	template <size_t... index>
-	static Locations map(const typename Helper::OutputConfiguration &outputs, std::index_sequence<index...>)
+	template <typename LocationType, typename SequenceType, size_t... index>
+	static Locations<LocationType> map(const SequenceType &outputs, std::index_sequence<index...>)
 	{
 		// Prevent a warning about unused parameter when handling a run function with no parameters.
 		(void) outputs;
@@ -67,7 +94,6 @@ private:
 	typename Helper::InputQueue m_input;
 	typename Helper::ReturnCallbacks m_output;
 	typename Helper::InputCallbacks m_callbacks;
-	Locations m_locations;
 };
 
 /**/
@@ -131,17 +157,18 @@ public:
 			helpers.emplace_back(c->make2());
 		}
 
-		/*
-		std::map<OutputConnector*, size_t> outputOwner;
+		
+		std::map<const AbstractOutputConnector*, size_t> outputOwner;
 		for (size_t i = 0; i < confs.size(); ++i)
 		{
-			auto outputs = confs[i]->outputs();
+			auto outputs = helpers[i]->outputs();
 			for (auto output : outputs)
 			{
-				outputOwner.emplace(output, i);
+				outputOwner.emplace(output.first, i);
 			}
 		}
 
+		/*
 		for (auto c : confs)
 		{
 			auto inputs = c->inputs();
@@ -166,7 +193,7 @@ public:
 
 	std::unique_ptr<AbstractConnectionHelper> make2() const override
 	{
-		return std::make_unique<ConnectionHelper<Task>>(m_outputs);
+		return std::make_unique<ConnectionHelper<Task>>(m_inputs, m_outputs);
 	}
 
 protected:

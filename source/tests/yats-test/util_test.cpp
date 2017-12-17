@@ -72,9 +72,9 @@ TEST(util_test, get_value_type_test)
 	using TestTuple1 = yats::OutputBundle<yats::Output<Test, 0>>;
 	using TestTuple2 = std::tuple<yats::Input<float, 321>, yats::Input<int, 123>>;
 
-	typename yats::get_value_type_t<0, TestTuple1> single_type;
-	typename yats::get_value_type_t<123, TestTuple2> int_type;
-	typename yats::get_value_type_t<321, TestTuple2> float_type;
+	typename yats::get_element_by_id_t<0, TestTuple1> single_type;
+	typename yats::get_element_by_id_t<123, TestTuple2> int_type;
+	typename yats::get_element_by_id_t<321, TestTuple2> float_type;
 
 	constexpr auto yes1 = std::is_same<decltype(single_type), Test>::value;
 	constexpr auto yes2 = std::is_same<decltype(int_type), int>::value;
@@ -83,4 +83,10 @@ TEST(util_test, get_value_type_test)
 	EXPECT_TRUE(yes1);
 	EXPECT_TRUE(yes2);
 	EXPECT_TRUE(yes3);
+
+	constexpr auto index1 = yats::get_element_by_id<321, TestTuple2>::index;
+	constexpr auto index2 = yats::get_element_by_id<123, TestTuple2>::index;
+
+	EXPECT_EQ(index1, 0);
+	EXPECT_EQ(index2, 1);
 }

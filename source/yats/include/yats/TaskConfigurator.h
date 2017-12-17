@@ -155,7 +155,7 @@ public:
 protected:
 
 	template <size_t ParameterCount, typename Return, typename Parameter>
-	Return& find(typename Parameter &tuple, uint64_t id)
+	Return& find(Parameter &tuple, uint64_t id)
 	{
 		auto connector = get<ParameterCount, Return>(tuple, id);
 		if (connector)
@@ -166,7 +166,7 @@ protected:
 	}
 
 	template <size_t ParameterCount, typename Return, size_t Index = 0, typename Parameter = int>
-	std::enable_if_t<Index < ParameterCount, typename Return*> get(typename Parameter &tuple, uint64_t id)
+	std::enable_if_t<Index < ParameterCount, Return*> get(Parameter &tuple, uint64_t id)
 	{
 		auto elem = &std::get<Index>(tuple);
 		if (id == std::tuple_element_t<Index, typename Helper::WrappedInput>::ID)
@@ -177,7 +177,7 @@ protected:
 	}
 
 	template <size_t ParameterCount, typename Return, size_t Index = 0, typename Parameter = int>
-	std::enable_if_t<Index == ParameterCount, typename Return*> get(typename Parameter &, uint64_t)
+	std::enable_if_t<Index == ParameterCount, Return*> get(Parameter &, uint64_t)
 	{
 		return nullptr;
 	}

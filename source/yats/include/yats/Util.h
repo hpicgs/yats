@@ -74,7 +74,10 @@ struct ReturnWrapper<std::tuple<ParameterTypes...>>
 
 	using OutputConfiguration = std::tuple<decltype(transform_output<ParameterTypes>())...>;
 
-	using Base = std::tuple<ParameterTypes...>;
+	template <typename CompoundType>
+	static typename CompoundType::value_type transform_base();
+
+	using Base = std::tuple<decltype(transform_base<ParameterTypes>())...>;
 
 	static constexpr size_t ParameterCount = sizeof...(ParameterTypes);
 };

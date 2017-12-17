@@ -14,6 +14,11 @@ public:
 	explicit AbstractInputConnector()
 		: m_output(nullptr) {}
 
+	const AbstractOutputConnector* output() const
+	{
+		return m_output;
+	}
+
 	/// <summary>Connects output to input.</summary>
 	/// <param name="output">Reference to output to connect.</param>
 	/// <exception cref="logic_error">Thrown when input is already connected to other output.</exception>

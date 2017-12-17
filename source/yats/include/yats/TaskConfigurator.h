@@ -7,6 +7,7 @@
 #include <yats/InputConnector.h>
 #include <yats/TaskContainer.h>
 #include <yats/OutputConnector.h>
+#include <yats/Functional.h>
 
 namespace yats
 {
@@ -19,27 +20,36 @@ public:
 	using Locations = std::map<const Type*, size_t>;
 
 	AbstractConnectionHelper(Locations<AbstractInputConnector> input, Locations<AbstractOutputConnector> output)
-		: m_input(input)
-		, m_output(output)
+		: m_in(input)
+		, m_out(output)
 	{
 	}
 
-	virtual void bind() = 0;
-	
+	virtual void bind(const AbstractOutputConnector *connector, std::unique_ptr<AbstractFunctional> callback) = 0;
+	virtual std::unique_ptr<AbstractFunctional> target(const AbstractInputConnector *connector) = 0;
+
 	const auto& inputs()
 	{
-		return m_input;
+		return m_in;
 	}
 
 	const auto& outputs()
 	{
-		return m_output;
+		return m_out;
 	}
 
 protected:
 
-	const Locations<AbstractInputConnector> m_input;
-	const Locations<AbstractOutputConnector> m_output;
+	template <typename LocationType, typename SequenceType, size_t... index>
+	static Locations<LocationType> map(const SequenceType &outputs, std::index_sequence<index...>)
+	{
+		// Prevent a warning about unused parameter when handling a run function with no parameters.
+		(void)outputs;
+		return { std::make_pair(&std::get<index>(outputs), index)... };
+	}
+
+	const Locations<AbstractInputConnector> m_in;
+	const Locations<AbstractOutputConnector> m_out;
 };
 
 template <typename Task>
@@ -58,9 +68,16 @@ public:
 	{
 	}
 
-	void bind() override
+	void bind(const AbstractOutputConnector* connector, std::unique_ptr<AbstractFunctional> callback) override
 	{
+		auto locationId = m_out.at(connector);
+		add(locationId, callback.get());
+	}
 
+	std::unique_ptr<AbstractFunctional> target(const AbstractInputConnector *connector) override
+	{
+		auto locationId = m_in.at(connector);
+		return get(locationId);
 	}
 
 private:
@@ -83,12 +100,46 @@ private:
 		};
 	}
 
-	template <typename LocationType, typename SequenceType, size_t... index>
-	static Locations<LocationType> map(const SequenceType &outputs, std::index_sequence<index...>)
+	template <size_t index = 0>
+	std::enable_if_t<index < Helper::OutputParameterCount> add(size_t locationId, AbstractFunctional *rawCallback)
 	{
-		// Prevent a warning about unused parameter when handling a run function with no parameters.
-		(void) outputs;
-		return { std::make_pair(&std::get<index>(outputs), index)... };
+		if (index == locationId)
+		{
+			using Parameter = std::tuple_element_t<index, Helper::ReturnBase>;
+			auto callback = static_cast<Functional<Parameter>*>(rawCallback);
+			std::get<index>(m_output).push_back(callback->func());
+		}
+		else
+		{
+			add<index + 1>(locationId, rawCallback);
+		}
+	}
+
+	template <size_t index = 0>
+	std::enable_if_t<index == Helper::OutputParameterCount> add(size_t, AbstractFunctional *)
+	{
+		throw std::runtime_error("Output Parameter locationId not found.");
+	}
+
+	template <size_t index = 0>
+	std::enable_if_t<index < Helper::ParameterCount, std::unique_ptr<AbstractFunctional>> get(size_t locationId)
+	{
+		if (index == locationId)
+		{
+			using Parameter = std::tuple_element_t<index, Helper::Input>;
+			auto& callback = std::get<index>(m_callbacks);
+			return std::make_unique<Functional<Parameter>>(callback);
+		}
+		else
+		{
+			return get<index + 1>(locationId);
+		}
+	}
+
+	template <size_t index = 0>
+	std::enable_if_t<index == Helper::ParameterCount, std::unique_ptr<AbstractFunctional>> get(size_t)
+	{
+		throw std::runtime_error("Input Parameter locationId not found.");
 	}
 
 	typename Helper::InputQueue m_input;
@@ -135,12 +186,12 @@ public:
 
 	AbstractOutputConnector& output(const std::string& name) override
 	{
-		return find<typename Helper::ReturnBase, AbstractOutputConnector>(m_outputs, id(name.c_str()));
+		return find<typename Helper::ReturnType, AbstractOutputConnector>(m_outputs, id(name.c_str()));
 	}
 
 	AbstractOutputConnector& output(uint64_t id) override
 	{
-		return find<typename Helper::ReturnBase, AbstractOutputConnector>(m_outputs, id);
+		return find<typename Helper::ReturnType, AbstractOutputConnector>(m_outputs, id);
 	}
 
 	static void build(std::map<std::string, std::unique_ptr<AbstractTaskConfigurator>> &configurators)
@@ -168,16 +219,17 @@ public:
 			}
 		}
 
-		/*
-		for (auto c : confs)
+		for (auto &c : helpers)
 		{
 			auto inputs = c->inputs();
 			for (auto input : inputs)
 			{
-				auto id = outputOwner[input->source()];
+				auto sourceLocation = input.first->output();
+				auto sourceTaskId = outputOwner[sourceLocation];
+
+				helpers[sourceTaskId]->bind(sourceLocation, c->target(input.first));
 			}
 		}
-		*/
 
 		// Throw if a InputConnector has a nullptr OutputConnector
 		// Add the function to the correct ReturnCallback list that is assosiated with the OutputConnector

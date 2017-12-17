@@ -61,15 +61,13 @@ public:
 	virtual ~AbstractTaskConfigurator() = default;
 
 	virtual std::unique_ptr<AbstractTaskContainer> make() const = 0;
+	virtual std::unique_ptr<AbstractConnectionHelper> make2() const = 0;
 
 	virtual AbstractInputConnector& input(const std::string& name) = 0;
 	virtual AbstractInputConnector& input(uint64_t id) = 0;
 
 	virtual AbstractOutputConnector& output(const std::string& name) = 0;
 	virtual AbstractOutputConnector& output(uint64_t id) = 0;
-
-protected:
-	virtual std::unique_ptr<AbstractConnectionHelper> make2() const = 0;
 };
 
 
@@ -80,11 +78,7 @@ public:
 
 	using Helper = decltype(MakeHelper(&Task::run));
 
-	TaskConfigurator()
-	{
-		//parseInputParameters();
-		//parseOutputParameters();
-	}
+	TaskConfigurator() = default;
 
 	AbstractInputConnector& input(const std::string& name) override
 	{
@@ -147,6 +141,12 @@ public:
 		// Construct all TaskContainer
 	}
 
+	std::unique_ptr<AbstractTaskContainer> make() const override
+	{
+		return nullptr;
+		//return std::make_unique<TaskContainer<Task>>();
+	}
+
 	std::unique_ptr<AbstractConnectionHelper> make2() const override
 	{
 		return std::make_unique<ConnectionHelper<Task>>(/*m_inputs, m_outputs*/);
@@ -155,7 +155,7 @@ public:
 protected:
 
 	template <size_t ParameterCount, typename Return, typename Parameter>
-	typename Return& find(typename Parameter &tuple, uint64_t id)
+	Return& find(typename Parameter &tuple, uint64_t id)
 	{
 		auto connector = get<ParameterCount, Return>(tuple, id);
 		if (connector)
@@ -171,21 +171,15 @@ protected:
 		auto elem = &std::get<Index>(tuple);
 		if (id == std::tuple_element_t<Index, typename Helper::WrappedInput>::ID)
 		{
-			return &elem;
+			return elem;
 		}
-		return get<ParameterCount, Index + 1, Return>(tuple, id);
+		return get<ParameterCount, Return, Index + 1>(tuple, id);
 	}
 
 	template <size_t ParameterCount, typename Return, size_t Index = 0, typename Parameter = int>
-	std::enable_if_t<Index == ParameterCount, typename Return*> get(typename Parameter &tuple, uint64_t id)
+	std::enable_if_t<Index == ParameterCount, typename Return*> get(typename Parameter &, uint64_t)
 	{
 		return nullptr;
-	}
-
-	std::unique_ptr<AbstractTaskContainer> make() const override
-	{
-		return nullptr;
-		//return std::make_unique<TaskContainer<Task>>();
 	}
 
 	typename Helper::InputConfiguration m_inputs;

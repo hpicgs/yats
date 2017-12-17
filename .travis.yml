@@ -48,7 +48,7 @@ script:
   - cd build
   - cmake .. && make
   - cmake --build . --target test
-  - cmake --build . --target check-all
+  - cmake --build . --target cppcheck-yats
 
 notifications:
   email: false

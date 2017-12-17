@@ -8,8 +8,8 @@ template<typename T>
 class OpenTaskConfigurator : public yats::TaskConfigurator<T>
 {
 public:
-	const std::map<uint64_t, yats::InputConnector>& inputs() const { return yats::TaskConfigurator<T>::m_inputs; }
-	const std::map<uint64_t, yats::OutputConnector>& outputs() const { return yats::TaskConfigurator<T>::m_outputs; }
+	const std::map<uint64_t, std::unique_ptr<yats::AbstractInputConnector>>& inputs() const { return yats::TaskConfigurator<T>::m_inputs; }
+	const std::map<uint64_t, std::unique_ptr<yats::AbstractOutputConnector>>& outputs() const { return yats::TaskConfigurator<T>::m_outputs; }
 };
 
 

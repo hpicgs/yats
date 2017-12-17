@@ -62,11 +62,11 @@ public:
 
 	virtual std::unique_ptr<AbstractTaskContainer> make() const = 0;
 
-	virtual InputConnector& input(const std::string& name) = 0;
-	virtual InputConnector& input(uint64_t id) = 0;
+	virtual AbstractInputConnector& input(const std::string& name) = 0;
+	virtual AbstractInputConnector& input(uint64_t id) = 0;
 
-	virtual OutputConnector& output(const std::string& name) = 0;
-	virtual OutputConnector& output(uint64_t id) = 0;
+	virtual AbstractOutputConnector& output(const std::string& name) = 0;
+	virtual AbstractOutputConnector& output(uint64_t id) = 0;
 
 	virtual std::unique_ptr<AbstractConnectionHelper> make2() const = 0;
 };
@@ -91,24 +91,24 @@ public:
 		//return std::make_unique<TaskContainer<Task>>();
 	}
 
-	InputConnector& input(const std::string& name) override
+	AbstractInputConnector& input(const std::string& name) override
 	{
-		return m_inputs.at(id(name.c_str()));
+		return *(m_inputs.at(id(name.c_str())));
 	}
 
-	InputConnector& input(uint64_t id) override
+	AbstractInputConnector& input(uint64_t id) override
 	{
-		return m_inputs.at(id);
+		return *(m_inputs.at(id));
 	}
 
-	OutputConnector& output(const std::string& name) override
+	AbstractOutputConnector& output(const std::string& name) override
 	{
-		return m_outputs.at(id(name.c_str()));
+		return *(m_outputs.at(id(name.c_str())));
 	}
 
-	OutputConnector& output(uint64_t id) override
+	AbstractOutputConnector& output(uint64_t id) override
 	{
-		return m_outputs.at(id);
+		return *(m_outputs.at(id).get());
 	}
 
 	static void build(std::map<std::string, std::unique_ptr<AbstractTaskConfigurator>> &configurators)
@@ -174,7 +174,7 @@ protected:
 	std::enable_if_t<Index < Helper::ParameterCount> parseInputParameter()
 	{
 		using currentInput = std::tuple_element_t<Index, typename Helper::WrappedInput>;
-		m_inputs.insert(std::make_pair(currentInput::ID, InputConnector(this)));
+		m_inputs.emplace(currentInput::ID, std::make_unique<InputConnector<currentInput>>(this));
 		parseInputParameter<Index + 1>();
 	}
 
@@ -200,12 +200,12 @@ protected:
 	std::enable_if_t<Index < Max> parseOutputParameter()
 	{
 		using currentOutput = std::tuple_element_t<Index, typename Helper::ReturnType>;
-		m_outputs.insert(std::make_pair(currentOutput::ID, OutputConnector(this)));
+		m_outputs.emplace(currentOutput::ID, std::make_unique<OutputConnector<currentOutput>>(this));
 		parseOutputParameter<Index + 1, Max>();
 	}
 
-	std::map<uint64_t, InputConnector> m_inputs;
-	std::map<uint64_t, OutputConnector> m_outputs;
+	std::map<uint64_t, std::unique_ptr<AbstractInputConnector>> m_inputs;
+	std::map<uint64_t, std::unique_ptr<AbstractOutputConnector>> m_outputs;
 };
 
 }  // namespace yats

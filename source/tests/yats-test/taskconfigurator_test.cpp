@@ -4,6 +4,8 @@
 #include <yats/Output.h>
 #include <yats/TaskConfigurator.h>
 
+/*
+
 template<typename T>
 class OpenTaskConfigurator : public yats::TaskConfigurator<T>
 {
@@ -161,3 +163,4 @@ TEST(taskconfigurator_test, yo)
 	yats::TaskConfigurator<Task>::build(yo);
 }
 
+*/

@@ -11,7 +11,7 @@ namespace yats
 class Scheduler
 {
 public:
-	explicit Scheduler(const std::map<std::string, std::unique_ptr<AbstractTaskConfigurator>>& task_configurators)
+	explicit Scheduler(const std::map<std::string, std::unique_ptr<AbstractTaskConfigurator>>& /*task_configurators*/)
 	{
 		// TODO(anyone): Do initial run to find first runnable task
 		AbstractTaskContainer* first_task = nullptr;
@@ -34,12 +34,12 @@ public:
 	}
 
 protected:
-	bool can_run(AbstractTaskContainer* task_container)
+	bool can_run(AbstractTaskContainer* /*task_container*/)
 	{
 		return false;
 	}
 
-	void schedule(AbstractTaskContainer* task_container)
+	void schedule(AbstractTaskContainer* /*task_container*/)
 	{
 
 	}
@@ -49,7 +49,7 @@ protected:
 		return nullptr;
 	}
 
-	std::vector<AbstractTaskContainer*> following_tasks(AbstractTaskContainer* task_container)
+	std::vector<AbstractTaskContainer*> following_tasks(AbstractTaskContainer* /*task_container*/)
 	{
 		return std::vector<AbstractTaskContainer*>();
 	}

@@ -5,6 +5,8 @@
 #include <queue>
 #include <vector>
 
+#include <yats/OutputConnector.h>
+
 namespace yats
 {
 
@@ -98,6 +100,15 @@ struct TaskHelper
 
 	using ReturnCallbacks = typename ReturnWrapper<ReturnType>::Callbacks;
 	using InputCallbacks = std::tuple<decltype(transform_function<ParameterTypes>())...>;
+
+	template <typename CompoundType>
+	static InputConnector<typename CompoundType::value_type> transform_input();
+
+	template <typename CompoundType>
+	static OutputConnector<typename CompoundType::value_type> transform_output();
+
+	using InputConfiguration = std::tuple<decltype(transform_input<ParameterTypes>())...>;
+	using OutputConfiguration = std::tuple<decltype(transform_output<ParameterTypes>())...>;
 
 	static constexpr size_t ParameterCount = sizeof...(ParameterTypes);
 	static constexpr size_t OutputParameterCount = ReturnWrapper<ReturnType>::ParameterCount;

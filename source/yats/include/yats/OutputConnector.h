@@ -11,16 +11,13 @@ namespace yats
 class AbstractOutputConnector
 {
 public:
-	explicit AbstractOutputConnector(const AbstractTaskConfigurator* const owner)
-		: m_owner(owner) {}
+	AbstractOutputConnector() = default;
 
 	AbstractOutputConnector& operator>>(AbstractInputConnector& input)
 	{
 		input << *this;
 		return *this;
 	}
-protected:
-	const AbstractTaskConfigurator* const m_owner;
 };
 
 
@@ -29,13 +26,13 @@ template <typename T>
 class OutputConnector : public AbstractOutputConnector
 {
 public:
-	explicit OutputConnector(const AbstractTaskConfigurator* const owner)
-		: AbstractOutputConnector(owner) {}
+	OutputConnector() = default;
+
 	OutputConnector(const OutputConnector<T>& other) = delete;
-	OutputConnector(OutputConnector<T>&& other) = default;
+	OutputConnector(OutputConnector<T>&& other) = delete;
 
 	OutputConnector<T>& operator=(const OutputConnector<T>& other) = delete;
-	OutputConnector<T>& operator=(OutputConnector<T>&& other) = default;
+	OutputConnector<T>& operator=(OutputConnector<T>&& other) = delete;
 };
 
 }  // namespace yats

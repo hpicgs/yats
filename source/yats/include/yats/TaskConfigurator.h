@@ -21,13 +21,13 @@ class ConnectionHelper : public AbstractConnectionHelper
 public:
 
 	using Helper = decltype(MakeHelper(&Task::run));
-	using Locations = std::map<AbstractOutputConnector*, size_t>;
-	using Sequence = std::make_index_sequence<std::tuple_size_v<typename Helper::OutputConfiguration>>;
+	using Locations = std::map<const AbstractOutputConnector*, size_t>;
+	//using Sequence = std::make_index_sequence<std::tuple_size_v<typename Helper::OutputConfiguration>>;
 
-	ConnectionHelper(typename Helper::OutputConfiguration &outputs)
+	ConnectionHelper(const typename Helper::OutputConfiguration &outputs)
 		: m_input(std::make_unique<typename Helper::InputQueueBase>())
 		, m_callbacks(generateCallbacks(m_input, std::make_index_sequence<Helper::ParameterCount>()))
-		, m_locations(map(outputs))
+		, m_locations(map(outputs, std::make_index_sequence<std::tuple_size_v<typename Helper::OutputConfiguration>>()))
 	{
 	}
 
@@ -56,20 +56,13 @@ private:
 		};
 	}
 
-	template <size_t... nn, typename seq = Sequence>
-	static Locations map(typename Helper::OutputConfiguration &outputs, std::index_sequence<size_t, nn...> sequence = seq())
+	template <size_t... index>
+	static Locations map(const typename Helper::OutputConfiguration &outputs, std::index_sequence<index...>)
 	{
-		//Locations locations = { make_pair<index>(outputs)... };
-		//return locations;
-
+		// Prevent a warning about unused parameter when handling a run function with no parameters.
+		(void) outputs;
 		return { std::make_pair(&std::get<index>(outputs), index)... };
 	}
-
-	//template <size_t index>
-	//static typename Locations::value_type make_pair(typename Helper::OutputConfiguration &outputs)
-	//{
-	//	return std::make_pair(&std::get<index>(outputs), index);
-	//}
 
 	typename Helper::InputQueue m_input;
 	typename Helper::ReturnCallbacks m_output;
@@ -173,7 +166,7 @@ public:
 
 	std::unique_ptr<AbstractConnectionHelper> make2() const override
 	{
-		return std::make_unique<ConnectionHelper<Task>>(/*m_inputs, m_outputs*/);
+		return std::make_unique<ConnectionHelper<Task>>(m_outputs);
 	}
 
 protected:

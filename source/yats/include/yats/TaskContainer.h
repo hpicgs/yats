@@ -92,13 +92,7 @@ private:
 	}
 
 	template <size_t... Index, size_t InputCount = Helper::ParameterCount>
-	std::enable_if_t<InputCount == 0, bool> canRunImpl(std::integer_sequence<size_t, Index...>) const
-	{
-		return true;
-	}
-
-	template <size_t... Index, size_t InputCount = Helper::ParameterCount>
-	std::enable_if_t<(InputCount > 0), bool> canRunImpl(std::integer_sequence<size_t, Index...>) const
+	bool canRunImpl(std::integer_sequence<size_t, Index...>) const
 	{
 		std::array<bool, sizeof...(Index)> hasInputs{ { checkInput<Index>()... } };
 		return std::all_of(hasInputs.cbegin(), hasInputs.cend(), [](bool input) { return input; });

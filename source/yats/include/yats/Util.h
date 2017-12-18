@@ -187,15 +187,15 @@ struct has_unique_ids
 		return true;
 	}
 
-	template<uint64_t Index = 0>
-	static constexpr std::enable_if_t<Index < std::tuple_size<T>::value, void> write(uint64_t* ids)
+	template<uint64_t Index = 0, size_t TupleSize = std::tuple_size<T>::value>
+	static constexpr std::enable_if_t<Index < TupleSize, void> write(uint64_t* ids)
 	{
 		ids[Index] = std::tuple_element_t<Index, T>::ID;
 		write<Index + 1>(ids);
 	}
 
-	template<uint64_t Index>
-	static constexpr std::enable_if_t<Index == std::tuple_size<T>::value, void> write(uint64_t*)
+	template<uint64_t Index, size_t TupleSize = std::tuple_size<T>::value>
+	static constexpr std::enable_if_t<Index == TupleSize, void> write(uint64_t*)
 	{
 	}
 

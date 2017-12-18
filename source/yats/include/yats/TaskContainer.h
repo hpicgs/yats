@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <tuple>
 #include <utility>
 
@@ -16,6 +17,7 @@ public:
 	virtual ~AbstractTaskContainer() = default;
 
 	virtual void run() = 0;
+	virtual bool canRun() const = 0;
 
 private:
 
@@ -39,6 +41,11 @@ public:
 	void run() override
 	{
 		invoke(std::make_index_sequence<Helper::ParameterCount>());
+	}
+
+	bool canRun() const override
+	{
+		return canRunImpl(std::make_index_sequence<Helper::ParameterCount>());
 	}
 
 private:
@@ -81,6 +88,32 @@ private:
 	template <size_t index, typename T = typename Helper::ReturnType, typename Output = std::enable_if_t<std::is_same<T, void>::value, T>>
 	std::enable_if_t<index == Helper::OutputParameterCount> write(Output &)
 	{
+	}
+
+	template <size_t... Index, size_t InputCount = Helper::ParameterCount>
+	std::enable_if_t<InputCount == 0, bool> canRunImpl(std::integer_sequence<size_t, Index...>) const
+	{
+		return true;
+	}
+
+	template <size_t... Index, size_t InputCount = Helper::ParameterCount>
+	std::enable_if_t<(InputCount > 0), bool> canRunImpl(std::integer_sequence<size_t, Index...>) const
+	{
+		std::array<bool, sizeof...(Index)> hasInputs{ { checkInput<Index>()... } };
+
+		bool ready = true;
+		for (auto input : hasInputs)
+		{
+			ready &= input;
+		}
+
+		return ready;
+	}
+
+	template<size_t Index>
+	bool checkInput() const
+	{
+		return std::get<Index>(*m_input).size() > 0;
 	}
 
 	typename Helper::InputQueue m_input;

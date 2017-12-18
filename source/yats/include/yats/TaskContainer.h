@@ -18,7 +18,7 @@ public:
 	virtual ~AbstractTaskContainer() = default;
 
 	virtual void run() = 0;
-	virtual bool canRun() const = 0;
+	virtual bool can_run() const = 0;
 
 private:
 
@@ -44,9 +44,9 @@ public:
 		invoke(std::make_index_sequence<Helper::ParameterCount>());
 	}
 
-	bool canRun() const override
+	bool can_run() const override
 	{
-		return canRunImpl(std::make_index_sequence<Helper::ParameterCount>());
+		return can_run_impl(std::make_index_sequence<Helper::ParameterCount>());
 	}
 
 private:
@@ -92,14 +92,14 @@ private:
 	}
 
 	template <size_t... Index, size_t InputCount = Helper::ParameterCount>
-	bool canRunImpl(std::integer_sequence<size_t, Index...>) const
+	bool can_run_impl(std::integer_sequence<size_t, Index...>) const
 	{
-		std::array<bool, sizeof...(Index)> hasInputs{ { checkInput<Index>()... } };
+		std::array<bool, sizeof...(Index)> hasInputs{ {check_input<Index>()... } };
 		return std::all_of(hasInputs.cbegin(), hasInputs.cend(), [](bool input) { return input; });
 	}
 
 	template<size_t Index>
-	bool checkInput() const
+	bool check_input() const
 	{
 		return std::get<Index>(*m_input).size() > 0;
 	}

@@ -25,7 +25,7 @@ public:
 	virtual AbstractOutputConnector& output(const std::string& name) = 0;
 	virtual AbstractOutputConnector& output(uint64_t id) = 0;
 
-	static std::vector<std::unique_ptr<AbstractTaskContainer>> build(std::map<std::string, std::unique_ptr<AbstractTaskConfigurator>> &namedConfigurators)
+	static std::vector<std::unique_ptr<AbstractTaskContainer>> build(const std::map<std::string, std::unique_ptr<AbstractTaskConfigurator>> &namedConfigurators)
 	{
 		std::vector<AbstractTaskConfigurator*> configurators;
 		for (auto &configurator : namedConfigurators)

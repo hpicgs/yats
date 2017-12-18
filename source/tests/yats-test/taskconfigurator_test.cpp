@@ -126,7 +126,7 @@ TEST(taskconfigurator_test, get_input_output_by_name)
 
 TEST(taskconfigurator_test, yo)
 {
-	std::map<std::string, std::unique_ptr<yats::AbstractTaskConfigurator>> yo;
+	std::map<std::string, std::unique_ptr<yats::AbstractTaskConfigurator>> empty;
 
 	struct Task
 	{
@@ -135,5 +135,5 @@ TEST(taskconfigurator_test, yo)
 		}
 	};
 
-	yats::AbstractTaskConfigurator::build(yo);
+	yats::AbstractTaskConfigurator::build(empty);
 }

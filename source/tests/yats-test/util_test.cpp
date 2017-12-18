@@ -1,6 +1,8 @@
 #include <gmock/gmock.h>
 
 #include <yats/Util.h>
+#include <yats/Input.h>
+#include <yats/Output.h>
 
 
 TEST(util_test, is_unique_ptr_test)
@@ -61,4 +63,13 @@ TEST(util_test, has_run_test)
 	EXPECT_TRUE(yats::has_run_v<member_run>);
 	EXPECT_TRUE(yats::has_run_v<static_run>);
 	EXPECT_FALSE(yats::has_run_v<no_run>);
+}
+
+TEST(util_test, has_unique_ids_test)
+{
+	constexpr auto yes = yats::has_unique_ids_v<std::tuple<yats::Input<int, 123>, yats::Input<float, 321>>>;
+	constexpr auto no = yats::has_unique_ids_v<std::tuple<yats::Output<int, 123>, yats::Output<float, 123>>>;
+
+	EXPECT_TRUE(yes);
+	EXPECT_FALSE(no);
 }

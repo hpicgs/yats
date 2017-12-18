@@ -71,31 +71,8 @@ static constexpr TaskHelper<ReturnType, ParameterTypes...> MakeHelper(ReturnType
 
 
 template<uint64_t Id, typename T>
-struct get_element_by_id
+struct get_index_by_id
 {
-	template<typename... Args>
-	struct Parser;
-
-	template<typename First, typename... Args>
-	struct Parser<First, Args...>
-	{
-		template<uint64_t LocalId = Id, typename F = First>
-		static constexpr decltype(std::enable_if_t<F::ID != LocalId, Parser<Args...>>::parse_type()) parse_type();
-
-		template<uint64_t LocalId = Id, typename F = First>
-		static constexpr typename std::enable_if_t<F::ID == LocalId, F>::value_type parse_type();
-	};
-
-	template<typename First>
-	struct Parser<First>
-	{
-		template<uint64_t LocalId = Id, typename F = First>
-		static constexpr typename std::enable_if_t<F::ID == LocalId, F>::value_type parse_type();
-	};
-
-	template<typename... Args>
-	static constexpr Parser<Args...> Help(std::tuple<Args...>);
-
 	template<size_t Index = 0, typename Tuple = T>
 	static constexpr std::enable_if_t<Index < std::tuple_size<Tuple>::value, size_t> outer_parse_index()
 	{
@@ -120,12 +97,11 @@ struct get_element_by_id
 		return outer_parse_index<Index + 1>();
 	}
 
-	using type = decltype(decltype(Help(std::declval<T>()))::parse_type());
-	static constexpr uint64_t index = outer_parse_index();
+	static constexpr uint64_t value = outer_parse_index();
 };
 
 template<uint64_t Id, typename T>
-using get_element_by_id_t = typename get_element_by_id<Id, T>::type;
+static constexpr size_t get_index_by_id_v = get_index_by_id<Id, T>::value;
 
 
 template<typename T>

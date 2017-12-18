@@ -90,3 +90,12 @@ TEST(util_test, get_value_type_test)
 	EXPECT_EQ(index1, 0);
 	EXPECT_EQ(index2, 1);
 }
+
+TEST(util_test, has_unique_ids_test)
+{
+	constexpr auto yes = yats::has_unique_ids_v<std::tuple<yats::Input<int, 123>, yats::Input<float, 321>>>;
+	constexpr auto no = yats::has_unique_ids_v<std::tuple<yats::Output<int, 123>, yats::Output<float, 123>>>;
+
+	EXPECT_TRUE(yes);
+	EXPECT_FALSE(no);
+}

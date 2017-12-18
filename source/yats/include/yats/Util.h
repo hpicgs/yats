@@ -69,6 +69,7 @@ struct TaskHelper
 template <typename ReturnType, typename TaskType, typename... ParameterTypes>
 static constexpr TaskHelper<ReturnType, ParameterTypes...> MakeHelper(ReturnType(TaskType::*)(ParameterTypes...));
 
+
 template<uint64_t Id, typename T>
 struct get_element_by_id
 {
@@ -125,5 +126,46 @@ struct get_element_by_id
 
 template<uint64_t Id, typename T>
 using get_element_by_id_t = typename get_element_by_id<Id, T>::type;
+
+
+template<typename T>
+struct has_unique_ids
+{
+	static constexpr bool check_ids()
+	{
+		constexpr size_t size = std::tuple_size<T>::value;
+		uint64_t ids[size] = {};
+		write(ids);
+
+		for (size_t i = 0; i < size; ++i)
+		{
+			for (size_t j = i + 1; j < size; ++j)
+			{
+				if (ids[i] == ids[j])
+				{
+					return false;
+				}
+			}
+		}
+		return true;
+	}
+
+	template<uint64_t Index = 0>
+	static constexpr std::enable_if_t<Index < std::tuple_size<T>::value, void> write(uint64_t* ids)
+	{
+		ids[Index] = std::tuple_element_t<Index, T>::ID;
+		write<Index + 1>(ids);
+	}
+
+	template<uint64_t Index>
+	static constexpr std::enable_if_t<Index == std::tuple_size<T>::value, void> write(uint64_t*)
+	{
+	}
+
+	static constexpr bool value = check_ids();
+};
+
+template<typename T>
+static constexpr bool has_unique_ids_v = has_unique_ids<T>::value;
 
 }  // namespace yats

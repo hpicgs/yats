@@ -162,15 +162,15 @@ static constexpr size_t get_index_by_id_v = get_index_by_id<Id, T>::value;
 template<typename T>
 struct has_unique_ids
 {
-	static constexpr bool check_ids()
+	template<typename Tuple = T, size_t TupleSize = std::tuple_size<Tuple>::value>
+	static constexpr std::enable_if_t<(TupleSize > 0), bool> check_ids()
 	{
-		constexpr size_t size = std::tuple_size<T>::value;
-		uint64_t ids[size] = {};
+		uint64_t ids[TupleSize] = {};
 		write(ids);
 
-		for (size_t i = 0; i < size; ++i)
+		for (size_t i = 0; i < TupleSize; ++i)
 		{
-			for (size_t j = i + 1; j < size; ++j)
+			for (size_t j = i + 1; j < TupleSize; ++j)
 			{
 				if (ids[i] == ids[j])
 				{
@@ -181,15 +181,21 @@ struct has_unique_ids
 		return true;
 	}
 
-	template<uint64_t Index = 0>
-	static constexpr std::enable_if_t<Index < std::tuple_size<T>::value, void> write(uint64_t* ids)
+	template<typename Tuple = T, size_t TupleSize = std::tuple_size<Tuple>::value>
+	static constexpr std::enable_if_t<(TupleSize == 0), bool> check_ids()
+	{
+		return true;
+	}
+
+	template<uint64_t Index = 0, size_t TupleSize = std::tuple_size<T>::value>
+	static constexpr std::enable_if_t<Index < TupleSize, void> write(uint64_t* ids)
 	{
 		ids[Index] = std::tuple_element_t<Index, T>::ID;
 		write<Index + 1>(ids);
 	}
 
-	template<uint64_t Index>
-	static constexpr std::enable_if_t<Index == std::tuple_size<T>::value, void> write(uint64_t*)
+	template<uint64_t Index, size_t TupleSize = std::tuple_size<T>::value>
+	static constexpr std::enable_if_t<Index == TupleSize, void> write(uint64_t*)
 	{
 	}
 

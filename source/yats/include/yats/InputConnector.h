@@ -11,8 +11,13 @@ class AbstractTaskConfigurator;
 class AbstractInputConnector
 {
 public:
-	explicit AbstractInputConnector(const AbstractTaskConfigurator* const owner)
-		: m_owner(owner), m_output(nullptr) {}
+	explicit AbstractInputConnector()
+		: m_output(nullptr) {}
+
+	const AbstractOutputConnector* output() const
+	{
+		return m_output;
+	}
 
 	/// <summary>Connects output to input.</summary>
 	/// <param name="output">Reference to output to connect.</param>
@@ -26,7 +31,6 @@ public:
 		m_output = &output;
 	}
 protected:
-	const AbstractTaskConfigurator* const m_owner;
 	AbstractOutputConnector* m_output;
 };
 
@@ -36,13 +40,13 @@ template <typename T>
 class InputConnector : public AbstractInputConnector
 {
 public:
-	explicit InputConnector(const AbstractTaskConfigurator* const owner)
-		: AbstractInputConnector(owner) {}
+	InputConnector() = default;
+
 	InputConnector(const InputConnector<T>& other) = delete;
-	InputConnector(InputConnector<T>&& other) = default;
+	InputConnector(InputConnector<T>&& other) = delete;
 
 	InputConnector<T>& operator=(const InputConnector<T>& other) = delete;
-	InputConnector<T>& operator=(InputConnector<T>&& other) = default;
+	InputConnector<T>& operator=(InputConnector<T>&& other) = delete;
 };
 
 }  // namespace yats

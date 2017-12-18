@@ -29,11 +29,7 @@ public:
 
 	void run()
 	{
-		std::vector<std::unique_ptr<AbstractTaskContainer>> tasks;
-		for (auto &elem : m_tasks)
-		{
-			tasks.emplace_back(elem.second->make());
-		}
+		auto tasks = AbstractTaskConfigurator::build(m_tasks);
 	}
 
 private:

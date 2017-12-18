@@ -4,14 +4,6 @@
 #include <yats/Output.h>
 #include <yats/TaskConfigurator.h>
 
-template<typename T>
-class OpenTaskConfigurator : public yats::TaskConfigurator<T>
-{
-public:
-	const std::map<uint64_t, std::unique_ptr<yats::AbstractInputConnector>>& inputs() const { return yats::TaskConfigurator<T>::m_inputs; }
-	const std::map<uint64_t, std::unique_ptr<yats::AbstractOutputConnector>>& outputs() const { return yats::TaskConfigurator<T>::m_outputs; }
-};
-
 
 TEST(taskconfigurator_test, no_return_no_parameters)
 {
@@ -23,10 +15,7 @@ TEST(taskconfigurator_test, no_return_no_parameters)
 		}
 	};
 
-	OpenTaskConfigurator<Task> configurator;
-
-	EXPECT_EQ(0, configurator.inputs().size());
-	EXPECT_EQ(0, configurator.outputs().size());
+	yats::TaskConfigurator<Task> configurator;
 
 	EXPECT_ANY_THROW(configurator.input(0));
 	EXPECT_ANY_THROW(configurator.output(0));
@@ -42,10 +31,7 @@ TEST(taskconfigurator_test, no_return_parameters)
 		}
 	};
 
-	OpenTaskConfigurator<Task> configurator;
-
-	EXPECT_EQ(1, configurator.inputs().size());
-	EXPECT_EQ(0, configurator.outputs().size());
+	yats::TaskConfigurator<Task> configurator;
 
 	EXPECT_NO_THROW(configurator.input(0));
 	EXPECT_ANY_THROW(configurator.output(0));
@@ -61,10 +47,7 @@ TEST(taskconfigurator_test, return_no_parameters)
 		}
 	};
 
-	OpenTaskConfigurator<Task> configurator;
-
-	EXPECT_EQ(0, configurator.inputs().size());
-	EXPECT_EQ(1, configurator.outputs().size());
+	yats::TaskConfigurator<Task> configurator;
 
 	EXPECT_ANY_THROW(configurator.input(0));
 	EXPECT_NO_THROW(configurator.output(0));
@@ -80,10 +63,7 @@ TEST(taskconfigurator_test, return_parameters)
 		}
 	};
 
-	OpenTaskConfigurator<Task> configurator;
-
-	EXPECT_EQ(1, configurator.inputs().size());
-	EXPECT_EQ(1, configurator.outputs().size());
+	yats::TaskConfigurator<Task> configurator;
 
 	EXPECT_NO_THROW(configurator.input(0));
 	EXPECT_NO_THROW(configurator.output(0));
@@ -99,10 +79,7 @@ TEST(taskconfigurator_test, multiple_returns_multiple_parameters)
 		}
 	};
 
-	OpenTaskConfigurator<Task> configurator;
-
-	EXPECT_EQ(2, configurator.inputs().size());
-	EXPECT_EQ(2, configurator.outputs().size());
+	yats::TaskConfigurator<Task> configurator;
 
 	EXPECT_NO_THROW(configurator.input(0));
 	EXPECT_NO_THROW(configurator.output(0));
@@ -145,4 +122,18 @@ TEST(taskconfigurator_test, get_input_output_by_name)
 
 	EXPECT_ANY_THROW(configurator.input("output"));
 	EXPECT_ANY_THROW(configurator.output("input"));
+}
+
+TEST(taskconfigurator_test, yo)
+{
+	std::map<std::string, std::unique_ptr<yats::AbstractTaskConfigurator>> empty;
+
+	struct Task
+	{
+		void run()
+		{
+		}
+	};
+
+	yats::AbstractTaskConfigurator::build(empty);
 }

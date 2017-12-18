@@ -3,10 +3,8 @@
 #include <memory>
 #include <map>
 
+#include <yats/ConnectionHelper.h>
 #include <yats/Identifier.h>
-#include <yats/InputConnector.h>
-#include <yats/TaskContainer.h>
-#include <yats/OutputConnector.h>
 
 namespace yats
 {
@@ -18,13 +16,60 @@ public:
 	AbstractTaskConfigurator() = default;
 	virtual ~AbstractTaskConfigurator() = default;
 
-	virtual std::unique_ptr<AbstractTaskContainer> make() const = 0;
+	virtual std::unique_ptr<AbstractTaskContainer> make(std::unique_ptr<AbstractConnectionHelper> helper) const = 0;
+	virtual std::unique_ptr<AbstractConnectionHelper> make2() const = 0;
 
 	virtual AbstractInputConnector& input(const std::string& name) = 0;
 	virtual AbstractInputConnector& input(uint64_t id) = 0;
 
 	virtual AbstractOutputConnector& output(const std::string& name) = 0;
 	virtual AbstractOutputConnector& output(uint64_t id) = 0;
+
+	static std::vector<std::unique_ptr<AbstractTaskContainer>> build(std::map<std::string, std::unique_ptr<AbstractTaskConfigurator>> &namedConfigurators)
+	{
+		std::vector<AbstractTaskConfigurator*> configurators;
+		for (auto &configurator : namedConfigurators)
+		{
+			configurators.push_back(configurator.second.get());
+		}
+
+		std::vector<std::unique_ptr<AbstractConnectionHelper>> helpers;
+		for (auto configurator : configurators)
+		{
+			helpers.emplace_back(configurator->make2());
+		}
+
+
+		std::map<const AbstractOutputConnector*, size_t> outputOwner;
+		for (size_t i = 0; i < configurators.size(); ++i)
+		{
+			auto outputs = helpers[i]->outputs();
+			for (auto output : outputs)
+			{
+				outputOwner.emplace(output.first, i);
+			}
+		}
+
+		for (auto &helper : helpers)
+		{
+			auto inputs = helper->inputs();
+			for (auto input : inputs)
+			{
+				auto sourceLocation = input.first->output();
+				auto sourceTaskId = outputOwner.at(sourceLocation);
+
+				helpers[sourceTaskId]->bind(sourceLocation, helper->target(input.first));
+			}
+		}
+
+		std::vector<std::unique_ptr<AbstractTaskContainer>> tasks;
+		for (size_t i = 0; i < configurators.size(); ++i)
+		{
+			tasks.emplace_back(configurators[i]->make(std::move(helpers[i])));
+		}
+
+		return tasks;
+	}
 };
 
 
@@ -35,85 +80,71 @@ public:
 
 	using Helper = decltype(MakeHelper(&Task::run));
 
-	TaskConfigurator()
-	{
-		parseInputParameters();
-		parseOutputParameters();
-	}
-
-	std::unique_ptr<AbstractTaskContainer> make() const override
-	{
-		return std::make_unique<TaskContainer<Task>>();
-	}
+	TaskConfigurator() = default;
 
 	AbstractInputConnector& input(const std::string& name) override
 	{
-		return *(m_inputs.at(id(name.c_str())));
+		return find<typename Helper::WrappedInput, AbstractInputConnector>(m_inputs, id(name.c_str()));
 	}
 
 	AbstractInputConnector& input(uint64_t id) override
 	{
-		return *(m_inputs.at(id));
+		return find<typename Helper::WrappedInput, AbstractInputConnector>(m_inputs, id);
 	}
 
 	AbstractOutputConnector& output(const std::string& name) override
 	{
-		return *(m_outputs.at(id(name.c_str())));
+		return find<typename Helper::ReturnBase, AbstractOutputConnector>(m_outputs, id(name.c_str()));
 	}
 
 	AbstractOutputConnector& output(uint64_t id) override
 	{
-		return *(m_outputs.at(id).get());
+		return find<typename Helper::ReturnBase, AbstractOutputConnector>(m_outputs, id);
+	}
+
+	std::unique_ptr<AbstractTaskContainer> make(std::unique_ptr<AbstractConnectionHelper> helper) const override
+	{
+		auto c = static_cast<ConnectionHelper<Task>*>(helper.get());
+		return std::make_unique<TaskContainer<Task>>(c->queue(), c->callbacks());
+	}
+
+	std::unique_ptr<AbstractConnectionHelper> make2() const override
+	{
+		return std::make_unique<ConnectionHelper<Task>>(m_inputs, m_outputs);
 	}
 
 protected:
-	void parseInputParameters()
+
+	template <typename IdTuple, typename Return, typename Parameter>
+	Return& find(Parameter &tuple, uint64_t id)
 	{
-		parseInputParameter<0>();
+		auto connector = get<IdTuple, Return>(tuple, id);
+		if (connector)
+		{
+			return *connector;
+		}
+		throw std::runtime_error("Id not found.");
 	}
 
-	template<size_t Index>
-	std::enable_if_t<Index == Helper::ParameterCount> parseInputParameter()
+	template <typename IdTuple, typename Return, size_t Index = 0, typename Parameter = int>
+	std::enable_if_t<Index < std::tuple_size<IdTuple>::value, Return*> get(Parameter &tuple, uint64_t id)
 	{
-
+		auto elem = &std::get<Index>(tuple);
+		if (id == std::tuple_element_t<Index, IdTuple>::ID)
+		{
+			return elem;
+		}
+		return get<IdTuple, Return, Index + 1>(tuple, id);
 	}
 
-	template<size_t Index>
-	std::enable_if_t<Index < Helper::ParameterCount> parseInputParameter()
+	template <typename IdTuple, typename Return, size_t Index = 0, typename Parameter = int>
+	std::enable_if_t<Index == std::tuple_size<IdTuple>::value, Return*> get(Parameter &, uint64_t)
 	{
-		using currentInput = std::tuple_element_t<Index, typename Helper::WrappedInput>;
-		m_inputs.emplace(currentInput::ID, std::make_unique<InputConnector<currentInput>>(this));
-		parseInputParameter<Index + 1>();
+		return nullptr;
 	}
 
-	template<typename T = typename Helper::ReturnType>
-	std::enable_if_t<std::is_same<T, void>::value> parseOutputParameters()
-	{
-
-	}
-
-	template<typename T = typename Helper::ReturnType>
-	std::enable_if_t<!std::is_same<T, void>::value> parseOutputParameters()
-	{
-		parseOutputParameter<0, std::tuple_size<typename Helper::ReturnType>::value>();
-	}
-
-	template<size_t Index, size_t Max>
-	std::enable_if_t<Index == Max> parseOutputParameter()
-	{
-
-	}
-
-	template<size_t Index, size_t Max>
-	std::enable_if_t<Index < Max> parseOutputParameter()
-	{
-		using currentOutput = std::tuple_element_t<Index, typename Helper::ReturnType>;
-		m_outputs.emplace(currentOutput::ID, std::make_unique<OutputConnector<currentOutput>>(this));
-		parseOutputParameter<Index + 1, Max>();
-	}
-
-	std::map<uint64_t, std::unique_ptr<AbstractInputConnector>> m_inputs;
-	std::map<uint64_t, std::unique_ptr<AbstractOutputConnector>> m_outputs;
+	typename Helper::InputConfiguration m_inputs;
+	typename Helper::OutputConfiguration m_outputs;
 };
 
 }  // namespace yats

@@ -69,6 +69,37 @@ struct TaskHelper
 template <typename ReturnType, typename TaskType, typename... ParameterTypes>
 static constexpr TaskHelper<ReturnType, ParameterTypes...> MakeHelper(ReturnType(TaskType::*)(ParameterTypes...));
 
+
+template<uint64_t Id, typename T>
+struct get_index_by_id
+{
+	static constexpr size_t invalid_index = std::numeric_limits<size_t>::max();
+
+	template<size_t Index = 0, typename Tuple = T>
+	static constexpr std::enable_if_t<Index < std::tuple_size<Tuple>::value, size_t> find()
+	{
+		size_t index_id = std::tuple_element_t<Index, Tuple>::ID;
+		if (Id == index_id)
+		{
+			return Index;
+		}
+		return find<Index + 1>();
+	}
+
+	template<size_t Index = 0, typename Tuple = T>
+	static constexpr std::enable_if_t<Index == std::tuple_size<Tuple>::value, size_t> find()
+	{
+		return invalid_index;
+	}
+
+	static constexpr uint64_t value = find();
+	static_assert(value != invalid_index, "Could not find identifier in tuple.");
+};
+
+template<uint64_t Id, typename T>
+static constexpr size_t get_index_by_id_v = get_index_by_id<Id, T>::value;
+
+
 template<typename T>
 struct has_unique_ids
 {

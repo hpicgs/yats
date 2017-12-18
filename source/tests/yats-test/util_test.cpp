@@ -65,6 +65,20 @@ TEST(util_test, has_run_test)
 	EXPECT_FALSE(yats::has_run_v<no_run>);
 }
 
+TEST(util_test, get_value_type_test)
+{
+	struct Test {};
+
+	using TestTuple1 = yats::OutputBundle<yats::Output<Test, 0>>;
+	using TestTuple2 = std::tuple<yats::Input<float, 321>, yats::Input<int, 123>>;
+
+	constexpr auto index1 = yats::get_index_by_id_v<321, TestTuple2>;
+	constexpr auto index2 = yats::get_index_by_id_v<123, TestTuple2>;
+
+	EXPECT_EQ(index1, 0);
+	EXPECT_EQ(index2, 1);
+}
+
 TEST(util_test, has_unique_ids_test)
 {
 	constexpr auto yes = yats::has_unique_ids_v<std::tuple<yats::Input<int, 123>, yats::Input<float, 321>>>;

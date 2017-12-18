@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <array>
 #include <tuple>
 #include <utility>
@@ -100,14 +101,7 @@ private:
 	std::enable_if_t<(InputCount > 0), bool> canRunImpl(std::integer_sequence<size_t, Index...>) const
 	{
 		std::array<bool, sizeof...(Index)> hasInputs{ { checkInput<Index>()... } };
-
-		bool ready = true;
-		for (auto input : hasInputs)
-		{
-			ready &= input;
-		}
-
-		return ready;
+		return std::all_of(hasInputs.cbegin(), hasInputs.cend(), [](bool input) { return input; });
 	}
 
 	template<size_t Index>

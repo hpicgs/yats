@@ -86,4 +86,8 @@ TEST(util_test, has_unique_ids_test)
 
 	EXPECT_TRUE(yes);
 	EXPECT_FALSE(no);
+
+	constexpr auto yes_empty = yats::has_unique_ids_v<std::tuple<>>;
+
+	EXPECT_TRUE(yes_empty);
 }

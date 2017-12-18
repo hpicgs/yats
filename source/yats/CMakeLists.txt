@@ -23,6 +23,7 @@ message(STATUS "Header Only Library ${target}")
 set(include_path "${CMAKE_CURRENT_SOURCE_DIR}/include/${target}")
 
 set(headers
+    ${include_path}/ConnectionHelper.h
     ${include_path}/Functional.h
     ${include_path}/Identifier.h
     ${include_path}/Input.h

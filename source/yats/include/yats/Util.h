@@ -73,31 +73,27 @@ static constexpr TaskHelper<ReturnType, ParameterTypes...> MakeHelper(ReturnType
 template<uint64_t Id, typename T>
 struct get_index_by_id
 {
-	template<size_t Index = 0, typename Tuple = T>
-	static constexpr std::enable_if_t<Index < std::tuple_size<Tuple>::value, size_t> outer_parse_index()
-	{
-		return inner_parse_index<Index>();
-	}
+	static constexpr size_t invalid_index = std::numeric_limits<size_t>::max();
 
 	template<size_t Index = 0, typename Tuple = T>
-	static constexpr std::enable_if_t<Index == std::tuple_size<Tuple>::value, size_t> outer_parse_index()
+	static constexpr std::enable_if_t<Index < std::tuple_size<Tuple>::value, size_t> find()
 	{
-		return 0;
+		size_t index_id = std::tuple_element_t<Index, Tuple>::ID;
+		if (Id == index_id)
+		{
+			return Index;
+		}
+		return find<Index + 1>();
 	}
 
-	template<size_t Index, uint64_t LocalId = Id, typename Tuple = T>
-	static constexpr std::enable_if_t<std::tuple_element<Index, Tuple>::type::ID == LocalId, size_t> inner_parse_index()
+	template<size_t Index = 0, typename Tuple = T>
+	static constexpr std::enable_if_t<Index == std::tuple_size<Tuple>::value, size_t> find()
 	{
-		return Index + outer_parse_index<Index + 1>();
+		return invalid_index;
 	}
 
-	template<size_t Index = 0, uint64_t LocalId = Id, typename Tuple = T>
-	static constexpr std::enable_if_t<std::tuple_element<Index, Tuple>::type::ID != LocalId, size_t> inner_parse_index()
-	{
-		return outer_parse_index<Index + 1>();
-	}
-
-	static constexpr uint64_t value = outer_parse_index();
+	static constexpr uint64_t value = find();
+	static_assert(value != invalid_index, "Could not find identifier in tuple.");
 };
 
 template<uint64_t Id, typename T>

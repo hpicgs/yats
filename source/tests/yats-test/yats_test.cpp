@@ -39,5 +39,5 @@ TEST(yats_test, simple_connection)
 	source_configurator->output(0) >> target_configurator->input(0);
 
 	auto scheduler = pipeline.build();
-//	scheduler.run();
+	scheduler.run();
 }

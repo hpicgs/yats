@@ -65,7 +65,7 @@ public:
 		std::vector<std::unique_ptr<AbstractTaskContainer>> tasks;
 		for (size_t i = 0; i < configurators.size(); ++i)
 		{
-			tasks.emplace_back(configurators[i]->make(std::move(helpers[i])));
+			tasks.push_back(configurators[i]->make(std::move(helpers[i])));
 		}
 
 		return tasks;

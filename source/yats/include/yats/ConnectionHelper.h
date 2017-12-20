@@ -24,6 +24,8 @@ public:
 	{
 	}
 
+	virtual ~AbstractConnectionHelper() = default;
+
 	virtual void bind(const AbstractOutputConnector *connector, std::unique_ptr<AbstractFunctional> callback) = 0;
 	virtual std::unique_ptr<AbstractFunctional> target(const AbstractInputConnector *connector) = 0;
 

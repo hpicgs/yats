@@ -24,8 +24,8 @@ set(sources
     main.cpp
     scheduler_test.cpp
     taskconfigurator_test.cpp
-    yats_test.cpp
     util_test.cpp
+    yats_test.cpp
 )
 
 

@@ -1,35 +1,43 @@
 #include <gmock/gmock.h>
 
 #include <yats/Pipeline.h>
+#include <yats/Output.h>
+#include <yats/Input.h>
 
-class Source
+struct Source
 {
-public:
-	int run()
+	yats::OutputBundle<yats::Output<int, 0>> run()
 	{
 		std::cout << "Send 42" << std::endl;
-		return 42;
+		return std::make_tuple(42);
 	}
 };
 
-class Target
+struct Target
 {
-public:
-	void run(int value)
+	void run(yats::Input<int, 0> input)
 	{
-		std::cout << "Received " << value << std::endl;
+		std::cout << "Received " << input << ". Adding + 1" << std::endl;
 	}
 };
 
 
-TEST(interface_creation, simple)
+TEST(yats_test, simple)
+{
+	yats::Pipeline pipeline;
+	auto scheduler = pipeline.build();
+	EXPECT_NO_THROW(scheduler.run());
+}
+
+TEST(yats_test, simple_connection)
 {
 	yats::Pipeline pipeline;
 
-	//auto sourceconfigurator = pipeline.add<Source>("ultra");
-	//auto targetconfigurator = pipeline.add<Target>("ultimate");
+	auto source_configurator = pipeline.add<Source>("source");
+	auto target_configurator = pipeline.add<Target>("target");
 
-	//sourceconfigurator->output() >> targetconfigurator->input();
+	source_configurator->output(0) >> target_configurator->input(0);
 
-	//pipeline.run();
+	auto scheduler = pipeline.build();
+	scheduler.run();
 }

@@ -25,7 +25,7 @@ public:
 	virtual AbstractOutputConnector& output(const std::string& name) = 0;
 	virtual AbstractOutputConnector& output(uint64_t id) = 0;
 
-	static std::vector<std::unique_ptr<AbstractTaskContainer>> build(std::map<std::string, std::unique_ptr<AbstractTaskConfigurator>> &namedConfigurators)
+	static std::vector<std::unique_ptr<AbstractTaskContainer>> build(const std::map<std::string, std::unique_ptr<AbstractTaskConfigurator>> &namedConfigurators)
 	{
 		std::vector<AbstractTaskConfigurator*> configurators;
 		for (auto &configurator : namedConfigurators)
@@ -65,7 +65,7 @@ public:
 		std::vector<std::unique_ptr<AbstractTaskContainer>> tasks;
 		for (size_t i = 0; i < configurators.size(); ++i)
 		{
-			tasks.emplace_back(configurators[i]->make(std::move(helpers[i])));
+			tasks.push_back(configurators[i]->make(std::move(helpers[i])));
 		}
 
 		return tasks;

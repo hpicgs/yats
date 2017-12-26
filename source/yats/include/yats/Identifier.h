@@ -7,8 +7,7 @@ namespace yats
 {
 
 //! This function transformes a character to a smaller alphabet.
-constexpr int
-lookup(char character)
+constexpr int lookup(char character)
 {
     // Upper case
     if (character >= 'A' && character <= 'Z')
@@ -42,14 +41,13 @@ lookup(char character)
     }
 }
 
-constexpr uint64_t
-name(const char* string, size_t length)
+constexpr uint64_t name(const char* string, size_t length)
 {
     uint64_t value = 0;
 
     // The length of a string is limited to 12 characters excluding the termination character.
-    constexpr int max_length       = 12;
-    const int     truncated_length = std::min(static_cast<int>(length), max_length);
+    constexpr int max_length = 12;
+    const int truncated_length = std::min(static_cast<int>(length), max_length);
 
     // Highest 60 bits encode the string with up to 12 characters from an 32 character alphabet defined by the lookup function.
     for (int i = max_length - 1; i >= 0; --i)
@@ -66,11 +64,9 @@ name(const char* string, size_t length)
 
     return value;
 }
+}
 
-}    // namespace yats
-
-constexpr uint64_t
-id(const char* string)
+constexpr uint64_t id(const char* string)
 {
     size_t length = 0;
     while (string[length])

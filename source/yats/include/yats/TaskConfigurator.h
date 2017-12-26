@@ -13,17 +13,17 @@ namespace yats
 class AbstractTaskConfigurator
 {
 public:
-    AbstractTaskConfigurator()          = default;
+    AbstractTaskConfigurator() = default;
     virtual ~AbstractTaskConfigurator() = default;
 
-    virtual std::unique_ptr<AbstractTaskContainer>    make(std::unique_ptr<AbstractConnectionHelper> helper) const = 0;
-    virtual std::unique_ptr<AbstractConnectionHelper> make2() const                                                = 0;
+    virtual std::unique_ptr<AbstractTaskContainer> make(std::unique_ptr<AbstractConnectionHelper> helper) const = 0;
+    virtual std::unique_ptr<AbstractConnectionHelper> make2() const = 0;
 
     virtual AbstractInputConnector& input(const std::string& name) = 0;
-    virtual AbstractInputConnector& input(uint64_t id)             = 0;
+    virtual AbstractInputConnector& input(uint64_t id) = 0;
 
     virtual AbstractOutputConnector& output(const std::string& name) = 0;
-    virtual AbstractOutputConnector& output(uint64_t id)             = 0;
+    virtual AbstractOutputConnector& output(uint64_t id) = 0;
 
     static std::vector<std::unique_ptr<AbstractTaskContainer>> build(std::map<std::string, std::unique_ptr<AbstractTaskConfigurator>>& namedConfigurators)
     {
@@ -55,7 +55,7 @@ public:
             for (auto input : inputs)
             {
                 auto sourceLocation = input.first->output();
-                auto sourceTaskId   = outputOwner.at(sourceLocation);
+                auto sourceTaskId = outputOwner.at(sourceLocation);
 
                 helpers[sourceTaskId]->bind(sourceLocation, helper->target(input.first));
             }
@@ -71,7 +71,7 @@ public:
     }
 };
 
-template<typename Task>
+template <typename Task>
 class TaskConfigurator : public AbstractTaskConfigurator
 {
 public:
@@ -111,7 +111,7 @@ public:
     }
 
 protected:
-    template<typename IdTuple, typename Return, typename Parameter>
+    template <typename IdTuple, typename Return, typename Parameter>
     Return& find(Parameter& tuple, uint64_t id)
     {
         auto connector = get<IdTuple, Return>(tuple, id);
@@ -122,7 +122,7 @@ protected:
         throw std::runtime_error("Id not found.");
     }
 
-    template<typename IdTuple, typename Return, size_t Index = 0, typename Parameter = int>
+    template <typename IdTuple, typename Return, size_t Index = 0, typename Parameter = int>
         std::enable_if_t < Index<std::tuple_size<IdTuple>::value, Return*> get(Parameter& tuple, uint64_t id)
     {
         auto elem = &std::get<Index>(tuple);
@@ -133,14 +133,13 @@ protected:
         return get<IdTuple, Return, Index + 1>(tuple, id);
     }
 
-    template<typename IdTuple, typename Return, size_t Index = 0, typename Parameter = int>
+    template <typename IdTuple, typename Return, size_t Index = 0, typename Parameter = int>
     std::enable_if_t<Index == std::tuple_size<IdTuple>::value, Return*> get(Parameter&, uint64_t)
     {
         return nullptr;
     }
 
-    typename Helper::InputConfiguration  m_inputs;
+    typename Helper::InputConfiguration m_inputs;
     typename Helper::OutputConfiguration m_outputs;
 };
-
-}    // namespace yats
+}

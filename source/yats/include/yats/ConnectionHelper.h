@@ -14,7 +14,7 @@ namespace yats
 class AbstractConnectionHelper
 {
 public:
-    template<typename Type>
+    template <typename Type>
     using Locations = std::map<const Type*, size_t>;
 
     AbstractConnectionHelper(Locations<AbstractInputConnector> input, Locations<AbstractOutputConnector> output)
@@ -23,8 +23,8 @@ public:
     {
     }
 
-    virtual void                                bind(const AbstractOutputConnector* connector, std::unique_ptr<AbstractFunctional> callback) = 0;
-    virtual std::unique_ptr<AbstractFunctional> target(const AbstractInputConnector* connector)                                              = 0;
+    virtual void bind(const AbstractOutputConnector* connector, std::unique_ptr<AbstractFunctional> callback) = 0;
+    virtual std::unique_ptr<AbstractFunctional> target(const AbstractInputConnector* connector) = 0;
 
     const auto& inputs()
     {
@@ -37,7 +37,7 @@ public:
     }
 
 protected:
-    template<typename LocationType, typename SequenceType, size_t... index>
+    template <typename LocationType, typename SequenceType, size_t... index>
     static Locations<LocationType> map(const SequenceType& outputs, std::index_sequence<index...>)
     {
         // Prevent a warning about unused parameter when handling a run function with no parameters.
@@ -45,16 +45,16 @@ protected:
         return { std::make_pair(&std::get<index>(outputs), index)... };
     }
 
-    const Locations<AbstractInputConnector>  m_in;
+    const Locations<AbstractInputConnector> m_in;
     const Locations<AbstractOutputConnector> m_out;
 };
 
-template<typename Task>
+template <typename Task>
 class ConnectionHelper : public AbstractConnectionHelper
 {
 public:
-    using Helper         = decltype(MakeHelper(&Task::run));
-    using InputSequence  = std::make_index_sequence<std::tuple_size<typename Helper::InputConfiguration>::value>;
+    using Helper = decltype(MakeHelper(&Task::run));
+    using InputSequence = std::make_index_sequence<std::tuple_size<typename Helper::InputConfiguration>::value>;
     using OutputSequence = std::make_index_sequence<std::tuple_size<typename Helper::OutputConfiguration>::value>;
 
     ConnectionHelper(const typename Helper::InputConfiguration& inputs, const typename Helper::OutputConfiguration& outputs)
@@ -87,7 +87,7 @@ public:
     }
 
 private:
-    template<size_t... index>
+    template <size_t... index>
     static typename Helper::InputCallbacks generateCallbacks(typename Helper::InputQueue& queue, std::integer_sequence<size_t, index...>)
     {
         // Prevent a warning about unused parameter when handling a run function with no parameters.
@@ -95,7 +95,7 @@ private:
         return std::make_tuple(generateCallback<index>(queue)...);
     }
 
-    template<size_t index>
+    template <size_t index>
     static typename std::tuple_element_t<index, typename Helper::InputCallbacks> generateCallback(typename Helper::InputQueue& queue)
     {
         using ParameterType = typename std::tuple_element_t<index, typename Helper::InputQueueBase>::value_type;
@@ -105,13 +105,13 @@ private:
         };
     }
 
-    template<size_t index = 0>
+    template <size_t index = 0>
         std::enable_if_t < index<Helper::OutputParameterCount> add(size_t locationId, AbstractFunctional* rawCallback)
     {
         if (index == locationId)
         {
             using Parameter = std::tuple_element_t<index, typename Helper::ReturnBase>;
-            auto callback   = static_cast<Functional<Parameter>*>(rawCallback);
+            auto callback = static_cast<Functional<Parameter>*>(rawCallback);
             std::get<index>(m_output).push_back(callback->func());
         }
         else
@@ -120,19 +120,19 @@ private:
         }
     }
 
-    template<size_t index = 0>
+    template <size_t index = 0>
     std::enable_if_t<index == Helper::OutputParameterCount> add(size_t, AbstractFunctional*)
     {
         throw std::runtime_error("Output Parameter locationId not found.");
     }
 
-    template<size_t index = 0>
+    template <size_t index = 0>
         std::enable_if_t < index<Helper::ParameterCount, std::unique_ptr<AbstractFunctional>> get(size_t locationId)
     {
         if (index == locationId)
         {
             using Parameter = std::tuple_element_t<index, typename Helper::Input>;
-            auto& callback  = std::get<index>(m_callbacks);
+            auto& callback = std::get<index>(m_callbacks);
             return std::make_unique<Functional<Parameter>>(callback);
         }
         else
@@ -141,15 +141,14 @@ private:
         }
     }
 
-    template<size_t index = 0>
+    template <size_t index = 0>
     std::enable_if_t<index == Helper::ParameterCount, std::unique_ptr<AbstractFunctional>> get(size_t)
     {
         throw std::runtime_error("Input Parameter locationId not found.");
     }
 
-    typename Helper::InputQueue      m_input;
+    typename Helper::InputQueue m_input;
     typename Helper::ReturnCallbacks m_output;
-    typename Helper::InputCallbacks  m_callbacks;
+    typename Helper::InputCallbacks m_callbacks;
 };
-
-}    // namespace yats
+}

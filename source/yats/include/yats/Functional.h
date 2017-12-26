@@ -6,7 +6,7 @@ class AbstractFunctional
 {
 };
 
-template<typename Parameter>
+template <typename Parameter>
 class Functional : public AbstractFunctional
 {
 public:

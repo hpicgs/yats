@@ -16,7 +16,7 @@ class Pipeline
 public:
     Pipeline() = default;
 
-    template<typename Task>
+    template <typename Task>
     TaskConfigurator<Task>* add(const std::string& name)
     {
         static_assert(has_unique_ids_v<typename decltype(MakeHelper(&Task::run))::WrappedInput>, "Can not add Task because multiple Inputs share the same Id.");
@@ -34,5 +34,4 @@ public:
 private:
     std::map<std::string, std::unique_ptr<AbstractTaskConfigurator>> m_tasks;
 };
-
-}    // namespace yats
+}

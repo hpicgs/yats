@@ -53,5 +53,4 @@ protected:
         return std::vector<AbstractTaskContainer*>();
     }
 };
-
-}    // namespace yats
+}

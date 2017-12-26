@@ -17,13 +17,13 @@ public:
 
     virtual ~AbstractTaskContainer() = default;
 
-    virtual void run()          = 0;
+    virtual void run() = 0;
     virtual bool canRun() const = 0;
 
 private:
 };
 
-template<typename Task>
+template <typename Task>
 class TaskContainer : public AbstractTaskContainer
 {
 public:
@@ -46,20 +46,20 @@ public:
     }
 
 private:
-    template<size_t... index, typename T = typename Helper::ReturnType>
+    template <size_t... index, typename T = typename Helper::ReturnType>
     std::enable_if_t<!std::is_same<T, void>::value> invoke(std::integer_sequence<size_t, index...>)
     {
         auto output = m_task.run(get<index>()...);
         write(output);
     }
 
-    template<size_t... index, typename T = typename Helper::ReturnType>
+    template <size_t... index, typename T = typename Helper::ReturnType>
     std::enable_if_t<std::is_same<T, void>::value> invoke(std::integer_sequence<size_t, index...>)
     {
         m_task.run(get<index>()...);
     }
 
-    template<size_t index>
+    template <size_t index>
     auto get()
     {
         auto queue = std::get<index>(*m_input);
@@ -69,7 +69,7 @@ private:
         return value;
     }
 
-    template<size_t index = 0, typename T = typename Helper::ReturnType, typename Output = std::enable_if_t<std::is_same<T, void>::value, T>>
+    template <size_t index = 0, typename T = typename Helper::ReturnType, typename Output = std::enable_if_t<std::is_same<T, void>::value, T>>
         std::enable_if_t < index<Helper::OutputParameterCount> write(Output& output)
     {
         auto& value = std::get<index>(output);
@@ -81,27 +81,26 @@ private:
         write<index + 1>(output);
     }
 
-    template<size_t index, typename T = typename Helper::ReturnType, typename Output = std::enable_if_t<std::is_same<T, void>::value, T>>
+    template <size_t index, typename T = typename Helper::ReturnType, typename Output = std::enable_if_t<std::is_same<T, void>::value, T>>
     std::enable_if_t<index == Helper::OutputParameterCount> write(Output&)
     {
     }
 
-    template<size_t... Index, size_t InputCount = Helper::ParameterCount>
+    template <size_t... Index, size_t InputCount = Helper::ParameterCount>
     bool canRunImpl(std::integer_sequence<size_t, Index...>) const
     {
         std::array<bool, sizeof...(Index)> hasInputs{ { checkInput<Index>()... } };
         return std::all_of(hasInputs.cbegin(), hasInputs.cend(), [](bool input) { return input; });
     }
 
-    template<size_t Index>
+    template <size_t Index>
     bool checkInput() const
     {
         return std::get<Index>(*m_input).size() > 0;
     }
 
-    typename Helper::InputQueue      m_input;
+    typename Helper::InputQueue m_input;
     typename Helper::ReturnCallbacks m_output;
-    Task                             m_task;
+    Task m_task;
 };
-
-}    // namespace yats
+}

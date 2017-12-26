@@ -39,17 +39,16 @@ protected:
 
 /// <summary>Allows connecting an output (the source) to an input (the target).</summary>
 /// <remarks>Each input may only be connected to one output.</remarks>
-template<typename T>
+template <typename T>
 class InputConnector : public AbstractInputConnector
 {
 public:
     InputConnector() = default;
 
     InputConnector(const InputConnector<T>& other) = delete;
-    InputConnector(InputConnector<T>&& other)      = delete;
+    InputConnector(InputConnector<T>&& other) = delete;
 
     InputConnector<T>& operator=(const InputConnector<T>& other) = delete;
     InputConnector<T>& operator=(InputConnector<T>&& other) = delete;
 };
-
-}    // namespace yats
+}

@@ -6,7 +6,7 @@
 
 #include <yats/TaskConfigurator.h>
 #include <yats/Util.h>
-#include "Scheduler.h"
+#include <yats/Scheduler.h>
 
 namespace yats
 {

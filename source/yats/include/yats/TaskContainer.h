@@ -37,6 +37,7 @@ public:
 
 	void run() override
 	{
+		assert(can_run());
 		invoke(std::make_index_sequence<Helper::ParameterCount>());
 	}
 

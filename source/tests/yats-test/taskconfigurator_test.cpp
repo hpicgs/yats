@@ -124,16 +124,8 @@ TEST(taskconfigurator_test, get_input_output_by_name)
 	EXPECT_ANY_THROW(configurator.output("input"));
 }
 
-TEST(taskconfigurator_test, yo)
+TEST(taskconfigurator_test, empty_build)
 {
 	std::vector<std::unique_ptr<yats::AbstractTaskConfigurator>> empty;
-
-	struct Task
-	{
-		void run()
-		{
-		}
-	};
-
 	yats::AbstractTaskConfigurator::build(empty);
 }

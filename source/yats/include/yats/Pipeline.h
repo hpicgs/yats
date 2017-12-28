@@ -38,7 +38,7 @@ public:
 		return Scheduler{m_tasks};
 	}
 
-private:
+protected:
 
 	std::map<std::string, std::unique_ptr<AbstractTaskConfigurator>> m_tasks;
 };

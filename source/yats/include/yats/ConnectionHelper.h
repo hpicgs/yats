@@ -91,7 +91,7 @@ public:
 		return std::move(m_output);
 	}
 
-private:
+protected:
 
 	template <size_t... index>
 	static typename Helper::InputCallbacks generateCallbacks(typename Helper::InputQueue &queue, std::integer_sequence<size_t, index...>)

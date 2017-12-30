@@ -7,6 +7,15 @@
 
 namespace yats
 {
+	/// <summary>
+	/// <para>parallel_sort has been programmed demonstrate the use and construction
+	/// of the pipeline. parallel_sort sorts the elements in a vector with the aim
+	/// to utilize more than one thread in the future.</para>
+	/// <para>There are three tasks. split_task defines a vector which is supposed to be sorted.
+	/// This vector is split into two vectors of about the same size.</para>
+	/// <para>These two vectors are sorted individually in sort_task. This step can be parallized.</para>
+	/// <para>In join_task the two vectors are merged again and the sorted sequence is shown on the console.</para>
+	/// </summary>
 	namespace parallel_sort
 	{
 		/// <summary>

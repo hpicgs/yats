@@ -22,6 +22,7 @@ set(sources
     connection_test.cpp
     identifier_test.cpp
     main.cpp
+    parallel_sort.h
     scheduler_test.cpp
     taskconfigurator_test.cpp
     util_test.cpp

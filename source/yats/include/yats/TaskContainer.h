@@ -19,10 +19,6 @@ public:
 
 	virtual void run() = 0;
 	virtual bool can_run() const = 0;
-
-private:
-
-
 };
 
 
@@ -49,7 +45,7 @@ public:
 		return can_run_impl(std::make_index_sequence<Helper::ParameterCount>());
 	}
 
-private:
+protected:
 
 	template <size_t... index, typename T = typename Helper::ReturnType>
 	std::enable_if_t<!std::is_same<T, void>::value> invoke(std::integer_sequence<size_t, index...>)

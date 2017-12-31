@@ -3,7 +3,6 @@
 #include <memory>
 #include <map>
 
-#include <yats/Functional.h>
 #include <yats/InputConnector.h>
 #include <yats/OutputConnector.h>
 #include <yats/TaskContainer.h>
@@ -26,8 +25,8 @@ public:
 
 	virtual ~AbstractConnectionHelper() = default;
 
-	virtual void bind(const AbstractOutputConnector *connector, std::unique_ptr<AbstractFunctional> callback) = 0;
-	virtual std::unique_ptr<AbstractFunctional> target(const AbstractInputConnector *connector) = 0;
+	virtual void bind(const AbstractOutputConnector *connector, void *callback) = 0;
+	virtual void* target(const AbstractInputConnector *connector) = 0;
 
 	const auto& inputs()
 	{
@@ -69,13 +68,13 @@ public:
 	{
 	}
 
-	void bind(const AbstractOutputConnector* connector, std::unique_ptr<AbstractFunctional> callback) override
+	void bind(const AbstractOutputConnector* connector, void *callback) override
 	{
 		auto locationId = m_out.at(connector);
-		add(locationId, callback.get());
+		add(locationId, callback);
 	}
 
-	std::unique_ptr<AbstractFunctional> target(const AbstractInputConnector *connector) override
+	void* target(const AbstractInputConnector *connector) override
 	{
 		auto locationId = m_in.at(connector);
 		return get(locationId);
@@ -91,7 +90,7 @@ public:
 		return std::move(m_output);
 	}
 
-private:
+protected:
 
 	template <size_t... index>
 	static typename Helper::InputCallbacks generateCallbacks(typename Helper::InputQueue &queue, std::integer_sequence<size_t, index...>)
@@ -112,13 +111,13 @@ private:
 	}
 
 	template <size_t index = 0>
-	std::enable_if_t<index < Helper::OutputParameterCount> add(size_t locationId, AbstractFunctional *rawCallback)
+	std::enable_if_t<index < Helper::OutputParameterCount> add(size_t locationId, void *rawCallback)
 	{
 		if (index == locationId)
 		{
 			using Parameter = std::tuple_element_t<index, typename Helper::ReturnBase>;
-			auto callback = static_cast<Functional<Parameter>*>(rawCallback);
-			std::get<index>(m_output).push_back(callback->func());
+			auto callback = static_cast<std::function<void(Parameter)>*>(rawCallback);
+			std::get<index>(m_output).push_back(*callback);
 		}
 		else
 		{
@@ -127,19 +126,18 @@ private:
 	}
 
 	template <size_t index = 0>
-	std::enable_if_t<index == Helper::OutputParameterCount> add(size_t, AbstractFunctional *)
+	std::enable_if_t<index == Helper::OutputParameterCount> add(size_t, void *)
 	{
 		throw std::runtime_error("Output Parameter locationId not found.");
 	}
 
 	template <size_t index = 0>
-	std::enable_if_t<index < Helper::ParameterCount, std::unique_ptr<AbstractFunctional>> get(size_t locationId)
+	std::enable_if_t<index < Helper::ParameterCount, void*> get(size_t locationId)
 	{
 		if (index == locationId)
 		{
 			using Parameter = std::tuple_element_t<index, typename Helper::Input>;
-			auto& callback = std::get<index>(m_callbacks);
-			return std::make_unique<Functional<Parameter>>(callback);
+			return &std::get<index>(m_callbacks);
 		}
 		else
 		{
@@ -148,7 +146,7 @@ private:
 	}
 
 	template <size_t index = 0>
-	std::enable_if_t<index == Helper::ParameterCount, std::unique_ptr<AbstractFunctional>> get(size_t)
+	std::enable_if_t<index == Helper::ParameterCount, void*> get(size_t)
 	{
 		throw std::runtime_error("Input Parameter locationId not found.");
 	}

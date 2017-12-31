@@ -25,20 +25,13 @@ public:
 	virtual AbstractOutputConnector& output(const std::string& name) = 0;
 	virtual AbstractOutputConnector& output(uint64_t id) = 0;
 
-	static std::vector<std::unique_ptr<AbstractTaskContainer>> build(const std::map<std::string, std::unique_ptr<AbstractTaskConfigurator>> &namedConfigurators)
+	static std::vector<std::unique_ptr<AbstractTaskContainer>> build(const std::vector<std::unique_ptr<AbstractTaskConfigurator>> &configurators)
 	{
-		std::vector<AbstractTaskConfigurator*> configurators;
-		for (auto &configurator : namedConfigurators)
-		{
-			configurators.push_back(configurator.second.get());
-		}
-
 		std::vector<std::unique_ptr<AbstractConnectionHelper>> helpers;
-		for (auto configurator : configurators)
+		for (auto &configurator : configurators)
 		{
 			helpers.emplace_back(configurator->make2());
 		}
-
 
 		std::map<const AbstractOutputConnector*, size_t> outputOwner;
 		for (size_t i = 0; i < configurators.size(); ++i)

@@ -15,7 +15,7 @@ function(add_compilation_test target)
     
     # Add the target that is not compilable.
     add_executable(${target} EXCLUDE_FROM_ALL ${target}.cpp)
-    set_target_properties(${target} PROPERTIES FOLDER "Tests/Compilation")
+    set_target_properties(${target} PROPERTIES ${DEFAULT_PROJECT_OPTIONS} FOLDER "Tests/Compilation")
     target_link_libraries(${target} PRIVATE ${DEFAULT_LIBRARIES} yats-include)
 
     # CI target

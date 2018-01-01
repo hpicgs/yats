@@ -49,6 +49,7 @@ script:
   - cmake .. && make
   - cmake --build . --target test
   - cmake --build . --target check-all
+  - cmake --build . --target compilation_test
 
 notifications:
   email: false

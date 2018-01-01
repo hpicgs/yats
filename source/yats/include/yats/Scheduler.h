@@ -12,16 +12,9 @@ namespace yats
 class Scheduler
 {
 public:
-	explicit Scheduler(const std::map<std::string, std::unique_ptr<AbstractTaskConfigurator>>& task_configurators)
+	explicit Scheduler(const std::vector<std::unique_ptr<AbstractTaskConfigurator>>& task_configurators)
 		: m_tasks(AbstractTaskConfigurator::build(task_configurators))
 	{
-		//for (const auto& task : m_tasks)
-		//{
-		//	if (task->can_run())
-		//	{
-		//		schedule(task.get());
-		//	}
-		//}
 	}
 
 	void run()

@@ -33,8 +33,8 @@ TEST(yats_test, simple_connection)
 {
 	yats::Pipeline pipeline;
 
-	auto source_configurator = pipeline.add<Source>("source");
-	auto target_configurator = pipeline.add<Target>("target");
+	auto source_configurator = pipeline.add<Source>();
+	auto target_configurator = pipeline.add<Target>();
 
 	source_configurator->output(0) >> target_configurator->input(0);
 

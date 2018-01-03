@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <functional>
 #include <memory>
 #include <queue>
@@ -161,44 +162,44 @@ static constexpr size_t get_index_by_id_v = get_index_by_id<Id, T>::value;
 template <typename T>
 struct has_unique_ids
 {
-    template <typename Tuple = T, size_t TupleSize = std::tuple_size<Tuple>::value>
-    static constexpr std::enable_if_t<(TupleSize > 0), bool> check_ids()
-    {
-        uint64_t ids[TupleSize] = {};
-        write(ids);
+	template<typename Tuple = T, size_t TupleSize = std::tuple_size<Tuple>::value>
+	static constexpr std::enable_if_t<(TupleSize > 0), bool> check_ids()
+	{
+		uint64_t ids[TupleSize] = {};
+		write(ids);
 
-        for (size_t i = 0; i < TupleSize; ++i)
-        {
-            for (size_t j = i + 1; j < TupleSize; ++j)
-            {
-                if (ids[i] == ids[j])
-                {
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
+		for (size_t i = 0; i < TupleSize; ++i)
+		{
+			for (size_t j = i + 1; j < TupleSize; ++j)
+			{
+				if (ids[i] == ids[j])
+				{
+					return false;
+				}
+			}
+		}
+		return true;
+	}
 
-    template <typename Tuple = T, size_t TupleSize = std::tuple_size<Tuple>::value>
-    static constexpr std::enable_if_t<(TupleSize == 0), bool> check_ids()
-    {
-        return true;
-    }
+	template<typename Tuple = T, size_t TupleSize = std::tuple_size<Tuple>::value>
+	static constexpr std::enable_if_t<(TupleSize == 0), bool> check_ids()
+	{
+		return true;
+	}
 
-    template <uint64_t Index = 0, size_t TupleSize = std::tuple_size<T>::value>
-        static constexpr std::enable_if_t < Index<TupleSize, void> write(uint64_t* ids)
-    {
-        ids[Index] = std::tuple_element_t<Index, T>::ID;
-        write<Index + 1>(ids);
-    }
+	template<uint64_t Index = 0, size_t TupleSize = std::tuple_size<T>::value>
+	static constexpr std::enable_if_t<Index < TupleSize> write(uint64_t* ids)
+	{
+		ids[Index] = std::tuple_element_t<Index, T>::ID;
+		write<Index + 1>(ids);
+	}
 
-    template <uint64_t Index, size_t TupleSize = std::tuple_size<T>::value>
-    static constexpr std::enable_if_t<Index == TupleSize, void> write(uint64_t*)
-    {
-    }
+	template<uint64_t Index, size_t TupleSize = std::tuple_size<T>::value>
+	static constexpr std::enable_if_t<Index == TupleSize> write(uint64_t*)
+	{
+	}
 
-    static constexpr bool value = check_ids();
+	static constexpr bool value = check_ids();
 };
 
 template <typename T>

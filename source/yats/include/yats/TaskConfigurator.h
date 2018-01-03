@@ -13,62 +13,56 @@ namespace yats
 class AbstractTaskConfigurator
 {
 public:
-    AbstractTaskConfigurator() = default;
-    virtual ~AbstractTaskConfigurator() = default;
+	AbstractTaskConfigurator() = default;
+	virtual ~AbstractTaskConfigurator() = default;
 
-    virtual std::unique_ptr<AbstractTaskContainer> make(std::unique_ptr<AbstractConnectionHelper> helper) const = 0;
-    virtual std::unique_ptr<AbstractConnectionHelper> make2() const = 0;
+	virtual std::unique_ptr<AbstractTaskContainer> make(std::unique_ptr<AbstractConnectionHelper> helper) const = 0;
+	virtual std::unique_ptr<AbstractConnectionHelper> make2() const = 0;
 
-    virtual AbstractInputConnector& input(const std::string& name) = 0;
-    virtual AbstractInputConnector& input(uint64_t id) = 0;
+	virtual AbstractInputConnector& input(const std::string& name) = 0;
+	virtual AbstractInputConnector& input(uint64_t id) = 0;
 
-    virtual AbstractOutputConnector& output(const std::string& name) = 0;
-    virtual AbstractOutputConnector& output(uint64_t id) = 0;
+	virtual AbstractOutputConnector& output(const std::string& name) = 0;
+	virtual AbstractOutputConnector& output(uint64_t id) = 0;
 
-    static std::vector<std::unique_ptr<AbstractTaskContainer>> build(std::map<std::string, std::unique_ptr<AbstractTaskConfigurator>>& namedConfigurators)
-    {
-        std::vector<AbstractTaskConfigurator*> configurators;
-        for (auto& configurator : namedConfigurators)
-        {
-            configurators.push_back(configurator.second.get());
-        }
+	static std::vector<std::unique_ptr<AbstractTaskContainer>> build(const std::vector<std::unique_ptr<AbstractTaskConfigurator>> &configurators)
+	{
+		std::vector<std::unique_ptr<AbstractConnectionHelper>> helpers;
+		for (auto &configurator : configurators)
+		{
+			helpers.emplace_back(configurator->make2());
+		}
 
-        std::vector<std::unique_ptr<AbstractConnectionHelper>> helpers;
-        for (auto configurator : configurators)
-        {
-            helpers.emplace_back(configurator->make2());
-        }
+		std::map<const AbstractOutputConnector*, size_t> outputOwner;
+		for (size_t i = 0; i < configurators.size(); ++i)
+		{
+			auto outputs = helpers[i]->outputs();
+			for (auto output : outputs)
+			{
+				outputOwner.emplace(output.first, i);
+			}
+		}
 
-        std::map<const AbstractOutputConnector*, size_t> outputOwner;
-        for (size_t i = 0; i < configurators.size(); ++i)
-        {
-            auto outputs = helpers[i]->outputs();
-            for (auto output : outputs)
-            {
-                outputOwner.emplace(output.first, i);
-            }
-        }
+		for (auto &helper : helpers)
+		{
+			auto inputs = helper->inputs();
+			for (auto input : inputs)
+			{
+				auto sourceLocation = input.first->output();
+				auto sourceTaskId = outputOwner.at(sourceLocation);
 
-        for (auto& helper : helpers)
-        {
-            auto inputs = helper->inputs();
-            for (auto input : inputs)
-            {
-                auto sourceLocation = input.first->output();
-                auto sourceTaskId = outputOwner.at(sourceLocation);
+				helpers[sourceTaskId]->bind(sourceLocation, helper->target(input.first));
+			}
+		}
 
-                helpers[sourceTaskId]->bind(sourceLocation, helper->target(input.first));
-            }
-        }
+		std::vector<std::unique_ptr<AbstractTaskContainer>> tasks;
+		for (size_t i = 0; i < configurators.size(); ++i)
+		{
+			tasks.push_back(configurators[i]->make(std::move(helpers[i])));
+		}
 
-        std::vector<std::unique_ptr<AbstractTaskContainer>> tasks;
-        for (size_t i = 0; i < configurators.size(); ++i)
-        {
-            tasks.emplace_back(configurators[i]->make(std::move(helpers[i])));
-        }
-
-        return tasks;
-    }
+		return tasks;
+	}
 };
 
 template <typename Task>

@@ -5,7 +5,7 @@
 #include <tuple>
 #include <utility>
 
-#include <yats/Util.h>
+#include <yats/util.h>
 
 namespace yats
 {

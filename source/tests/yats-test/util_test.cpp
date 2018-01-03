@@ -1,8 +1,8 @@
 #include <gmock/gmock.h>
 
-#include <yats/Input.h>
-#include <yats/Output.h>
-#include <yats/Util.h>
+#include <yats/input.h>
+#include <yats/output.h>
+#include <yats/util.h>
 
 TEST(util_test, is_unique_ptr_test)
 {

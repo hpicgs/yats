@@ -1,7 +1,7 @@
 #include <gmock/gmock.h>
 
-#include <yats/InputConnector.h>
-#include <yats/OutputConnector.h>
+#include <yats/input_connector.h>
+#include <yats/output_connector.h>
 
 TEST(connection_test, one_input_one_output)
 {

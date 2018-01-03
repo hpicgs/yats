@@ -3,7 +3,7 @@
 #include <stdexcept>
 #include <tuple>
 
-#include <yats/InputConnector.h>
+#include <yats/input_connector.h>
 
 namespace yats
 {

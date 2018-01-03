@@ -6,7 +6,7 @@
 #include <queue>
 #include <vector>
 
-#include <yats/OutputConnector.h>
+#include <yats/output_connector.h>
 
 namespace yats
 {

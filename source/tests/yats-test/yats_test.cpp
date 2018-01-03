@@ -1,8 +1,8 @@
 #include <gmock/gmock.h>
 
-#include <yats/Input.h>
-#include <yats/Output.h>
-#include <yats/Pipeline.h>
+#include <yats/input.h>
+#include <yats/output.h>
+#include <yats/pipeline.h>
 
 struct Source
 {

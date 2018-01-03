@@ -1,8 +1,8 @@
 #include <gmock/gmock.h>
 
-#include <yats/Input.h>
-#include <yats/Output.h>
-#include <yats/TaskConfigurator.h>
+#include <yats/input.h>
+#include <yats/output.h>
+#include <yats/task_configurator.h>
 
 TEST(taskconfigurator_test, no_return_no_parameters)
 {

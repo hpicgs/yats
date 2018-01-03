@@ -1,6 +1,6 @@
 #include <gmock/gmock.h>
 
-#include <yats/Identifier.h>
+#include <yats/identifier.h>
 
 template <uint64_t>
 void is_compiletime_constant()

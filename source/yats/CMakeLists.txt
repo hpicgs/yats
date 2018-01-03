@@ -23,17 +23,17 @@ message(STATUS "Header Only Library ${target}")
 set(include_path "${CMAKE_CURRENT_SOURCE_DIR}/include/${target}")
 
 set(headers
-    ${include_path}/ConnectionHelper.h
-    ${include_path}/Identifier.h
-    ${include_path}/Input.h
-    ${include_path}/InputConnector.h
-    ${include_path}/Output.h
-    ${include_path}/OutputConnector.h
-    ${include_path}/Pipeline.h
-    ${include_path}/Scheduler.h
-    ${include_path}/TaskConfigurator.h
-    ${include_path}/TaskContainer.h
-    ${include_path}/Util.h
+    ${include_path}/connection_helper.h
+    ${include_path}/identifier.h
+    ${include_path}/input.h
+    ${include_path}/input_connector.h
+    ${include_path}/output.h
+    ${include_path}/output_connector.h
+    ${include_path}/pipeline.h
+    ${include_path}/scheduler.h
+    ${include_path}/task_configurator.h
+    ${include_path}/task_container.h
+    ${include_path}/util.h
 )
 
 # Group source files

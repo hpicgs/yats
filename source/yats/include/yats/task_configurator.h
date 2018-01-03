@@ -3,8 +3,8 @@
 #include <map>
 #include <memory>
 
-#include <yats/ConnectionHelper.h>
-#include <yats/Identifier.h>
+#include <yats/connection_helper.h>
+#include <yats/identifier.h>
 
 namespace yats
 {

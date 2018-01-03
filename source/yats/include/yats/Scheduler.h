@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-#include <yats/TaskConfigurator.h>
+#include <yats/task_configurator.h>
 
 namespace yats
 {

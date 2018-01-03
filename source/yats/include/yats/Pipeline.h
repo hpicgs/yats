@@ -4,9 +4,9 @@
 #include <string>
 #include <vector>
 
-#include <yats/Scheduler.h>
-#include <yats/TaskConfigurator.h>
-#include <yats/Util.h>
+#include <yats/scheduler.h>
+#include <yats/task_configurator.h>
+#include <yats/util.h>
 
 namespace yats
 {

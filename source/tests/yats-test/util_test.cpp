@@ -75,11 +75,10 @@ TEST(util_test, get_value_type_test)
     {
     };
 
-    using TestTuple1 = yats::output_bundle<yats::output<Test, 0>>;
-    using TestTuple2 = std::tuple<yats::input<float, 321>, yats::input<int, 123>>;
+    using test_tuple2 = std::tuple<yats::input<float, 321>, yats::input<int, 123>>;
 
-    constexpr auto index1 = yats::get_index_by_id_v<321, TestTuple2>;
-    constexpr auto index2 = yats::get_index_by_id_v<123, TestTuple2>;
+    constexpr auto index1 = yats::get_index_by_id_v<321, test_tuple2>;
+    constexpr auto index2 = yats::get_index_by_id_v<123, test_tuple2>;
 
     EXPECT_EQ(index1, 0);
     EXPECT_EQ(index2, 1);

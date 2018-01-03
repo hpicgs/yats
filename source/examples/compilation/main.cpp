@@ -1,4 +1,4 @@
-#include <yats/Pipeline.h>
+#include <yats/pipeline.h>
 
 int main(int /*argc*/, char* /*argv*/ [])
 {

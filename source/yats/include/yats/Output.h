@@ -4,7 +4,7 @@ namespace yats
 {
 
 template <typename... Args>
-using OutputBundle = std::tuple<Args...>;
+using output_bundle = std::tuple<Args...>;
 
 /// <summary>
 /// <para>Main class to represent an output</para>
@@ -12,15 +12,15 @@ using OutputBundle = std::tuple<Args...>;
 /// <para><c>Id</c> Unique identifier of output</para>
 /// </summary>
 template <typename T, uint64_t Id>
-class Output
+class output
 {
 public:
     using value_type = T;
-    constexpr static uint64_t ID = Id;
+    constexpr static uint64_t id = Id;
 
     /// <summary>Creates a new Output object.</summary>
     /// <param name = "value">Initial value of output</param>
-    Output(value_type value)
+    output(value_type value)
         : m_value{ value }
     {
     }
@@ -39,5 +39,5 @@ protected:
 };
 
 template <typename T, uint64_t Id>
-constexpr uint64_t Output<T, Id>::ID;
+constexpr uint64_t output<T, Id>::id;
 }

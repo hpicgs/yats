@@ -5,18 +5,18 @@
 namespace yats
 {
 
-class AbstractOutputConnector;
-class AbstractTaskConfigurator;
+class abstract_output_connector;
+class abstract_task_configurator;
 
-class AbstractInputConnector
+class abstract_input_connector
 {
 public:
-    explicit AbstractInputConnector()
+    explicit abstract_input_connector()
         : m_output(nullptr)
     {
     }
 
-    const AbstractOutputConnector* output() const
+    const abstract_output_connector* output() const
     {
         return m_output;
     }
@@ -24,7 +24,7 @@ public:
     /// <summary>Connects output to input.</summary>
     /// <param name="output">Reference to output to connect.</param>
     /// <exception cref="logic_error">Thrown when input is already connected to other output.</exception>
-    void operator<<(AbstractOutputConnector& output)
+    void operator<<(abstract_output_connector& output)
     {
         if (m_output != nullptr)
         {
@@ -34,21 +34,21 @@ public:
     }
 
 protected:
-    AbstractOutputConnector* m_output;
+    abstract_output_connector* m_output;
 };
 
 /// <summary>Allows connecting an output (the source) to an input (the target).</summary>
 /// <remarks>Each input may only be connected to one output.</remarks>
 template <typename T>
-class InputConnector : public AbstractInputConnector
+class input_connector : public abstract_input_connector
 {
 public:
-    InputConnector() = default;
+    input_connector() = default;
 
-    InputConnector(const InputConnector<T>& other) = delete;
-    InputConnector(InputConnector<T>&& other) = delete;
+    input_connector(const input_connector<T>& other) = delete;
+    input_connector(input_connector<T>&& other) = delete;
 
-    InputConnector<T>& operator=(const InputConnector<T>& other) = delete;
-    InputConnector<T>& operator=(InputConnector<T>&& other) = delete;
+    input_connector<T>& operator=(const input_connector<T>& other) = delete;
+    input_connector<T>& operator=(input_connector<T>&& other) = delete;
 };
 }

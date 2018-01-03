@@ -8,12 +8,12 @@
 namespace yats
 {
 
-class AbstractOutputConnector
+class abstract_output_connector
 {
 public:
-    AbstractOutputConnector() = default;
+    abstract_output_connector() = default;
 
-    AbstractOutputConnector& operator>>(AbstractInputConnector& input)
+    abstract_output_connector& operator>>(abstract_input_connector& input)
     {
         input << *this;
         return *this;
@@ -22,15 +22,15 @@ public:
 
 // Allows the connection of an input to the output.
 template <typename T>
-class OutputConnector : public AbstractOutputConnector
+class output_connector : public abstract_output_connector
 {
 public:
-    OutputConnector() = default;
+    output_connector() = default;
 
-    OutputConnector(const OutputConnector<T>& other) = delete;
-    OutputConnector(OutputConnector<T>&& other) = delete;
+    output_connector(const output_connector<T>& other) = delete;
+    output_connector(output_connector<T>&& other) = delete;
 
-    OutputConnector<T>& operator=(const OutputConnector<T>& other) = delete;
-    OutputConnector<T>& operator=(OutputConnector<T>&& other) = delete;
+    output_connector<T>& operator=(const output_connector<T>& other) = delete;
+    output_connector<T>& operator=(output_connector<T>&& other) = delete;
 };
 }

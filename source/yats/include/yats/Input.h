@@ -9,15 +9,15 @@ namespace yats
 /// <para><c>Id</c> Unique identifier of input</para>
 /// </summary>
 template <typename T, uint64_t Id>
-class Input
+class input
 {
 public:
     using value_type = T;
-    constexpr static uint64_t ID = Id;
+    constexpr static uint64_t id = Id;
 
     /// <summary>Creates a new Input object.</summary>
     /// <param name = "value">Initial value of input</param>
-    Input(value_type value)
+    input(value_type value)
         : m_value{ value }
     {
     }
@@ -36,5 +36,5 @@ protected:
 };
 
 template <typename T, uint64_t Id>
-constexpr uint64_t Input<T, Id>::ID;
+constexpr uint64_t input<T, Id>::id;
 }

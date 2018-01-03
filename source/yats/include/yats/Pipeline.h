@@ -11,32 +11,32 @@
 namespace yats
 {
 
-class Pipeline
+class pipeline
 {
 public:
-    Pipeline() = default;
+    pipeline() = default;
 
     template <typename Task>
-    TaskConfigurator<Task>* add()
+    task_configurator<Task>* add()
     {
         static_assert(has_unique_ids_v<typename decltype(MakeHelper(&Task::run))::WrappedInput>, "Can not add Task because multiple Inputs share the same Id.");
         static_assert(has_unique_ids_v<typename decltype(MakeHelper(&Task::run))::ReturnBase>, "Can not add Task because multiple Outputs share the same Id.");
 
-        m_tasks.push_back(std::make_unique<TaskConfigurator<Task>>());
-        return static_cast<TaskConfigurator<Task>*>(m_tasks.back().get());
+        m_tasks.push_back(std::make_unique<task_configurator<Task>>());
+        return static_cast<task_configurator<Task>*>(m_tasks.back().get());
     }
 
     void run()
     {
-        auto tasks = AbstractTaskConfigurator::build(m_tasks);
+        auto tasks = abstract_task_configurator::build(m_tasks);
     }
 
-    Scheduler build()
+    scheduler build()
     {
-        return Scheduler{ m_tasks };
+        return scheduler{ m_tasks };
     }
 
 protected:
-    std::vector<std::unique_ptr<AbstractTaskConfigurator>> m_tasks;
+    std::vector<std::unique_ptr<abstract_task_configurator>> m_tasks;
 };
 }

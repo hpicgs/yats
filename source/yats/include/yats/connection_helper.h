@@ -10,22 +10,22 @@
 namespace yats
 {
 
-class AbstractConnectionHelper
+class abstract_connection_helper
 {
 public:
     template <typename Type>
-    using Locations = std::map<const Type*, size_t>;
+    using locations = std::map<const Type*, size_t>;
 
-    AbstractConnectionHelper(Locations<AbstractInputConnector> input, Locations<AbstractOutputConnector> output)
+    abstract_connection_helper(locations<abstract_input_connector> input, locations<abstract_output_connector> output)
         : m_in(input)
         , m_out(output)
     {
     }
 
-    virtual ~AbstractConnectionHelper() = default;
+    virtual ~abstract_connection_helper() = default;
 
-    virtual void bind(const AbstractOutputConnector* connector, void* callback) = 0;
-    virtual void* target(const AbstractInputConnector* connector) = 0;
+    virtual void bind(const abstract_output_connector* connector, void* callback) = 0;
+    virtual void* target(const abstract_input_connector* connector) = 0;
 
     const auto& inputs()
     {
@@ -39,42 +39,42 @@ public:
 
 protected:
     template <typename LocationType, typename SequenceType, size_t... index>
-    static Locations<LocationType> map(const SequenceType& outputs, std::index_sequence<index...>)
+    static locations<LocationType> map(const SequenceType& outputs, std::index_sequence<index...>)
     {
         // Prevent a warning about unused parameter when handling a run function with no parameters.
         (void) outputs;
         return { std::make_pair(&std::get<index>(outputs), index)... };
     }
 
-    const Locations<AbstractInputConnector> m_in;
-    const Locations<AbstractOutputConnector> m_out;
+    const locations<abstract_input_connector> m_in;
+    const locations<abstract_output_connector> m_out;
 };
 
 template <typename Task>
-class ConnectionHelper : public AbstractConnectionHelper
+class connection_helper : public abstract_connection_helper
 {
 public:
     using Helper = decltype(MakeHelper(&Task::run));
     using InputSequence = std::make_index_sequence<std::tuple_size<typename Helper::InputConfiguration>::value>;
     using OutputSequence = std::make_index_sequence<std::tuple_size<typename Helper::OutputConfiguration>::value>;
 
-    ConnectionHelper(const typename Helper::InputConfiguration& inputs, const typename Helper::OutputConfiguration& outputs)
-        : AbstractConnectionHelper(map<AbstractInputConnector>(inputs, InputSequence()), map<AbstractOutputConnector>(outputs, OutputSequence()))
+    connection_helper(const typename Helper::InputConfiguration& inputs, const typename Helper::OutputConfiguration& outputs)
+        : abstract_connection_helper(map<abstract_input_connector>(inputs, InputSequence()), map<abstract_output_connector>(outputs, OutputSequence()))
         , m_input(std::make_unique<typename Helper::InputQueueBase>())
-        , m_callbacks(generateCallbacks(m_input, std::make_index_sequence<Helper::ParameterCount>()))
+        , m_callbacks(generate_callbacks(m_input, std::make_index_sequence<Helper::ParameterCount>()))
     {
     }
 
-    void bind(const AbstractOutputConnector* connector, void* callback) override
+    void bind(const abstract_output_connector* connector, void* callback) override
     {
-        auto locationId = m_out.at(connector);
-        add(locationId, callback);
+        auto location_id = m_out.at(connector);
+        add(location_id, callback);
     }
 
-    void* target(const AbstractInputConnector* connector) override
+    void* target(const abstract_input_connector* connector) override
     {
-        auto locationId = m_in.at(connector);
-        return get(locationId);
+        auto location_id = m_in.at(connector);
+        return get(location_id);
     }
 
     typename Helper::InputQueue queue()
@@ -89,35 +89,35 @@ public:
 
 protected:
     template <size_t... index>
-    static typename Helper::InputCallbacks generateCallbacks(typename Helper::InputQueue& queue, std::integer_sequence<size_t, index...>)
+    static typename Helper::InputCallbacks generate_callbacks(typename Helper::InputQueue& queue, std::integer_sequence<size_t, index...>)
     {
         // Prevent a warning about unused parameter when handling a run function with no parameters.
         (void) queue;
-        return std::make_tuple(generateCallback<index>(queue)...);
+        return std::make_tuple(generate_callback<index>(queue)...);
     }
 
     template <size_t index>
-    static typename std::tuple_element_t<index, typename Helper::InputCallbacks> generateCallback(typename Helper::InputQueue& queue)
+    static typename std::tuple_element_t<index, typename Helper::InputCallbacks> generate_callback(typename Helper::InputQueue& queue)
     {
-        using ParameterType = typename std::tuple_element_t<index, typename Helper::InputQueueBase>::value_type;
-        return [&current = std::get<index>(*queue)](ParameterType input) mutable
+        using parameter_type = typename std::tuple_element_t<index, typename Helper::InputQueueBase>::value_type;
+        return [&current = std::get<index>(*queue)](parameter_type input) mutable
         {
             current.push(input);
         };
     }
 
     template <size_t index = 0>
-        std::enable_if_t < index<Helper::OutputParameterCount> add(size_t locationId, void* rawCallback)
+    std::enable_if_t<(index < Helper::OutputParameterCount)> add(size_t location_id, void* raw_callback)
     {
-        if (index == locationId)
+        if (index == location_id)
         {
-            using Parameter = std::tuple_element_t<index, typename Helper::ReturnBase>;
-            auto callback = static_cast<std::function<void(Parameter)>*>(rawCallback);
+            using parameter = std::tuple_element_t<index, typename Helper::ReturnBase>;
+            auto callback = static_cast<std::function<void(parameter)>*>(raw_callback);
             std::get<index>(m_output).push_back(*callback);
         }
         else
         {
-            add<index + 1>(locationId, rawCallback);
+            add<index + 1>(location_id, raw_callback);
         }
     }
 
@@ -128,16 +128,15 @@ protected:
     }
 
     template <size_t index = 0>
-        std::enable_if_t < index<Helper::ParameterCount, void*> get(size_t locationId)
+    std::enable_if_t<(index < Helper::ParameterCount), void*> get(size_t location_id)
     {
-        if (index == locationId)
+        if (index == location_id)
         {
-            using Parameter = std::tuple_element_t<index, typename Helper::Input>;
             return &std::get<index>(m_callbacks);
         }
         else
         {
-            return get<index + 1>(locationId);
+            return get<index + 1>(location_id);
         }
     }
 

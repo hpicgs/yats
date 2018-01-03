@@ -72,7 +72,7 @@ struct ReturnWrapper<std::tuple<ParameterTypes...>>
     using Callbacks = std::tuple<decltype(transform_callback<ParameterTypes>())...>;
 
     template <typename CompoundType>
-    static OutputConnector<typename CompoundType::value_type> transform_output();
+    static output_connector<typename CompoundType::value_type> transform_output();
 
     using OutputConfiguration = std::tuple<decltype(transform_output<ParameterTypes>())...>;
 
@@ -118,7 +118,7 @@ struct TaskHelper
     using InputCallbacks = std::tuple<decltype(transform_function<ParameterTypes>())...>;
 
     template <typename CompoundType>
-    static InputConnector<typename CompoundType::value_type> transform_input();
+    static input_connector<typename CompoundType::value_type> transform_input();
 
     using InputConfiguration = std::tuple<decltype(transform_input<ParameterTypes>())...>;
     using OutputConfiguration = typename ReturnWrapper<ReturnType>::OutputConfiguration;
@@ -138,7 +138,7 @@ struct get_index_by_id
     template <size_t Index = 0, typename Tuple = T>
         static constexpr std::enable_if_t < Index<std::tuple_size<Tuple>::value, size_t> find()
     {
-        size_t index_id = std::tuple_element_t<Index, Tuple>::ID;
+        size_t index_id = std::tuple_element_t<Index, Tuple>::id;
         if (Id == index_id)
         {
             return Index;
@@ -190,7 +190,7 @@ struct has_unique_ids
     template <uint64_t Index = 0, size_t TupleSize = std::tuple_size<T>::value>
         static constexpr std::enable_if_t < Index<TupleSize> write(uint64_t* ids)
     {
-        ids[Index] = std::tuple_element_t<Index, T>::ID;
+        ids[Index] = std::tuple_element_t<Index, T>::id;
         write<Index + 1>(ids);
     }
 

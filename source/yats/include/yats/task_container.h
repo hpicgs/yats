@@ -10,24 +10,24 @@
 namespace yats
 {
 
-class AbstractTaskContainer
+class abstract_task_container
 {
 public:
-    AbstractTaskContainer() = default;
+    abstract_task_container() = default;
 
-    virtual ~AbstractTaskContainer() = default;
+    virtual ~abstract_task_container() = default;
 
     virtual void run() = 0;
     virtual bool can_run() const = 0;
 };
 
 template <typename Task>
-class TaskContainer : public AbstractTaskContainer
+class task_container : public abstract_task_container
 {
 public:
     using Helper = decltype(MakeHelper(&Task::run));
 
-    TaskContainer(typename Helper::InputQueue input, typename Helper::ReturnCallbacks output)
+    task_container(typename Helper::InputQueue input, typename Helper::ReturnCallbacks output)
         : m_input(std::move(input))
         , m_output(std::move(output))
     {
@@ -68,7 +68,7 @@ protected:
     }
 
     template <size_t index = 0, typename T = typename Helper::ReturnType, typename Output = std::enable_if_t<std::is_same<T, void>::value, T>>
-        std::enable_if_t < index<Helper::OutputParameterCount> write(Output& output)
+    std::enable_if_t<(index < Helper::OutputParameterCount)> write(Output& output)
     {
         auto& value = std::get<index>(output);
         for (auto& callback : std::get<index>(m_output))
@@ -87,8 +87,8 @@ protected:
     template <size_t... Index, size_t InputCount = Helper::ParameterCount>
     bool can_run_impl(std::integer_sequence<size_t, Index...>) const
     {
-        std::array<bool, sizeof...(Index)> hasInputs{ { check_input<Index>()... } };
-        return std::all_of(hasInputs.cbegin(), hasInputs.cend(), [](bool input) { return input; });
+        std::array<bool, sizeof...(Index)> has_inputs{ { check_input<Index>()... } };
+        return std::all_of(has_inputs.cbegin(), has_inputs.cend(), [](bool input) { return input; });
     }
 
     template <size_t Index>

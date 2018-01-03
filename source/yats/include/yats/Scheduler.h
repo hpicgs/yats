@@ -9,17 +9,17 @@
 namespace yats
 {
 
-class Scheduler
+class scheduler
 {
 public:
-    explicit Scheduler(const std::vector<std::unique_ptr<AbstractTaskConfigurator>>& task_configurators)
-        : m_tasks(AbstractTaskConfigurator::build(task_configurators))
+    explicit scheduler(const std::vector<std::unique_ptr<abstract_task_configurator>>& task_configurators)
+        : m_tasks(abstract_task_configurator::build(task_configurators))
     {
     }
 
     void run()
     {
-        std::vector<AbstractTaskContainer*> to_run;
+        std::vector<abstract_task_container*> to_run;
         for (auto& elem : m_tasks)
         {
             to_run.push_back(elem.get());
@@ -27,7 +27,7 @@ public:
 
         while (to_run.size() > 0)
         {
-            auto runnable = std::find_if(to_run.begin(), to_run.end(), [](AbstractTaskContainer* task) {
+            auto runnable = std::find_if(to_run.begin(), to_run.end(), [](abstract_task_container* task) {
                 return task->can_run();
             });
 
@@ -37,38 +37,7 @@ public:
     }
 
 protected:
-    //void schedule(AbstractTaskContainer* task_container)
-    //{
-    //	m_scheduled.push(task_container);
-    //}
-
-    //AbstractTaskContainer* next_task()
-    //{
-    //	if (m_scheduled.empty())
-    //	{
-    //		return nullptr;
-    //	}
-
-    //	auto next = m_scheduled.front();
-    //	m_scheduled.pop();
-    //	return next;
-    //}
-
-    //std::vector<AbstractTaskContainer*> following_tasks(AbstractTaskContainer* /*task_container*/)
-    //{
-    //	std::vector<AbstractTaskContainer*> followers;
-    //	followers.reserve(m_tasks.size());
-    //	for (auto& task : m_tasks)
-    //	{
-    //		followers.push_back(task.get());
-    //	}
-    //	return followers;
-    //}
-
-    // Stores all TaskContainers with their position as an implicit id
-    std::vector<std::unique_ptr<AbstractTaskContainer>> m_tasks;
-
-    // Queue of all scheduled tasks
-    //std::queue<AbstractTaskContainer*> m_scheduled;
+    // Stores all task_containers with their position as an implicit id
+    std::vector<std::unique_ptr<abstract_task_container>> m_tasks;
 };
 }

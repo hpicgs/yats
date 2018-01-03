@@ -75,8 +75,8 @@ TEST(util_test, get_value_type_test)
     {
     };
 
-    using TestTuple1 = yats::OutputBundle<yats::Output<Test, 0>>;
-    using TestTuple2 = std::tuple<yats::Input<float, 321>, yats::Input<int, 123>>;
+    using TestTuple1 = yats::output_bundle<yats::output<Test, 0>>;
+    using TestTuple2 = std::tuple<yats::input<float, 321>, yats::input<int, 123>>;
 
     constexpr auto index1 = yats::get_index_by_id_v<321, TestTuple2>;
     constexpr auto index2 = yats::get_index_by_id_v<123, TestTuple2>;
@@ -87,8 +87,8 @@ TEST(util_test, get_value_type_test)
 
 TEST(util_test, has_unique_ids_test)
 {
-    constexpr auto yes = yats::has_unique_ids_v<std::tuple<yats::Input<int, 123>, yats::Input<float, 321>>>;
-    constexpr auto no = yats::has_unique_ids_v<std::tuple<yats::Output<int, 123>, yats::Output<float, 123>>>;
+    constexpr auto yes = yats::has_unique_ids_v<std::tuple<yats::input<int, 123>, yats::input<float, 321>>>;
+    constexpr auto no = yats::has_unique_ids_v<std::tuple<yats::output<int, 123>, yats::output<float, 123>>>;
 
     EXPECT_TRUE(yes);
     EXPECT_FALSE(no);

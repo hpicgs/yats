@@ -10,36 +10,36 @@ namespace yats
 {
 
 /**/
-class AbstractTaskConfigurator
+class abstract_task_configurator
 {
 public:
-    AbstractTaskConfigurator() = default;
-    virtual ~AbstractTaskConfigurator() = default;
+    abstract_task_configurator() = default;
+    virtual ~abstract_task_configurator() = default;
 
-    virtual std::unique_ptr<AbstractTaskContainer> make(std::unique_ptr<AbstractConnectionHelper> helper) const = 0;
-    virtual std::unique_ptr<AbstractConnectionHelper> make2() const = 0;
+    virtual std::unique_ptr<abstract_task_container> make(std::unique_ptr<abstract_connection_helper> helper) const = 0;
+    virtual std::unique_ptr<abstract_connection_helper> make2() const = 0;
 
-    virtual AbstractInputConnector& input(const std::string& name) = 0;
-    virtual AbstractInputConnector& input(uint64_t id) = 0;
+    virtual abstract_input_connector& input(const std::string& name) = 0;
+    virtual abstract_input_connector& input(uint64_t id) = 0;
 
-    virtual AbstractOutputConnector& output(const std::string& name) = 0;
-    virtual AbstractOutputConnector& output(uint64_t id) = 0;
+    virtual abstract_output_connector& output(const std::string& name) = 0;
+    virtual abstract_output_connector& output(uint64_t id) = 0;
 
-    static std::vector<std::unique_ptr<AbstractTaskContainer>> build(const std::vector<std::unique_ptr<AbstractTaskConfigurator>>& configurators)
+    static std::vector<std::unique_ptr<abstract_task_container>> build(const std::vector<std::unique_ptr<abstract_task_configurator>>& configurators)
     {
-        std::vector<std::unique_ptr<AbstractConnectionHelper>> helpers;
+        std::vector<std::unique_ptr<abstract_connection_helper>> helpers;
         for (auto& configurator : configurators)
         {
             helpers.emplace_back(configurator->make2());
         }
 
-        std::map<const AbstractOutputConnector*, size_t> outputOwner;
+        std::map<const abstract_output_connector*, size_t> output_owner;
         for (size_t i = 0; i < configurators.size(); ++i)
         {
             auto outputs = helpers[i]->outputs();
             for (auto output : outputs)
             {
-                outputOwner.emplace(output.first, i);
+                output_owner.emplace(output.first, i);
             }
         }
 
@@ -48,14 +48,14 @@ public:
             auto inputs = helper->inputs();
             for (auto input : inputs)
             {
-                auto sourceLocation = input.first->output();
-                auto sourceTaskId = outputOwner.at(sourceLocation);
+                auto source_location = input.first->output();
+                auto source_task_id = output_owner.at(source_location);
 
-                helpers[sourceTaskId]->bind(sourceLocation, helper->target(input.first));
+                helpers[source_task_id]->bind(source_location, helper->target(input.first));
             }
         }
 
-        std::vector<std::unique_ptr<AbstractTaskContainer>> tasks;
+        std::vector<std::unique_ptr<abstract_task_container>> tasks;
         for (size_t i = 0; i < configurators.size(); ++i)
         {
             tasks.push_back(configurators[i]->make(std::move(helpers[i])));
@@ -66,42 +66,42 @@ public:
 };
 
 template <typename Task>
-class TaskConfigurator : public AbstractTaskConfigurator
+class task_configurator : public abstract_task_configurator
 {
 public:
     using Helper = decltype(MakeHelper(&Task::run));
 
-    TaskConfigurator() = default;
+    task_configurator() = default;
 
-    AbstractInputConnector& input(const std::string& name) override
+    abstract_input_connector& input(const std::string& name) override
     {
-        return find<typename Helper::WrappedInput, AbstractInputConnector>(m_inputs, id(name.c_str()));
+        return find<typename Helper::WrappedInput, abstract_input_connector>(m_inputs, id(name.c_str()));
     }
 
-    AbstractInputConnector& input(uint64_t id) override
+    abstract_input_connector& input(uint64_t id) override
     {
-        return find<typename Helper::WrappedInput, AbstractInputConnector>(m_inputs, id);
+        return find<typename Helper::WrappedInput, abstract_input_connector>(m_inputs, id);
     }
 
-    AbstractOutputConnector& output(const std::string& name) override
+    abstract_output_connector& output(const std::string& name) override
     {
-        return find<typename Helper::ReturnBase, AbstractOutputConnector>(m_outputs, id(name.c_str()));
+        return find<typename Helper::ReturnBase, abstract_output_connector>(m_outputs, id(name.c_str()));
     }
 
-    AbstractOutputConnector& output(uint64_t id) override
+    abstract_output_connector& output(uint64_t id) override
     {
-        return find<typename Helper::ReturnBase, AbstractOutputConnector>(m_outputs, id);
+        return find<typename Helper::ReturnBase, abstract_output_connector>(m_outputs, id);
     }
 
-    std::unique_ptr<AbstractTaskContainer> make(std::unique_ptr<AbstractConnectionHelper> helper) const override
+    std::unique_ptr<abstract_task_container> make(std::unique_ptr<abstract_connection_helper> helper) const override
     {
-        auto c = static_cast<ConnectionHelper<Task>*>(helper.get());
-        return std::make_unique<TaskContainer<Task>>(c->queue(), c->callbacks());
+        auto c = static_cast<connection_helper<Task>*>(helper.get());
+        return std::make_unique<task_container<Task>>(c->queue(), c->callbacks());
     }
 
-    std::unique_ptr<AbstractConnectionHelper> make2() const override
+    std::unique_ptr<abstract_connection_helper> make2() const override
     {
-        return std::make_unique<ConnectionHelper<Task>>(m_inputs, m_outputs);
+        return std::make_unique<connection_helper<Task>>(m_inputs, m_outputs);
     }
 
 protected:
@@ -117,10 +117,10 @@ protected:
     }
 
     template <typename IdTuple, typename Return, size_t Index = 0, typename Parameter = int>
-        std::enable_if_t < Index<std::tuple_size<IdTuple>::value, Return*> get(Parameter& tuple, uint64_t id)
+    std::enable_if_t<(Index < std::tuple_size<IdTuple>::value), Return*> get(Parameter& tuple, uint64_t id)
     {
         auto elem = &std::get<Index>(tuple);
-        if (id == std::tuple_element_t<Index, IdTuple>::ID)
+        if (id == std::tuple_element_t<Index, IdTuple>::id)
         {
             return elem;
         }

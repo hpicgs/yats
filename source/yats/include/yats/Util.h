@@ -61,41 +61,41 @@ template <typename T>
 constexpr bool is_shared_ptr_v = is_shared_ptr<T>::value;
 
 template <typename T>
-struct ReturnWrapper;
+struct return_wrapper;
 
 template <typename... ParameterTypes>
-struct ReturnWrapper<std::tuple<ParameterTypes...>>
+struct return_wrapper<std::tuple<ParameterTypes...>>
 {
     template <typename CompoundType>
     static std::vector<std::function<void(typename CompoundType::value_type)>> transform_callback();
 
-    using Callbacks = std::tuple<decltype(transform_callback<ParameterTypes>())...>;
+    using callbacks = std::tuple<decltype(transform_callback<ParameterTypes>())...>;
 
     template <typename CompoundType>
     static output_connector<typename CompoundType::value_type> transform_output();
 
-    using OutputConfiguration = std::tuple<decltype(transform_output<ParameterTypes>())...>;
+    using output_configuration = std::tuple<decltype(transform_output<ParameterTypes>())...>;
 
     template <typename CompoundType>
     static CompoundType transform_base();
 
-    using Base = std::tuple<ParameterTypes...>;
+    using base = std::tuple<ParameterTypes...>;
 
-    static constexpr size_t ParameterCount = sizeof...(ParameterTypes);
+    static constexpr size_t parameter_count = sizeof...(ParameterTypes);
 };
 
 template <>
-struct ReturnWrapper<void>
+struct return_wrapper<void>
 {
-    using Callbacks = std::tuple<>;
-    using OutputConfiguration = std::tuple<>;
-    using Base = std::tuple<>;
+    using callbacks = std::tuple<>;
+    using output_configuration = std::tuple<>;
+    using base = std::tuple<>;
 
-    static constexpr size_t ParameterCount = 0;
+    static constexpr size_t parameter_count = 0;
 };
 
 template <typename Return, typename... ParameterTypes>
-struct TaskHelper
+struct task_helper
 {
     template <typename CompoundType>
     static typename CompoundType::value_type transform_base();
@@ -106,29 +106,29 @@ struct TaskHelper
     template <typename CompoundType>
     static std::function<void(typename CompoundType::value_type)> transform_function();
 
-    using WrappedInput = std::tuple<ParameterTypes...>;
-    using Input = std::tuple<decltype(transform_base<ParameterTypes>())...>;
-    using InputQueueBase = std::tuple<decltype(transform_queue<ParameterTypes>())...>;
-    using InputQueue = std::unique_ptr<InputQueueBase>;
-    using ReturnType = Return;
+    using wrapped_input = std::tuple<ParameterTypes...>;
+    using input = std::tuple<decltype(transform_base<ParameterTypes>())...>;
+    using input_queue_base = std::tuple<decltype(transform_queue<ParameterTypes>())...>;
+    using input_queue = std::unique_ptr<input_queue_base>;
+    using return_type = Return;
 
-    using ReturnBase = typename ReturnWrapper<ReturnType>::Base;
+    using return_base = typename return_wrapper<return_type>::base;
 
-    using ReturnCallbacks = typename ReturnWrapper<ReturnType>::Callbacks;
-    using InputCallbacks = std::tuple<decltype(transform_function<ParameterTypes>())...>;
+    using return_callbacks = typename return_wrapper<return_type>::callbacks;
+    using input_callbacks = std::tuple<decltype(transform_function<ParameterTypes>())...>;
 
     template <typename CompoundType>
     static input_connector<typename CompoundType::value_type> transform_input();
 
-    using InputConfiguration = std::tuple<decltype(transform_input<ParameterTypes>())...>;
-    using OutputConfiguration = typename ReturnWrapper<ReturnType>::OutputConfiguration;
+    using input_configuration = std::tuple<decltype(transform_input<ParameterTypes>())...>;
+    using output_configuration = typename return_wrapper<return_type>::output_configuration;
 
-    static constexpr size_t ParameterCount = sizeof...(ParameterTypes);
-    static constexpr size_t OutputParameterCount = ReturnWrapper<ReturnType>::ParameterCount;
+    static constexpr size_t parameter_count = sizeof...(ParameterTypes);
+    static constexpr size_t output_parameter_count = return_wrapper<return_type>::parameter_count;
 };
 
 template <typename ReturnType, typename TaskType, typename... ParameterTypes>
-static constexpr TaskHelper<ReturnType, ParameterTypes...> MakeHelper(ReturnType (TaskType::*)(ParameterTypes...));
+static constexpr task_helper<ReturnType, ParameterTypes...> make_helper(ReturnType (TaskType::*)(ParameterTypes...));
 
 template <uint64_t Id, typename T>
 struct get_index_by_id
@@ -136,7 +136,7 @@ struct get_index_by_id
     static constexpr size_t invalid_index = std::numeric_limits<size_t>::max();
 
     template <size_t Index = 0, typename Tuple = T>
-        static constexpr std::enable_if_t < Index<std::tuple_size<Tuple>::value, size_t> find()
+    static constexpr std::enable_if_t<(Index < std::tuple_size<Tuple>::value), size_t> find()
     {
         size_t index_id = std::tuple_element_t<Index, Tuple>::id;
         if (Id == index_id)
@@ -188,7 +188,7 @@ struct has_unique_ids
     }
 
     template <uint64_t Index = 0, size_t TupleSize = std::tuple_size<T>::value>
-        static constexpr std::enable_if_t < Index<TupleSize> write(uint64_t* ids)
+    static constexpr std::enable_if_t<(Index < TupleSize)> write(uint64_t* ids)
     {
         ids[Index] = std::tuple_element_t<Index, T>::id;
         write<Index + 1>(ids);

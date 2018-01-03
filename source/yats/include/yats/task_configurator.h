@@ -69,28 +69,28 @@ template <typename Task>
 class task_configurator : public abstract_task_configurator
 {
 public:
-    using Helper = decltype(MakeHelper(&Task::run));
+    using helper = decltype(make_helper(&Task::run));
 
     task_configurator() = default;
 
     abstract_input_connector& input(const std::string& name) override
     {
-        return find<typename Helper::WrappedInput, abstract_input_connector>(m_inputs, id(name.c_str()));
+        return find<typename helper::wrapped_input, abstract_input_connector>(m_inputs, id(name.c_str()));
     }
 
     abstract_input_connector& input(uint64_t id) override
     {
-        return find<typename Helper::WrappedInput, abstract_input_connector>(m_inputs, id);
+        return find<typename helper::wrapped_input, abstract_input_connector>(m_inputs, id);
     }
 
     abstract_output_connector& output(const std::string& name) override
     {
-        return find<typename Helper::ReturnBase, abstract_output_connector>(m_outputs, id(name.c_str()));
+        return find<typename helper::return_base, abstract_output_connector>(m_outputs, id(name.c_str()));
     }
 
     abstract_output_connector& output(uint64_t id) override
     {
-        return find<typename Helper::ReturnBase, abstract_output_connector>(m_outputs, id);
+        return find<typename helper::return_base, abstract_output_connector>(m_outputs, id);
     }
 
     std::unique_ptr<abstract_task_container> make(std::unique_ptr<abstract_connection_helper> helper) const override
@@ -133,7 +133,7 @@ protected:
         return nullptr;
     }
 
-    typename Helper::InputConfiguration m_inputs;
-    typename Helper::OutputConfiguration m_outputs;
+    typename helper::input_configuration m_inputs;
+    typename helper::output_configuration m_outputs;
 };
 }

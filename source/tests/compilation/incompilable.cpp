@@ -1,5 +1,5 @@
 #include <iostream>
-#include <yats/Pipeline.h>
+#include <yats/pipeline.h>
 
 int main()
 {

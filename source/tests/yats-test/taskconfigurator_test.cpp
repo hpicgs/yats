@@ -4,52 +4,6 @@
 #include <yats/output.h>
 #include <yats/task_configurator.h>
 
-TEST(taskconfigurator_test, no_return_no_parameters)
-{
-    struct Task
-    {
-        void run()
-        {
-        }
-    };
-
-    yats::task_configurator<Task> configurator;
-
-    EXPECT_ANY_THROW(configurator.input(0));
-    EXPECT_ANY_THROW(configurator.output(0));
-}
-
-TEST(taskconfigurator_test, no_return_parameters)
-{
-    struct Task
-    {
-        void run(yats::input<int, 0>)
-        {
-        }
-    };
-
-    yats::task_configurator<Task> configurator;
-
-    EXPECT_NO_THROW(configurator.input(0));
-    EXPECT_ANY_THROW(configurator.output(0));
-}
-
-TEST(taskconfigurator_test, return_no_parameters)
-{
-    struct Task
-    {
-        yats::output_bundle<yats::output<int, 0>> run()
-        {
-            return std::make_tuple(0);
-        }
-    };
-
-    yats::task_configurator<Task> configurator;
-
-    EXPECT_ANY_THROW(configurator.input(0));
-    EXPECT_NO_THROW(configurator.output(0));
-}
-
 TEST(taskconfigurator_test, return_parameters)
 {
     struct Task
@@ -62,8 +16,8 @@ TEST(taskconfigurator_test, return_parameters)
 
     yats::task_configurator<Task> configurator;
 
-    EXPECT_NO_THROW(configurator.input(0));
-    EXPECT_NO_THROW(configurator.output(0));
+    EXPECT_NO_THROW(configurator.input<0>());
+    EXPECT_NO_THROW(configurator.output<0>());
 }
 
 TEST(taskconfigurator_test, multiple_returns_multiple_parameters)
@@ -78,10 +32,10 @@ TEST(taskconfigurator_test, multiple_returns_multiple_parameters)
 
     yats::task_configurator<Task> configurator;
 
-    EXPECT_NO_THROW(configurator.input(0));
-    EXPECT_NO_THROW(configurator.output(0));
-    EXPECT_NO_THROW(configurator.input(1));
-    EXPECT_NO_THROW(configurator.output(1));
+    EXPECT_NO_THROW(configurator.input<0>());
+    EXPECT_NO_THROW(configurator.output<0>());
+    EXPECT_NO_THROW(configurator.input<1>());
+    EXPECT_NO_THROW(configurator.output<1>());
 }
 
 TEST(taskconfigurator_test, get_input_output_by_id)
@@ -95,11 +49,8 @@ TEST(taskconfigurator_test, get_input_output_by_id)
     };
 
     yats::task_configurator<Task> configurator;
-    EXPECT_NO_THROW(configurator.input(321));
-    EXPECT_NO_THROW(configurator.output(123));
-
-    EXPECT_ANY_THROW(configurator.input(0));
-    EXPECT_ANY_THROW(configurator.output(0));
+    EXPECT_NO_THROW(configurator.input<321>());
+    EXPECT_NO_THROW(configurator.output<123>());
 }
 
 TEST(taskconfigurator_test, get_input_output_by_name)
@@ -114,11 +65,8 @@ TEST(taskconfigurator_test, get_input_output_by_name)
     };
 
     yats::task_configurator<Task> configurator;
-    EXPECT_NO_THROW(configurator.input("input"));
-    EXPECT_NO_THROW(configurator.output("output"));
-
-    EXPECT_ANY_THROW(configurator.input("output"));
-    EXPECT_ANY_THROW(configurator.output("input"));
+    EXPECT_NO_THROW(configurator.input<"input"_id>());
+    EXPECT_NO_THROW(configurator.output<"output"_id>());
 }
 
 TEST(taskconfigurator_test, empty_build)

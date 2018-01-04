@@ -6,7 +6,8 @@ namespace yats
 {
 
 class abstract_output_connector;
-class abstract_task_configurator;
+template <typename T>
+class output_connector;
 
 class abstract_input_connector
 {
@@ -19,18 +20,6 @@ public:
     const abstract_output_connector* output() const
     {
         return m_output;
-    }
-
-    /// <summary>Connects output to input.</summary>
-    /// <param name="output">Reference to output to connect.</param>
-    /// <exception cref="logic_error">Thrown when input is already connected to other output.</exception>
-    void operator<<(abstract_output_connector& output)
-    {
-        if (m_output != nullptr)
-        {
-            throw std::logic_error("Input already connected.");
-        }
-        m_output = &output;
     }
 
 protected:
@@ -50,5 +39,17 @@ public:
 
     input_connector<T>& operator=(const input_connector<T>& other) = delete;
     input_connector<T>& operator=(input_connector<T>&& other) = delete;
+
+    /// <summary>Connects output to input.</summary>
+    /// <param name="output">Reference to output to connect.</param>
+    /// <exception cref="logic_error">Thrown when input is already connected to other output.</exception>
+    void operator<<(output_connector<T>& output)
+    {
+        if (m_output != nullptr)
+        {
+            throw std::logic_error("Input already connected.");
+        }
+        m_output = &output;
+    }
 };
 }

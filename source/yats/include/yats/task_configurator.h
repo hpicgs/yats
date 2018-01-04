@@ -59,13 +59,16 @@ public:
     }
 };
 
-template <typename Task>
+template <typename Task, typename... Parameters>
 class task_configurator : public abstract_task_configurator
 {
 public:
     using helper = decltype(make_helper(&Task::run));
 
-    task_configurator() = default;
+    task_configurator(Parameters&&... parameters)
+        : m_construction_parameters(std::forward_as_tuple(parameters...))
+    {
+    }
     
     template<uint64_t Id>
     auto& input()
@@ -86,7 +89,7 @@ public:
     std::unique_ptr<abstract_task_container> make(std::unique_ptr<abstract_connection_helper> helper) const override
     {
         auto c = static_cast<connection_helper<Task>*>(helper.get());
-        return std::make_unique<task_container<Task>>(c->queue(), c->callbacks());
+        return std::make_unique<task_container<Task, Parameters...>>(c->queue(), c->callbacks(), std::move(m_construction_parameters));
     }
 
     std::unique_ptr<abstract_connection_helper> make2() const override
@@ -125,5 +128,6 @@ protected:
 
     typename helper::input_configuration m_inputs;
     typename helper::output_configuration m_outputs;
+    const std::tuple<Parameters...> m_construction_parameters;
 };
 }

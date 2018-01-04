@@ -204,4 +204,21 @@ struct has_unique_ids
 
 template <typename T>
 static constexpr bool has_unique_ids_v = has_unique_ids<T>::value;
+
+// Taken from http://en.cppreference.com/w/cpp/utility/make_from_tuple
+namespace detail
+{
+    template <class T, class Tuple, std::size_t... I>
+    constexpr T make_from_tuple_impl(Tuple&& t, std::index_sequence<I...>)
+    {
+        (void) t;
+        return T(std::get<I>(std::forward<Tuple>(t))...);
+    }
+}
+
+template <class T, class Tuple>
+constexpr T make_from_tuple(Tuple&& t)
+{
+    return detail::make_from_tuple_impl<T>(std::forward<Tuple>(t), std::make_index_sequence<std::tuple_size<std::remove_reference_t<Tuple>>::value>{});
+}
 }

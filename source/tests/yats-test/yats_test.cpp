@@ -35,7 +35,7 @@ TEST(yats_test, simple_connection)
     auto source_configurator = pipeline.add<Source>();
     auto target_configurator = pipeline.add<Target>();
 
-    source_configurator->output(0) >> target_configurator->input(0);
+    source_configurator->output<0>() >> target_configurator->input<0>();
 
     auto scheduler = pipeline.build();
     scheduler.run();

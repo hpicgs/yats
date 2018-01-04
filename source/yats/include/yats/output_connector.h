@@ -12,12 +12,6 @@ class abstract_output_connector
 {
 public:
     abstract_output_connector() = default;
-
-    abstract_output_connector& operator>>(abstract_input_connector& input)
-    {
-        input << *this;
-        return *this;
-    }
 };
 
 // Allows the connection of an input to the output.
@@ -32,5 +26,11 @@ public:
 
     output_connector<T>& operator=(const output_connector<T>& other) = delete;
     output_connector<T>& operator=(output_connector<T>&& other) = delete;
+
+    output_connector<T>& operator>>(input_connector<T>& input)
+    {
+        input << *this;
+        return *this;
+    }
 };
 }

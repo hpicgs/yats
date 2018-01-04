@@ -19,12 +19,6 @@ public:
     virtual std::unique_ptr<abstract_task_container> make(std::unique_ptr<abstract_connection_helper> helper) const = 0;
     virtual std::unique_ptr<abstract_connection_helper> make2() const = 0;
 
-    virtual abstract_input_connector& input(const std::string& name) = 0;
-    virtual abstract_input_connector& input(uint64_t id) = 0;
-
-    virtual abstract_output_connector& output(const std::string& name) = 0;
-    virtual abstract_output_connector& output(uint64_t id) = 0;
-
     static std::vector<std::unique_ptr<abstract_task_container>> build(const std::vector<std::unique_ptr<abstract_task_configurator>>& configurators)
     {
         std::vector<std::unique_ptr<abstract_connection_helper>> helpers;
@@ -72,25 +66,21 @@ public:
     using helper = decltype(make_helper(&Task::run));
 
     task_configurator() = default;
-
-    abstract_input_connector& input(const std::string& name) override
+    
+    template<uint64_t Id>
+    auto& input()
     {
-        return find<typename helper::wrapped_input, abstract_input_connector>(m_inputs, id(name.c_str()));
+        constexpr auto index = get_index_by_id_v<Id, typename helper::wrapped_input>;
+        using type = typename helper::input_configuration;
+        return find<typename helper::wrapped_input, std::tuple_element_t<index, type>>(m_inputs, Id);
     }
 
-    abstract_input_connector& input(uint64_t id) override
+    template<uint64_t Id>
+    auto& output()
     {
-        return find<typename helper::wrapped_input, abstract_input_connector>(m_inputs, id);
-    }
-
-    abstract_output_connector& output(const std::string& name) override
-    {
-        return find<typename helper::return_base, abstract_output_connector>(m_outputs, id(name.c_str()));
-    }
-
-    abstract_output_connector& output(uint64_t id) override
-    {
-        return find<typename helper::return_base, abstract_output_connector>(m_outputs, id);
+        constexpr auto index = get_index_by_id_v<Id, typename helper::return_base>;
+        using type = typename helper::output_configuration;
+        return find<typename helper::return_base, std::tuple_element_t<index, type>>(m_outputs, Id);
     }
 
     std::unique_ptr<abstract_task_container> make(std::unique_ptr<abstract_connection_helper> helper) const override

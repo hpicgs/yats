@@ -69,8 +69,8 @@ public:
     using helper = decltype(make_helper(&Task::run));
 
     task_configurator() = default;
-    
-    template<uint64_t Id>
+
+    template <uint64_t Id>
     auto& input()
     {
         constexpr auto index = get_index_by_id_v<Id, typename helper::input_tuple>;
@@ -78,7 +78,7 @@ public:
         return find<typename helper::input_tuple, std::tuple_element_t<index, type>>(m_inputs, Id);
     }
 
-    template<uint64_t Id>
+    template <uint64_t Id>
     auto& output()
     {
         constexpr auto index = get_index_by_id_v<Id, typename helper::output_tuple>;

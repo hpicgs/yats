@@ -72,17 +72,17 @@ public:
     template<uint64_t Id>
     auto& input()
     {
-        constexpr auto index = get_index_by_id_v<Id, typename helper::wrapped_input>;
-        using type = typename helper::input_configuration;
-        return find<typename helper::wrapped_input, std::tuple_element_t<index, type>>(m_inputs, Id);
+        constexpr auto index = get_index_by_id_v<Id, typename helper::input_tuple>;
+        using type = typename helper::input_connectors;
+        return find<typename helper::input_tuple, std::tuple_element_t<index, type>>(m_inputs, Id);
     }
 
     template<uint64_t Id>
     auto& output()
     {
-        constexpr auto index = get_index_by_id_v<Id, typename helper::return_base>;
-        using type = typename helper::output_configuration;
-        return find<typename helper::return_base, std::tuple_element_t<index, type>>(m_outputs, Id);
+        constexpr auto index = get_index_by_id_v<Id, typename helper::output_tuple>;
+        using type = typename helper::output_connectors;
+        return find<typename helper::output_tuple, std::tuple_element_t<index, type>>(m_outputs, Id);
     }
 
     std::unique_ptr<abstract_task_container> make(std::unique_ptr<abstract_connection_helper> helper) const override
@@ -125,7 +125,7 @@ protected:
         return nullptr;
     }
 
-    typename helper::input_configuration m_inputs;
-    typename helper::output_configuration m_outputs;
+    typename helper::input_connectors m_inputs;
+    typename helper::output_connectors m_outputs;
 };
 }

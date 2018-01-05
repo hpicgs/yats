@@ -33,6 +33,7 @@ set(headers
     ${include_path}/scheduler.h
     ${include_path}/task_configurator.h
     ${include_path}/task_container.h
+    ${include_path}/task_helper.h
     ${include_path}/util.h
 )
 

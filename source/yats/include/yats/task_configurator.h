@@ -5,6 +5,7 @@
 
 #include <yats/connection_helper.h>
 #include <yats/identifier.h>
+#include <yats/util.h>
 
 namespace yats
 {

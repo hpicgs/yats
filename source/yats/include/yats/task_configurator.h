@@ -17,15 +17,15 @@ public:
     abstract_task_configurator() = default;
     virtual ~abstract_task_configurator() = default;
 
-    virtual std::unique_ptr<abstract_task_container> make(std::unique_ptr<abstract_connection_helper> helper) const = 0;
-    virtual std::unique_ptr<abstract_connection_helper> make2() const = 0;
+    virtual std::unique_ptr<abstract_task_container> construct_task_container(std::unique_ptr<abstract_connection_helper> helper) const = 0;
+    virtual std::unique_ptr<abstract_connection_helper> construct_connection_helper() const = 0;
 
     static std::vector<std::unique_ptr<abstract_task_container>> build(const std::vector<std::unique_ptr<abstract_task_configurator>>& configurators)
     {
         std::vector<std::unique_ptr<abstract_connection_helper>> helpers;
         for (auto& configurator : configurators)
         {
-            helpers.emplace_back(configurator->make2());
+            helpers.emplace_back(configurator->construct_connection_helper());
         }
 
         std::map<const abstract_output_connector*, size_t> output_owner;
@@ -53,7 +53,7 @@ public:
         std::vector<std::unique_ptr<abstract_task_container>> tasks;
         for (size_t i = 0; i < configurators.size(); ++i)
         {
-            tasks.push_back(configurators[i]->make(std::move(helpers[i])));
+            tasks.push_back(configurators[i]->construct_task_container(std::move(helpers[i])));
         }
 
         return tasks;
@@ -86,13 +86,13 @@ public:
         return find<typename helper::output_tuple, std::tuple_element_t<index, type>>(m_outputs, Id);
     }
 
-    std::unique_ptr<abstract_task_container> make(std::unique_ptr<abstract_connection_helper> helper) const override
+    std::unique_ptr<abstract_task_container> construct_task_container(std::unique_ptr<abstract_connection_helper> helper) const override
     {
         auto c = static_cast<connection_helper<Task>*>(helper.get());
         return std::make_unique<task_container<Task>>(c->queue(), c->callbacks());
     }
 
-    std::unique_ptr<abstract_connection_helper> make2() const override
+    std::unique_ptr<abstract_connection_helper> construct_connection_helper() const override
     {
         return std::make_unique<connection_helper<Task>>(m_inputs, m_outputs);
     }

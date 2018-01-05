@@ -6,3 +6,4 @@ endif()
 
 # Example applications
 add_subdirectory(compilation)
+add_subdirectory(parallel_sort)

@@ -62,6 +62,8 @@ public:
 template <typename Task>
 class task_configurator : public abstract_task_configurator
 {
+    static_assert(has_run_v<Task>, "Can not create task_configurator because its task has no run function.");
+
 public:
     using helper = decltype(make_helper(&Task::run));
 

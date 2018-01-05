@@ -45,7 +45,7 @@ public:
 	/// <para>Splits m_numbers into two vectors of about equal size. These two vectors
 	/// are output 0 and output 1.</para>
 	/// </summary>
-	yats::OutputBundle<yats::Output<std::vector<int>, "left"_id>, yats::Output<std::vector<int>, "right"_id>> run()
+	yats::output_bundle<yats::output<std::vector<int>, "left"_id>, yats::output<std::vector<int>, "right"_id>> run()
 	{
 		std::cout << "Running split_task" << std::endl;
 		std::cout << "Vector to sort: ";
@@ -79,7 +79,7 @@ public:
 	/// <para>Sorts the input vector.</para>
 	/// </summary>
 	/// <param name = "v">Vector to sort</param>
-	yats::OutputBundle<yats::Output<std::vector<int>, "sorted_vector"_id >> run(yats::Input<std::vector<int>, "v"_id> v)
+	yats::output_bundle<yats::output<std::vector<int>, "sorted_vector"_id >> run(yats::input<std::vector<int>, "v"_id> v)
 	{
 		std::cout << "Running sort_task" << std::endl;
 		// TODO: implement operator * and/or operator-> for output and input
@@ -103,7 +103,7 @@ public:
 	/// </summary>
 	/// <param name = "v1">Vector 1</param>
 	/// <param name = "v2">Vector 2</param>
-	void run(yats::Input<std::vector<int>, "left"_id> v1, yats::Input<std::vector<int>, "right"_id> v2)
+	void run(yats::input<std::vector<int>, "left"_id> v1, yats::input<std::vector<int>, "right"_id> v2)
 	{
 		std::cout << "Running merge_task" << std::endl;
 		std::vector<int> sorted_vector;

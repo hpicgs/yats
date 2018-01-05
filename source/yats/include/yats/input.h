@@ -13,7 +13,7 @@ class input
 {
 public:
     using value_type = T;
-    constexpr static uint64_t id = Id;
+    static constexpr uint64_t id = Id;
 
     /// <summary>Creates a new Input object.</summary>
     /// <param name = "value">Initial value of input</param>

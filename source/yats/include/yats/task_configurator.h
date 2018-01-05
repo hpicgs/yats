@@ -5,6 +5,7 @@
 
 #include <yats/connection_helper.h>
 #include <yats/identifier.h>
+#include <yats/util.h>
 
 namespace yats
 {
@@ -16,15 +17,15 @@ public:
     abstract_task_configurator() = default;
     virtual ~abstract_task_configurator() = default;
 
-    virtual std::unique_ptr<abstract_task_container> make(std::unique_ptr<abstract_connection_helper> helper) const = 0;
-    virtual std::unique_ptr<abstract_connection_helper> make2() const = 0;
+    virtual std::unique_ptr<abstract_task_container> construct_task_container(std::unique_ptr<abstract_connection_helper> helper) const = 0;
+    virtual std::unique_ptr<abstract_connection_helper> construct_connection_helper() const = 0;
 
     static std::vector<std::unique_ptr<abstract_task_container>> build(const std::vector<std::unique_ptr<abstract_task_configurator>>& configurators)
     {
         std::vector<std::unique_ptr<abstract_connection_helper>> helpers;
         for (auto& configurator : configurators)
         {
-            helpers.emplace_back(configurator->make2());
+            helpers.emplace_back(configurator->construct_connection_helper());
         }
 
         std::map<const abstract_output_connector*, size_t> output_owner;
@@ -52,7 +53,7 @@ public:
         std::vector<std::unique_ptr<abstract_task_container>> tasks;
         for (size_t i = 0; i < configurators.size(); ++i)
         {
-            tasks.push_back(configurators[i]->make(std::move(helpers[i])));
+            tasks.push_back(configurators[i]->construct_task_container(std::move(helpers[i])));
         }
 
         return tasks;
@@ -62,34 +63,36 @@ public:
 template <typename Task>
 class task_configurator : public abstract_task_configurator
 {
+    static_assert(has_run_v<Task>, "Can not create task_configurator because its task has no run function.");
+
 public:
     using helper = decltype(make_helper(&Task::run));
 
     task_configurator() = default;
-    
-    template<uint64_t Id>
+
+    template <uint64_t Id>
     auto& input()
     {
-        constexpr auto index = get_index_by_id_v<Id, typename helper::wrapped_input>;
-        using type = typename helper::input_configuration;
-        return find<typename helper::wrapped_input, std::tuple_element_t<index, type>>(m_inputs, Id);
+        constexpr auto index = get_index_by_id_v<Id, typename helper::input_tuple>;
+        using type = typename helper::input_connectors;
+        return find<typename helper::input_tuple, std::tuple_element_t<index, type>>(m_inputs, Id);
     }
 
-    template<uint64_t Id>
+    template <uint64_t Id>
     auto& output()
     {
-        constexpr auto index = get_index_by_id_v<Id, typename helper::return_base>;
-        using type = typename helper::output_configuration;
-        return find<typename helper::return_base, std::tuple_element_t<index, type>>(m_outputs, Id);
+        constexpr auto index = get_index_by_id_v<Id, typename helper::output_tuple>;
+        using type = typename helper::output_connectors;
+        return find<typename helper::output_tuple, std::tuple_element_t<index, type>>(m_outputs, Id);
     }
 
-    std::unique_ptr<abstract_task_container> make(std::unique_ptr<abstract_connection_helper> helper) const override
+    std::unique_ptr<abstract_task_container> construct_task_container(std::unique_ptr<abstract_connection_helper> helper) const override
     {
         auto c = static_cast<connection_helper<Task>*>(helper.get());
         return std::make_unique<task_container<Task>>(c->queue(), c->callbacks());
     }
 
-    std::unique_ptr<abstract_connection_helper> make2() const override
+    std::unique_ptr<abstract_connection_helper> construct_connection_helper() const override
     {
         return std::make_unique<connection_helper<Task>>(m_inputs, m_outputs);
     }
@@ -123,7 +126,7 @@ protected:
         return nullptr;
     }
 
-    typename helper::input_configuration m_inputs;
-    typename helper::output_configuration m_outputs;
+    typename helper::input_connectors m_inputs;
+    typename helper::output_connectors m_outputs;
 };
 }

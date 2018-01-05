@@ -4,6 +4,7 @@
 #include <vector>
 
 #include <yats/Output.h>
+#include <yats/Identifier.h>
 #include <yats/Input.h>
 
 /*
@@ -44,23 +45,16 @@ public:
 	/// <para>Splits m_numbers into two vectors of about equal size. These two vectors
 	/// are output 0 and output 1.</para>
 	/// </summary>
-	yats::OutputBundle<yats::Output<std::vector<int>, 0>, yats::Output<std::vector<int>, 1>> run()
+	yats::OutputBundle<yats::Output<std::vector<int>, "left"_id>, yats::Output<std::vector<int>, "right"_id>> run()
 	{
 		std::cout << "Running split_task" << std::endl;
 		std::cout << "Vector to sort: ";
 		print_vector(m_numbers);
 
-		std::vector<int> v1;
-		std::vector<int> v2;
-
 		size_t half_size = m_numbers.size() / 2;
 
-		std::copy_n(m_numbers.cbegin(), half_size, std::back_inserter(v1));
-		//print_vector(v1);
-
-		std::copy(m_numbers.cbegin() + half_size,
-			m_numbers.cend(), std::back_inserter(v2));
-		//print_vector(v2);
+		std::vector<int> v1(m_numbers.cbegin(), m_numbers.cbegin() + half_size);
+		std::vector<int> v2(m_numbers.cbegin() + half_size, m_numbers.cend());
 
 		return std::make_tuple(v1, v2);
 	}
@@ -85,10 +79,10 @@ public:
 	/// <para>Sorts the input vector.</para>
 	/// </summary>
 	/// <param name = "v">Vector to sort</param>
-	yats::OutputBundle<yats::Output<std::vector<int>, 0>> run(yats::Input<std::vector<int>, 0> v)
+	yats::OutputBundle<yats::Output<std::vector<int>, "sorted_vector"_id >> run(yats::Input<std::vector<int>, "v"_id> v)
 	{
 		std::cout << "Running sort_task" << std::endl;
-		// FRAGE: Brauche ich die Konstruktion ((std::vector<int>&)v) ?
+		// TODO: implement operator * and/or operator-> for output and input
 		std::sort(((std::vector<int>&)v).begin(), ((std::vector<int>&)v).end());
 		//print_vector(v);
 		return std::make_tuple((std::vector<int>&)v);
@@ -96,49 +90,28 @@ public:
 };
 
 /// <summary>
-/// <para>Task to join two sorted vectors.</para>
+/// <para>Task to merge two sorted vectors.</para>
 /// </summary>
-class join_task
+class merge_task
 {
 public:
-	join_task() = default;
-	~join_task() = default;
+	merge_task() = default;
+	~merge_task() = default;
 
 	/// <summary>
 	/// <para>Joins two sorted vectors</para>
 	/// </summary>
 	/// <param name = "v1">Vector 1</param>
 	/// <param name = "v2">Vector 2</param>
-	void run(yats::Input<std::vector<int>, 0> v1, yats::Input<std::vector<int>, 1> v2)
+	void run(yats::Input<std::vector<int>, "left"_id> v1, yats::Input<std::vector<int>, "right"_id> v2)
 	{
-		std::cout << "Running join_task" << std::endl;
+		std::cout << "Running merge_task" << std::endl;
 		std::vector<int> sorted_vector;
-		int i = 0;
-		int j = 0;
+		
+		std::merge(((std::vector<int>&)v1).begin(), ((std::vector<int>&)v1).end(),
+			((std::vector<int>&)v2).begin(), ((std::vector<int>&)v2).end(),
+			std::back_inserter(sorted_vector));
 
-		while (i < ((std::vector<int>&)v1).size() || j < ((std::vector<int>&)v2).size())
-		{
-			if (i >= ((std::vector<int>&)v1).size())
-			{
-				sorted_vector.push_back(((std::vector<int>&)v2)[j]);
-				j++;
-			}
-			else if (j >= ((std::vector<int>&)v2).size())
-			{
-				sorted_vector.push_back(((std::vector<int>&)v1)[i]);
-				i++;
-			}
-			else if (((std::vector<int>&)v1)[i] < ((std::vector<int>&)v2)[j])
-			{
-				sorted_vector.push_back(((std::vector<int>&)v1)[i]);
-				i++;
-			}
-			else
-			{
-				sorted_vector.push_back(((std::vector<int>&)v2)[j]);
-				j++;
-			}
-		}
 		std::cout << "Sorted vector: ";
 		print_vector(sorted_vector);
 	}

@@ -89,7 +89,7 @@ public:
     std::unique_ptr<abstract_task_container> make(std::unique_ptr<abstract_connection_helper> helper) const override
     {
         auto c = static_cast<connection_helper<Task>*>(helper.get());
-        return std::make_unique<task_container<Task, Parameters...>>(c->queue(), c->callbacks(), std::move(m_construction_parameters));
+        return std::make_unique<task_container<Task, Parameters...>>(c->queue(), c->callbacks(), m_construction_parameters);
     }
 
     std::unique_ptr<abstract_connection_helper> make2() const override

@@ -3,9 +3,9 @@
 #include <tuple>
 #include <vector>
 
-#include <yats/Output.h>
-#include <yats/Identifier.h>
-#include <yats/Input.h>
+#include <yats/output.h>
+#include <yats/identifier.h>
+#include <yats/input.h>
 
 /*
 parallel_sort has been programmed demonstrate the use and construction

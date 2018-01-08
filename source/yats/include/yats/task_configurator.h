@@ -38,15 +38,16 @@ public:
             }
         }
 
-        for (auto& helper : helpers)
+        for (size_t i = 0; i < helpers.size(); ++i)
         {
-            auto inputs = helper->inputs();
+            auto inputs = helpers[i]->inputs();
             for (auto input : inputs)
             {
                 auto source_location = input.first->output();
                 auto source_task_id = output_owner.at(source_location);
 
-                helpers[source_task_id]->bind(source_location, helper->target(input.first));
+                helpers[source_task_id]->bind(source_location, helpers[i]->target(input.first));
+				helpers[source_task_id]->add_following(i);
             }
         }
 
@@ -88,8 +89,8 @@ public:
 
     std::unique_ptr<abstract_task_container> construct_task_container(std::unique_ptr<abstract_connection_helper> helper) const override
     {
-        auto c = static_cast<connection_helper<Task>*>(helper.get());
-        return std::make_unique<task_container<Task>>(c->queue(), c->callbacks());
+        auto connection = static_cast<connection_helper<Task>*>(helper.get());
+        return std::make_unique<task_container<Task>>(connection->queue(), connection->callbacks(), connection->following_nodes());
     }
 
     std::unique_ptr<abstract_connection_helper> construct_connection_helper() const override

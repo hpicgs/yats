@@ -76,7 +76,7 @@ template <typename Task>
 struct new_task_helper
 {
 	using base = decltype(make_helper(&Task::run));
-	using input_queue_ptr = typename base::input_queue_ptr;
+	using input_queue_p = typename base::input_queue_ptr;
 };
 
 }

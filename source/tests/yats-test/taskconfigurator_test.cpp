@@ -69,8 +69,3 @@ TEST(taskconfigurator_test, get_input_output_by_name)
     EXPECT_NO_THROW(configurator.output<"output"_id>());
 }
 
-TEST(taskconfigurator_test, empty_build)
-{
-    std::vector<std::unique_ptr<yats::abstract_task_configurator>> empty;
-    yats::abstract_task_configurator::build(empty);
-}

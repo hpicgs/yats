@@ -22,12 +22,12 @@ public:
 };
 
 template <typename Task>
-class task_container : public abstract_task_container
+class task_container : public abstract_task_container, public new_task_helper<Task>
 {
 public:
     using helper = decltype(make_helper(&Task::run));
 
-    task_container(typename helper::input_queue_ptr input, typename helper::output_callbacks output)
+    task_container(input_queue_ptr input, typename helper::output_callbacks output)
         : m_input(std::move(input))
         , m_output(std::move(output))
     {

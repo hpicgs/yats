@@ -25,12 +25,11 @@ set(include_path "${CMAKE_CURRENT_SOURCE_DIR}/include/${target}")
 set(headers
     ${include_path}/connection_helper.h
     ${include_path}/identifier.h
-    ${include_path}/input.h
     ${include_path}/input_connector.h
-    ${include_path}/output.h
     ${include_path}/output_connector.h
     ${include_path}/pipeline.h
     ${include_path}/scheduler.h
+    ${include_path}/slot.h
     ${include_path}/task_configurator.h
     ${include_path}/task_container.h
     ${include_path}/task_helper.h

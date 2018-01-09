@@ -1,12 +1,11 @@
 #include <gmock/gmock.h>
 
-#include <yats/input.h>
-#include <yats/output.h>
+#include <yats/slot.h>
 #include <yats/pipeline.h>
 
 struct Source
 {
-    yats::output_bundle<yats::output<int, 0>> run()
+    yats::output_bundle<yats::slot<int, 0>> run()
     {
         std::cout << "Send 42" << std::endl;
         return std::make_tuple(42);
@@ -15,7 +14,7 @@ struct Source
 
 struct Target
 {
-    void run(yats::input<int, 0> input)
+    void run(yats::slot<int, 0> input)
     {
         std::cout << "Received " << input << ". Adding + 1" << std::endl;
     }

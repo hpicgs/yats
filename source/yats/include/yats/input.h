@@ -31,22 +31,22 @@ public:
         return m_value;
     }
 
-	T& operator*()
-	{
-		return m_value;
-	}
+    T& operator*()
+    {
+        return m_value;
+    }
 
-	template <typename Type = T>
-	std::enable_if_t<std::is_pointer<Type>::value, Type> operator->()
-	{
-		return m_value;
-	}
+    template <typename Type = T>
+    std::enable_if_t<std::is_pointer<Type>::value, Type> operator->()
+    {
+        return m_value;
+    }
 
-	template <typename Type = T>
-	std::enable_if_t<!std::is_pointer<Type>::value, Type> operator->()
-	{
-		return &m_value;
-	}
+    template <typename Type = T>
+    std::enable_if_t<!std::is_pointer<Type>::value, Type> operator->()
+    {
+        return &m_value;
+    }
 
 protected:
     value_type m_value;

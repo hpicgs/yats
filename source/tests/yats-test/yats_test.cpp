@@ -24,7 +24,7 @@ struct Target
 TEST(yats_test, simple)
 {
     yats::pipeline pipeline;
-	yats::scheduler scheduler(pipeline);
+    yats::scheduler scheduler(pipeline);
     EXPECT_NO_THROW(scheduler.run());
 }
 

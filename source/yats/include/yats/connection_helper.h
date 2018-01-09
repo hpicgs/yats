@@ -37,10 +37,10 @@ public:
         return m_out;
     }
 
-	void add_following(size_t following_node)
-	{
-		m_following.insert(following_node);
-	}
+    void add_following(size_t following_node)
+    {
+        m_following.insert(following_node);
+    }
 
 protected:
     template <typename LocationType, typename SequenceType, size_t... index>
@@ -51,7 +51,7 @@ protected:
         return { std::make_pair(&std::get<index>(outputs), index)... };
     }
 
-	std::set<size_t> m_following;
+    std::set<size_t> m_following;
     const locations<abstract_input_connector> m_in;
     const locations<abstract_output_connector> m_out;
 };
@@ -93,10 +93,10 @@ public:
         return std::move(m_output);
     }
 
-	std::set<size_t> following_nodes()
-	{
-		return std::move(m_following);
-	}
+    std::set<size_t> following_nodes()
+    {
+        return std::move(m_following);
+    }
 
 protected:
     template <size_t... index>

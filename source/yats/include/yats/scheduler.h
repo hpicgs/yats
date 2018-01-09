@@ -35,14 +35,6 @@ public:
 
             (*runnable)->run();
 
-			//auto f = (*runnable)->following_nodes();
-			//std::cout << "Following: ";
-			//for (auto e : f)
-			//{
-			//	std::cout << e << ", ";
-			//}
-			//std::cout << std::endl;
-
             to_run.erase(runnable);
         }
     }

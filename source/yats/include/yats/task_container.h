@@ -14,23 +14,23 @@ namespace yats
 class abstract_task_container
 {
 public:
-	abstract_task_container(std::set<size_t> following_nodes)
-		: m_following_nodes(std::move(following_nodes))
-	{
-	}
+    abstract_task_container(std::set<size_t> following_nodes)
+        : m_following_nodes(std::move(following_nodes))
+    {
+    }
 
     virtual ~abstract_task_container() = default;
 
     virtual void run() = 0;
     virtual bool can_run() const = 0;
 
-	const std::set<size_t>& following_nodes()
-	{
-		return m_following_nodes;
-	}
+    const std::set<size_t>& following_nodes()
+    {
+        return m_following_nodes;
+    }
 
 protected:
-	const std::set<size_t> m_following_nodes;
+    const std::set<size_t> m_following_nodes;
 };
 
 template <typename Task>
@@ -41,7 +41,7 @@ public:
 
     task_container(typename helper::input_queue_ptr input, typename helper::output_callbacks output, std::set<size_t> following_nodes)
         : abstract_task_container(std::move(following_nodes))
-		, m_input(std::move(input))
+        , m_input(std::move(input))
         , m_output(std::move(output))
     {
     }
@@ -112,6 +112,6 @@ protected:
 
     typename helper::input_queue_ptr m_input;
     typename helper::output_callbacks m_output;
-	Task m_task;
+    Task m_task;
 };
 }

@@ -3,7 +3,7 @@
 #include <map>
 #include <memory>
 
-#include <yats/connection_helper.h>
+#include <yats/task_container.h>
 #include <yats/identifier.h>
 #include <yats/util.h>
 
@@ -49,8 +49,7 @@ public:
 
     std::unique_ptr<abstract_task_container> construct_task_container(std::unique_ptr<abstract_connection_helper> helper) const override
     {
-        auto connection = static_cast<connection_helper<Task>*>(helper.get());
-        return std::make_unique<task_container<Task>>(connection->queue(), connection->callbacks(), connection->following_nodes());
+        return std::make_unique<task_container<Task>>(static_cast<connection_helper<Task>*>(helper.get()));
     }
 
     std::unique_ptr<abstract_connection_helper> construct_connection_helper() const override

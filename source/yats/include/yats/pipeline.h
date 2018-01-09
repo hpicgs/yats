@@ -28,7 +28,7 @@ public:
     std::vector<std::unique_ptr<abstract_task_container>> build() const
     {
         std::vector<std::unique_ptr<abstract_connection_helper>> helpers;
-        for (auto& configurator : m_tasks)
+        for (const auto& configurator : m_tasks)
         {
             helpers.emplace_back(configurator->construct_connection_helper());
         }

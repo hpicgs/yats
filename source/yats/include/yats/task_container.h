@@ -4,8 +4,9 @@
 #include <array>
 #include <tuple>
 #include <utility>
-#include <set>
+#include <vector>
 
+#include <yats/connection_helper.h>
 #include <yats/task_helper.h>
 
 namespace yats
@@ -14,8 +15,8 @@ namespace yats
 class abstract_task_container
 {
 public:
-    abstract_task_container(std::set<size_t> following_nodes)
-        : m_following_nodes(std::move(following_nodes))
+    abstract_task_container(const std::set<size_t> &following_nodes)
+        : m_following_nodes(following_nodes.cbegin(), following_nodes.cend())
     {
     }
 
@@ -24,13 +25,13 @@ public:
     virtual void run() = 0;
     virtual bool can_run() const = 0;
 
-    const std::set<size_t>& following_nodes()
+    const std::vector<size_t>& following_nodes()
     {
         return m_following_nodes;
     }
 
 protected:
-    const std::set<size_t> m_following_nodes;
+    const std::vector<size_t> m_following_nodes;
 };
 
 template <typename Task>
@@ -39,10 +40,10 @@ class task_container : public abstract_task_container
 public:
     using helper = decltype(make_helper(&Task::run));
 
-    task_container(typename helper::input_queue_ptr input, typename helper::output_callbacks output, std::set<size_t> following_nodes)
-        : abstract_task_container(std::move(following_nodes))
-        , m_input(std::move(input))
-        , m_output(std::move(output))
+    task_container(connection_helper<Task>* connection)
+        : abstract_task_container(connection->following_nodes())
+        , m_input(connection->queue())
+        , m_output(connection->callbacks())
     {
     }
 

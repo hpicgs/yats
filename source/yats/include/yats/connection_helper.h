@@ -1,11 +1,11 @@
 #pragma once
 
+#include <set>
 #include <map>
 #include <memory>
 
 #include <yats/input_connector.h>
 #include <yats/output_connector.h>
-#include <yats/task_container.h>
 
 namespace yats
 {

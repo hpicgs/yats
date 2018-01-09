@@ -15,7 +15,7 @@ namespace yats
 class abstract_task_container
 {
 public:
-    abstract_task_container(const std::set<size_t> &following_nodes)
+    abstract_task_container(const std::set<size_t>& following_nodes)
         : m_following_nodes(following_nodes.cbegin(), following_nodes.cend())
     {
     }

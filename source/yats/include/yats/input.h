@@ -43,7 +43,7 @@ public:
 	}
 
 	template <typename Type = T>
-	std::enable_if_t<std::is_pointer<Type>::value, Type> operator->()
+	std::enable_if_t<!std::is_pointer<Type>::value, Type> operator->()
 	{
 		return &m_value;
 	}

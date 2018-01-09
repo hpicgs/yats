@@ -23,6 +23,7 @@ set(sources
     identifier_test.cpp
     main.cpp
     scheduler_test.cpp
+    slot_test.cpp
     taskconfigurator_test.cpp
     util_test.cpp
     yats_test.cpp

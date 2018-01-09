@@ -22,12 +22,12 @@ public:
 };
 
 template <typename Task>
-class task_container : public abstract_task_container, public new_task_helper<Task>
+class task_container : public abstract_task_container, public decltype(make_helper(&Task::run))
 {
 public:
     using helper = decltype(make_helper(&Task::run));
 
-    task_container(input_queue_p input, typename helper::output_callbacks output)
+    task_container(typename helper::input_queue_ptr input, typename helper::output_callbacks output)
         : m_input(std::move(input))
         , m_output(std::move(output))
     {
@@ -44,7 +44,7 @@ public:
     }
 
 protected:
-    template <size_t... index, typename T = typename helper::output_type>
+    template <size_t... index, typename T = output_type>
     std::enable_if_t<!std::is_same<T, void>::value> invoke(std::integer_sequence<size_t, index...>)
     {
         auto output = m_task.run(get<index>()...);

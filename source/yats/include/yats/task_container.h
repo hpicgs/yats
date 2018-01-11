@@ -30,7 +30,7 @@ public:
     task_container(typename helper::input_queue input, typename helper::return_callbacks output, std::tuple<Parameters...> parameter_tuple)
         : m_input(std::move(input))
         , m_output(std::move(output))
-        , m_task(make_from_tuple<Task>(std::forward<std::tuple<Parameters...>>(parameter_tuple)))
+        , m_task(make_from_tuple<Task>(std::tuple<Parameters...>(parameter_tuple)))
     {
     }
 

@@ -19,8 +19,8 @@ public:
     template <typename Task, typename... Parameters>
     task_configurator<Task, Parameters...>* add(Parameters&&... parameters)
     {
-        static_assert(has_unique_ids_v<typename decltype(make_helper(&Task::run))::wrapped_input>, "Can not add Task because multiple Inputs share the same Id.");
-        static_assert(has_unique_ids_v<typename decltype(make_helper(&Task::run))::return_base>, "Can not add Task because multiple Outputs share the same Id.");
+        static_assert(has_unique_ids_v<typename decltype(make_helper(&Task::run))::input_tuple>, "Can not add Task because multiple Inputs share the same Id.");
+        static_assert(has_unique_ids_v<typename decltype(make_helper(&Task::run))::output_tuple>, "Can not add Task because multiple Outputs share the same Id.");
 
         m_tasks.push_back(std::make_unique<task_configurator<Task, Parameters...>>(std::forward<Parameters>(parameters)...));
         return static_cast<task_configurator<Task, Parameters...>*>(m_tasks.back().get());

@@ -1,7 +1,6 @@
 #include <gmock/gmock.h>
 
-#include <yats/input.h>
-#include <yats/output.h>
+#include <yats/slot.h>
 #include <yats/pipeline.h>
 
 TEST(custom_constructor_test, reference_as_argument)
@@ -13,7 +12,7 @@ TEST(custom_constructor_test, reference_as_argument)
         {
         }
 
-        yats::output_bundle<yats::output<int, 0>> run()
+        yats::output_bundle<yats::slot<int, 0>> run()
         {
             return std::make_tuple(m_value);
         }
@@ -29,7 +28,7 @@ TEST(custom_constructor_test, reference_as_argument)
         {
         }
 
-        void run(yats::input<int, 0> value)
+        void run(yats::slot<int, 0> value)
         {
             m_value = value;
         }

@@ -1,7 +1,6 @@
 #include <gmock/gmock.h>
 
-#include <yats/input.h>
-#include <yats/output.h>
+#include <yats/slot.h>
 #include <yats/util.h>
 
 TEST(util_test, is_unique_ptr_test)
@@ -75,7 +74,7 @@ TEST(util_test, get_value_type_test)
     {
     };
 
-    using test_tuple2 = std::tuple<yats::input<float, 321>, yats::input<int, 123>>;
+    using test_tuple2 = std::tuple<yats::slot<float, 321>, yats::slot<int, 123>>;
 
     constexpr auto index1 = yats::get_index_by_id_v<321, test_tuple2>;
     constexpr auto index2 = yats::get_index_by_id_v<123, test_tuple2>;
@@ -86,8 +85,8 @@ TEST(util_test, get_value_type_test)
 
 TEST(util_test, has_unique_ids_test)
 {
-    constexpr auto yes = yats::has_unique_ids_v<std::tuple<yats::input<int, 123>, yats::input<float, 321>>>;
-    constexpr auto no = yats::has_unique_ids_v<std::tuple<yats::output<int, 123>, yats::output<float, 123>>>;
+    constexpr auto yes = yats::has_unique_ids_v<std::tuple<yats::slot<int, 123>, yats::slot<float, 321>>>;
+    constexpr auto no = yats::has_unique_ids_v<std::tuple<yats::slot<int, 123>, yats::slot<float, 123>>>;
 
     EXPECT_TRUE(yes);
     EXPECT_FALSE(no);

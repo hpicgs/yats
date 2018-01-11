@@ -1,12 +1,6 @@
 #pragma once
 
-#include <array>
-#include <functional>
 #include <memory>
-#include <queue>
-#include <vector>
-
-#include <yats/output_connector.h>
 
 namespace yats
 {
@@ -59,76 +53,6 @@ struct is_shared_ptr<void>
 
 template <typename T>
 constexpr bool is_shared_ptr_v = is_shared_ptr<T>::value;
-
-template <typename T>
-struct return_wrapper;
-
-template <typename... ParameterTypes>
-struct return_wrapper<std::tuple<ParameterTypes...>>
-{
-    template <typename CompoundType>
-    static std::vector<std::function<void(typename CompoundType::value_type)>> transform_callback();
-
-    using callbacks = std::tuple<decltype(transform_callback<ParameterTypes>())...>;
-
-    template <typename CompoundType>
-    static output_connector<typename CompoundType::value_type> transform_output();
-
-    using output_configuration = std::tuple<decltype(transform_output<ParameterTypes>())...>;
-
-    template <typename CompoundType>
-    static CompoundType transform_base();
-
-    using base = std::tuple<ParameterTypes...>;
-
-    static constexpr size_t parameter_count = sizeof...(ParameterTypes);
-};
-
-template <>
-struct return_wrapper<void>
-{
-    using callbacks = std::tuple<>;
-    using output_configuration = std::tuple<>;
-    using base = std::tuple<>;
-
-    static constexpr size_t parameter_count = 0;
-};
-
-template <typename Return, typename... ParameterTypes>
-struct task_helper
-{
-    template <typename CompoundType>
-    static typename CompoundType::value_type transform_base();
-
-    template <typename CompoundType>
-    static std::queue<typename CompoundType::value_type> transform_queue();
-
-    template <typename CompoundType>
-    static std::function<void(typename CompoundType::value_type)> transform_function();
-
-    using wrapped_input = std::tuple<ParameterTypes...>;
-    using input = std::tuple<decltype(transform_base<ParameterTypes>())...>;
-    using input_queue_base = std::tuple<decltype(transform_queue<ParameterTypes>())...>;
-    using input_queue = std::unique_ptr<input_queue_base>;
-    using return_type = Return;
-
-    using return_base = typename return_wrapper<return_type>::base;
-
-    using return_callbacks = typename return_wrapper<return_type>::callbacks;
-    using input_callbacks = std::tuple<decltype(transform_function<ParameterTypes>())...>;
-
-    template <typename CompoundType>
-    static input_connector<typename CompoundType::value_type> transform_input();
-
-    using input_configuration = std::tuple<decltype(transform_input<ParameterTypes>())...>;
-    using output_configuration = typename return_wrapper<return_type>::output_configuration;
-
-    static constexpr size_t parameter_count = sizeof...(ParameterTypes);
-    static constexpr size_t output_parameter_count = return_wrapper<return_type>::parameter_count;
-};
-
-template <typename ReturnType, typename TaskType, typename... ParameterTypes>
-static constexpr task_helper<ReturnType, ParameterTypes...> make_helper(ReturnType (TaskType::*)(ParameterTypes...));
 
 template <uint64_t Id, typename T>
 struct get_index_by_id

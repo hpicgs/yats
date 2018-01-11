@@ -6,6 +6,7 @@
 #include <utility>
 
 #include <yats/task_helper.h>
+#include <yats/util.h>
 
 namespace yats
 {

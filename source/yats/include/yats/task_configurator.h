@@ -52,7 +52,7 @@ public:
 
     std::unique_ptr<abstract_task_container> construct_task_container(std::unique_ptr<abstract_connection_helper> helper) const override
     {
-        return std::make_unique<task_container<Task>>(static_cast<connection_helper<Task>*>(helper.get()), m_construction_parameters);
+        return std::make_unique<task_container<Task, Parameters...>>(static_cast<connection_helper<Task>*>(helper.get()), m_construction_parameters);
     }
 
     std::unique_ptr<abstract_connection_helper> construct_connection_helper() const override

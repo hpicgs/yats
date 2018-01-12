@@ -15,14 +15,14 @@ class pipeline
 public:
     pipeline() = default;
 
-    template <typename Task>
-    task_configurator<Task>* add()
+    template <typename Task, typename... Parameters>
+    task_configurator<Task, Parameters...>* add(Parameters&&... parameters)
     {
         static_assert(has_unique_ids_v<typename decltype(make_helper(&Task::run))::input_tuple>, "Can not add Task because multiple Inputs share the same Id.");
         static_assert(has_unique_ids_v<typename decltype(make_helper(&Task::run))::output_tuple>, "Can not add Task because multiple Outputs share the same Id.");
 
-        m_tasks.push_back(std::make_unique<task_configurator<Task>>());
-        return static_cast<task_configurator<Task>*>(m_tasks.back().get());
+        m_tasks.push_back(std::make_unique<task_configurator<Task, Parameters...>>(std::forward<Parameters>(parameters)...));
+        return static_cast<task_configurator<Task, Parameters...>*>(m_tasks.back().get());
     }
 
     std::vector<std::unique_ptr<abstract_task_container>> build() const

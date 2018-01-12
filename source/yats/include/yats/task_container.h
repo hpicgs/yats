@@ -8,6 +8,7 @@
 
 #include <yats/connection_helper.h>
 #include <yats/task_helper.h>
+#include <yats/util.h>
 
 namespace yats
 {
@@ -34,16 +35,17 @@ protected:
     const std::vector<size_t> m_following_nodes;
 };
 
-template <typename Task>
+template <typename Task, typename... Parameters>
 class task_container : public abstract_task_container
 {
 public:
     using helper = decltype(make_helper(&Task::run));
 
-    task_container(connection_helper<Task>* connection)
+    task_container(connection_helper<Task>* connection, std::tuple<Parameters...> parameter_tuple)
         : abstract_task_container(connection->following_nodes())
         , m_input(connection->queue())
         , m_output(connection->callbacks())
+        , m_task(make_from_tuple<Task>(std::tuple<Parameters...>(parameter_tuple)))
     {
     }
 

@@ -20,6 +20,7 @@ message(STATUS "Test ${target}")
 
 set(sources
     connection_test.cpp
+    custom_constructor_test.cpp
     identifier_test.cpp
     main.cpp
     scheduler_test.cpp

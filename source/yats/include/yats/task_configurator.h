@@ -21,7 +21,7 @@ public:
     virtual std::unique_ptr<abstract_connection_helper> construct_connection_helper() const = 0;
 };
 
-template <typename Task>
+template <typename Task, typename... Parameters>
 class task_configurator : public abstract_task_configurator
 {
     static_assert(has_run_v<Task>, "Can not create task_configurator because its task has no run function.");
@@ -29,8 +29,11 @@ class task_configurator : public abstract_task_configurator
 public:
     using helper = decltype(make_helper(&Task::run));
 
-    task_configurator() = default;
-
+    task_configurator(Parameters&&... parameters)
+        : m_construction_parameters(std::forward_as_tuple(parameters...))
+    {
+    }
+    
     template <uint64_t Id>
     auto& input()
     {
@@ -49,7 +52,7 @@ public:
 
     std::unique_ptr<abstract_task_container> construct_task_container(std::unique_ptr<abstract_connection_helper> helper) const override
     {
-        return std::make_unique<task_container<Task>>(static_cast<connection_helper<Task>*>(helper.get()));
+        return std::make_unique<task_container<Task>>(static_cast<connection_helper<Task>*>(helper.get()), m_construction_parameters);
     }
 
     std::unique_ptr<abstract_connection_helper> construct_connection_helper() const override
@@ -88,5 +91,6 @@ protected:
 
     typename helper::input_connectors m_inputs;
     typename helper::output_connectors m_outputs;
+    const std::tuple<Parameters...> m_construction_parameters;
 };
 }

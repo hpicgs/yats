@@ -36,21 +36,21 @@ struct output_wrapper<std::tuple<ParameterTypes...>>
 template <typename T, uint64_t Id>
 struct output_wrapper<slot<T, Id>>
 {
-	using callbacks = std::tuple<std::vector<std::function<void(T)>>>;
-	using connectors = std::tuple<output_connector<T>>;
-	using tuple = std::tuple<slot<T, Id>>;
+    using callbacks = std::tuple<std::vector<std::function<void(T)>>>;
+    using connectors = std::tuple<output_connector<T>>;
+    using tuple = std::tuple<slot<T, Id>>;
 
-	static constexpr size_t parameter_count = 1;
+    static constexpr size_t parameter_count = 1;
 };
 
 template <>
 struct output_wrapper<void>
 {
-	using callbacks = std::tuple<>;
-	using connectors = std::tuple<>;
-	using tuple = std::tuple<>;
+    using callbacks = std::tuple<>;
+    using connectors = std::tuple<>;
+    using tuple = std::tuple<>;
 
-	static constexpr size_t parameter_count = 0;
+    static constexpr size_t parameter_count = 0;
 };
 
 template <typename Return, typename... ParameterTypes>

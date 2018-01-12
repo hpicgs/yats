@@ -54,6 +54,24 @@ struct is_shared_ptr<void>
 template <typename T>
 constexpr bool is_shared_ptr_v = is_shared_ptr<T>::value;
 
+template <typename T>
+struct is_tuple
+{
+    template <typename... U>
+    static char test_function(const std::tuple<U...>&);
+    static int test_function(...);
+    static constexpr bool value = sizeof(test_function(std::declval<T>())) == sizeof(char);
+};
+
+template <>
+struct is_tuple<void>
+{
+    static constexpr bool value = false;
+};
+
+template <typename T>
+constexpr bool is_tuple_v = is_tuple<T>::value;
+
 template <uint64_t Id, typename T>
 struct get_index_by_id
 {

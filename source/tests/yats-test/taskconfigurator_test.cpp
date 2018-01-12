@@ -19,6 +19,22 @@ TEST(taskconfigurator_test, return_parameters)
     EXPECT_NO_THROW(configurator.output<0>());
 }
 
+TEST(taskconfigurator_test, return_one_element_not_in_tuple)
+{
+    struct Task
+    {
+        yats::slot<int, 71> run(yats::slot<int, 14> input)
+        {
+            return input + 1;
+        }
+    };
+
+    yats::task_configurator<Task> configurator;
+
+    EXPECT_NO_THROW(configurator.input<14>());
+    EXPECT_NO_THROW(configurator.output<71>());
+}
+
 TEST(taskconfigurator_test, multiple_returns_multiple_parameters)
 {
     struct Task

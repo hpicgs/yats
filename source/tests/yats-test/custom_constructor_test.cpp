@@ -1,5 +1,7 @@
 #include <gmock/gmock.h>
 
+#include <string>
+
 #include <yats/slot.h>
 #include <yats/pipeline.h>
 
@@ -45,11 +47,48 @@ TEST(custom_constructor_test, reference_as_argument)
     auto target = pipeline.add<Target>(end_value);
 
     source->output<0>() >> target->input<0>();
-    
+
     auto scheduler = pipeline.build();
 
     EXPECT_NE(start_value, end_value);
     start_value = 2;
     scheduler.run();
     EXPECT_EQ(start_value, end_value);
+}
+
+TEST(custom_constructor_test, rvalue_reference_as_argument)
+{
+    std::string internal_value;
+    struct Task
+    {
+        Task(std::string &internal_value, std::string rvalue)
+            : m_internal_value(internal_value)
+            , m_rvalue(rvalue)
+        {
+        }
+
+        void run()
+        {
+            m_internal_value = m_rvalue;
+            std::cout << m_internal_value << std::endl;
+        }
+
+    private:
+        std::string& m_internal_value;
+        std::string m_rvalue;
+    };
+
+    yats::pipeline pipeline;
+    {
+        std::string s("test");
+        pipeline.add<Task>(internal_value, std::move(s));
+        s.append("data");
+    }
+    std::string buffer("unknown");
+
+    auto scheduler = pipeline.build();
+
+    EXPECT_NE(internal_value, std::string("test"));
+    scheduler.run();
+    EXPECT_EQ(internal_value, std::string("test"));
 }

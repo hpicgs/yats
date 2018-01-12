@@ -1,5 +1,6 @@
 #include <gmock/gmock.h>
 
+#include <yats/pipeline.h>
 #include <yats/slot.h>
 #include <yats/task_configurator.h>
 
@@ -17,6 +18,22 @@ TEST(taskconfigurator_test, return_parameters)
 
     EXPECT_NO_THROW(configurator.input<0>());
     EXPECT_NO_THROW(configurator.output<0>());
+}
+
+TEST(taskconfigurator_test, single_return_no_bundle)
+{
+    struct Task
+    {
+        yats::slot<int, 0> run()
+        {
+            return 0;
+        }
+    };
+
+    yats::pipeline p;
+    auto configurator = p.add<Task>();
+
+    EXPECT_NO_THROW(configurator->output<0>());
 }
 
 TEST(taskconfigurator_test, multiple_returns_multiple_parameters)

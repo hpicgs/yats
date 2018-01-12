@@ -47,9 +47,16 @@ public:
 
 protected:
     template <size_t... index, typename T = typename helper::output_type>
-    std::enable_if_t<!std::is_same<T, void>::value> invoke(std::integer_sequence<size_t, index...>)
+    std::enable_if_t<!std::is_same<T, void>::value && is_tuple_v<T>> invoke(std::integer_sequence<size_t, index...>)
     {
         auto output = m_task.run(get<index>()...);
+        write(output);
+    }
+
+    template <size_t... index, typename T = typename helper::output_type>
+    std::enable_if_t<!std::is_same<T, void>::value && !is_tuple_v<T>> invoke(std::integer_sequence<size_t, index...>)
+    {
+        auto output = std::make_tuple(m_task.run(get<index>()...));
         write(output);
     }
 

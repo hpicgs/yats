@@ -5,10 +5,14 @@
 #include <queue>
 #include <vector>
 
-#include <yats/output_connector.h>
-
 namespace yats
 {
+
+template <typename T>
+class output_connector;
+
+template <typename T, uint64_t Id>
+class slot;
 
 template <typename T>
 struct output_wrapper;
@@ -29,14 +33,24 @@ struct output_wrapper<std::tuple<ParameterTypes...>>
     static constexpr size_t parameter_count = sizeof...(ParameterTypes);
 };
 
+template <typename T, uint64_t Id>
+struct output_wrapper<slot<T, Id>>
+{
+	using callbacks = std::tuple<std::vector<std::function<void(T)>>>;
+	using connectors = std::tuple<output_connector<T>>;
+	using tuple = std::tuple<slot<T, Id>>;
+
+	static constexpr size_t parameter_count = 1;
+};
+
 template <>
 struct output_wrapper<void>
 {
-    using callbacks = std::tuple<>;
-    using connectors = std::tuple<>;
-    using tuple = std::tuple<>;
+	using callbacks = std::tuple<>;
+	using connectors = std::tuple<>;
+	using tuple = std::tuple<>;
 
-    static constexpr size_t parameter_count = 0;
+	static constexpr size_t parameter_count = 0;
 };
 
 template <typename Return, typename... ParameterTypes>
@@ -57,16 +71,16 @@ struct task_helper
     using output_type = Return;
 
     using input_tuple = std::tuple<ParameterTypes...>;
-    using output_tuple = typename output_wrapper<output_type>::tuple;
+    using output_tuple = typename output_wrapper<Return>::tuple;
 
     using input_callbacks = std::tuple<decltype(transform_callback<ParameterTypes>())...>;
-    using output_callbacks = typename output_wrapper<output_type>::callbacks;
+    using output_callbacks = typename output_wrapper<Return>::callbacks;
 
     using input_connectors = std::tuple<decltype(transform_connector<ParameterTypes>())...>;
-    using output_connectors = typename output_wrapper<output_type>::connectors;
+    using output_connectors = typename output_wrapper<Return>::connectors;
 
     static constexpr size_t input_count = sizeof...(ParameterTypes);
-    static constexpr size_t output_count = output_wrapper<output_type>::parameter_count;
+    static constexpr size_t output_count = output_wrapper<Return>::parameter_count;
 };
 
 template <typename ReturnType, typename TaskType, typename... ParameterTypes>

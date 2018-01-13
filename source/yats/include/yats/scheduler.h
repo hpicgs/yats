@@ -3,7 +3,9 @@
 #include <algorithm>
 #include <string>
 #include <vector>
+#include <iostream>
 
+#include <yats/pipeline.h>
 #include <yats/task_configurator.h>
 
 namespace yats
@@ -12,8 +14,8 @@ namespace yats
 class scheduler
 {
 public:
-    explicit scheduler(const std::vector<std::unique_ptr<abstract_task_configurator>>& task_configurators)
-        : m_tasks(abstract_task_configurator::build(task_configurators))
+    explicit scheduler(const pipeline& pipeline)
+        : m_tasks(pipeline.build())
     {
     }
 
@@ -32,6 +34,7 @@ public:
             });
 
             (*runnable)->run();
+
             to_run.erase(runnable);
         }
     }

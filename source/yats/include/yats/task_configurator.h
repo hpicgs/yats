@@ -3,7 +3,7 @@
 #include <map>
 #include <memory>
 
-#include <yats/connection_helper.h>
+#include <yats/task_container.h>
 #include <yats/identifier.h>
 #include <yats/util.h>
 
@@ -19,45 +19,6 @@ public:
 
     virtual std::unique_ptr<abstract_task_container> construct_task_container(std::unique_ptr<abstract_connection_helper> helper) const = 0;
     virtual std::unique_ptr<abstract_connection_helper> construct_connection_helper() const = 0;
-
-    static std::vector<std::unique_ptr<abstract_task_container>> build(const std::vector<std::unique_ptr<abstract_task_configurator>>& configurators)
-    {
-        std::vector<std::unique_ptr<abstract_connection_helper>> helpers;
-        for (auto& configurator : configurators)
-        {
-            helpers.emplace_back(configurator->construct_connection_helper());
-        }
-
-        std::map<const abstract_output_connector*, size_t> output_owner;
-        for (size_t i = 0; i < configurators.size(); ++i)
-        {
-            auto outputs = helpers[i]->outputs();
-            for (auto output : outputs)
-            {
-                output_owner.emplace(output.first, i);
-            }
-        }
-
-        for (auto& helper : helpers)
-        {
-            auto inputs = helper->inputs();
-            for (auto input : inputs)
-            {
-                auto source_location = input.first->output();
-                auto source_task_id = output_owner.at(source_location);
-
-                helpers[source_task_id]->bind(source_location, helper->target(input.first));
-            }
-        }
-
-        std::vector<std::unique_ptr<abstract_task_container>> tasks;
-        for (size_t i = 0; i < configurators.size(); ++i)
-        {
-            tasks.push_back(configurators[i]->construct_task_container(std::move(helpers[i])));
-        }
-
-        return tasks;
-    }
 };
 
 template <typename Task, typename... Parameters>
@@ -91,8 +52,7 @@ public:
 
     std::unique_ptr<abstract_task_container> construct_task_container(std::unique_ptr<abstract_connection_helper> helper) const override
     {
-        auto c = static_cast<connection_helper<Task>*>(helper.get());
-        return std::make_unique<task_container<Task, Parameters...>>(c->queue(), c->callbacks(), m_construction_parameters);
+        return std::make_unique<task_container<Task, Parameters...>>(static_cast<connection_helper<Task>*>(helper.get()), m_construction_parameters);
     }
 
     std::unique_ptr<abstract_connection_helper> construct_connection_helper() const override

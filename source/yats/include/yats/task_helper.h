@@ -3,9 +3,11 @@
 #include <functional>
 #include <memory>
 #include <queue>
+#include <tuple>
 #include <vector>
 
 #include <yats/output_connector.h>
+#include <yats/slot.h>
 
 namespace yats
 {
@@ -27,6 +29,16 @@ struct output_wrapper<std::tuple<ParameterTypes...>>
     using tuple = std::tuple<ParameterTypes...>;
 
     static constexpr size_t parameter_count = sizeof...(ParameterTypes);
+};
+
+template <typename T, uint64_t Id>
+struct output_wrapper<slot<T, Id>>
+{
+    using callbacks = std::tuple<std::vector<std::function<void(T)>>>;
+    using connectors = std::tuple<output_connector<T>>;
+    using tuple = std::tuple<slot<T, Id>>;
+
+    static constexpr size_t parameter_count = 1;
 };
 
 template <>
@@ -54,19 +66,19 @@ struct task_helper
     using input_queue = std::tuple<decltype(transform_queue<ParameterTypes>())...>;
     using input_queue_ptr = std::unique_ptr<input_queue>;
 
-    using output_type = Return;
+    using basic_output_type = Return;
 
     using input_tuple = std::tuple<ParameterTypes...>;
-    using output_tuple = typename output_wrapper<output_type>::tuple;
+    using output_tuple = typename output_wrapper<Return>::tuple;
 
     using input_callbacks = std::tuple<decltype(transform_callback<ParameterTypes>())...>;
-    using output_callbacks = typename output_wrapper<output_type>::callbacks;
+    using output_callbacks = typename output_wrapper<Return>::callbacks;
 
     using input_connectors = std::tuple<decltype(transform_connector<ParameterTypes>())...>;
-    using output_connectors = typename output_wrapper<output_type>::connectors;
+    using output_connectors = typename output_wrapper<Return>::connectors;
 
     static constexpr size_t input_count = sizeof...(ParameterTypes);
-    static constexpr size_t output_count = output_wrapper<output_type>::parameter_count;
+    static constexpr size_t output_count = output_wrapper<Return>::parameter_count;
 };
 
 template <typename ReturnType, typename TaskType, typename... ParameterTypes>

@@ -41,6 +41,30 @@ TEST(util_test, is_shared_ptr_test)
     EXPECT_FALSE(yats::is_unique_ptr_v<no_shared_ptr*>);
 }
 
+TEST(util_test, is_tuple_test)
+{
+    EXPECT_TRUE(yats::is_tuple_v<std::tuple<>>);
+    EXPECT_TRUE(yats::is_tuple_v<std::tuple<int>>);
+    auto val = yats::is_tuple_v<std::tuple<int, float>>;
+    EXPECT_TRUE(val);
+
+    EXPECT_FALSE(yats::is_tuple_v<std::shared_ptr<int>>);
+    EXPECT_FALSE(yats::is_tuple_v<std::unique_ptr<int>>);
+    EXPECT_FALSE(yats::is_tuple_v<int>);
+    EXPECT_FALSE(yats::is_tuple_v<int*>);
+    EXPECT_FALSE(yats::is_tuple_v<int&>);
+    EXPECT_FALSE(yats::is_tuple_v<const int&>);
+    EXPECT_FALSE(yats::is_tuple_v<void>);
+
+    struct no_shared_ptr
+    {
+        char dummy;
+    };
+
+    EXPECT_FALSE(yats::is_tuple_v<no_shared_ptr>);
+    EXPECT_FALSE(yats::is_tuple_v<no_shared_ptr*>);
+}
+
 TEST(util_test, has_run_test)
 {
     struct static_run

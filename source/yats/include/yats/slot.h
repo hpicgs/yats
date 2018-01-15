@@ -11,7 +11,8 @@ using output_bundle = std::tuple<Args...>;
 /// <para><c>T</c> Type of slot value</para>
 /// <para><c>Id</c> Unique identifier of slot</para>
 /// </summary>
-template <typename T, uint64_t Id>
+template<typename T, uint64_t Id>
+
 class slot
 {
 public:

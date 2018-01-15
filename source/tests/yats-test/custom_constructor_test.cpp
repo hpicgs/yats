@@ -2,6 +2,7 @@
 
 #include <yats/slot.h>
 #include <yats/pipeline.h>
+#include <yats/scheduler.h>
 
 TEST(custom_constructor_test, reference_as_argument)
 {
@@ -46,7 +47,7 @@ TEST(custom_constructor_test, reference_as_argument)
 
     source->output<0>() >> target->input<0>();
     
-    auto scheduler = pipeline.build();
+    auto scheduler = yats::scheduler(pipeline);
 
     EXPECT_NE(start_value, end_value);
     start_value = 2;

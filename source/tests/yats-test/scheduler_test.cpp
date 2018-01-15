@@ -5,6 +5,6 @@
 
 TEST(scheduler_test, simple_create)
 {
-    std::vector<std::unique_ptr<yats::abstract_task_configurator>> empty_task_configs;
-    EXPECT_NO_THROW(yats::scheduler scheduler{ empty_task_configs });
+    yats::pipeline empty_task_configs;
+    EXPECT_NO_THROW(yats::scheduler{ empty_task_configs });
 }

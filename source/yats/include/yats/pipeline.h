@@ -4,7 +4,6 @@
 #include <string>
 #include <vector>
 
-#include <yats/scheduler.h>
 #include <yats/task_configurator.h>
 #include <yats/util.h>
 
@@ -26,14 +25,44 @@ public:
         return static_cast<task_configurator<Task, Parameters...>*>(m_tasks.back().get());
     }
 
-    void run()
+    std::vector<std::unique_ptr<abstract_task_container>> build() const
     {
-        auto tasks = abstract_task_configurator::build(m_tasks);
-    }
+        std::vector<std::unique_ptr<abstract_connection_helper>> helpers;
+        for (const auto& configurator : m_tasks)
+        {
+            helpers.emplace_back(configurator->construct_connection_helper());
+        }
 
-    scheduler build()
-    {
-        return scheduler{ m_tasks };
+        std::map<const abstract_output_connector*, size_t> output_owner;
+        for (size_t i = 0; i < m_tasks.size(); ++i)
+        {
+            auto outputs = helpers[i]->outputs();
+            for (auto output : outputs)
+            {
+                output_owner.emplace(output.first, i);
+            }
+        }
+
+        for (size_t i = 0; i < helpers.size(); ++i)
+        {
+            auto inputs = helpers[i]->inputs();
+            for (auto input : inputs)
+            {
+                auto source_location = input.first->output();
+                auto source_task_id = output_owner.at(source_location);
+
+                helpers[source_task_id]->bind(source_location, helpers[i]->target(input.first));
+                helpers[source_task_id]->add_following(i);
+            }
+        }
+
+        std::vector<std::unique_ptr<abstract_task_container>> tasks;
+        for (size_t i = 0; i < m_tasks.size(); ++i)
+        {
+            tasks.push_back(m_tasks[i]->construct_task_container(std::move(helpers[i])));
+        }
+
+        return tasks;
     }
 
 protected:

@@ -83,4 +83,3 @@ TEST(taskconfigurator_test, get_input_output_by_name)
     configurator.input<"input"_id>();
     configurator.output<"output"_id>();
 }
-

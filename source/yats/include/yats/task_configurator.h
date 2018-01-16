@@ -30,7 +30,7 @@ public:
     using helper = decltype(make_helper(&Task::run));
 
     task_configurator(Parameters&&... parameters)
-        : m_construction_parameters(std::forward_as_tuple(parameters...))
+        : m_construction_parameters(std::forward_as_tuple(std::forward<Parameters>(parameters)...))
     {
     }
     

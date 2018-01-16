@@ -45,7 +45,7 @@ public:
         : abstract_task_container(connection->following_nodes())
         , m_input(connection->queue())
         , m_output(connection->callbacks())
-        , m_task(make_from_tuple<Task>(std::tuple<Parameters...>(parameter_tuple)))
+        , m_task(make_from_tuple<Task>(std::tuple<Parameters...>(std::move(parameter_tuple))))
     {
     }
 

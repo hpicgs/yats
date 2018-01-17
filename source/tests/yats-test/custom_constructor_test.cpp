@@ -1,8 +1,7 @@
 #include <gmock/gmock.h>
 
-#include <yats/slot.h>
-#include <yats/pipeline.h>
 #include <yats/scheduler.h>
+#include <yats/slot.h>
 
 TEST(custom_constructor_test, reference_as_argument)
 {

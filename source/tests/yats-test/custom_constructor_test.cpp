@@ -42,8 +42,8 @@ TEST(custom_constructor_test, reference_as_argument)
     int end_value = -1;
 
     yats::pipeline pipeline;
-    auto source = pipeline.add<Source>(start_value);
-    auto target = pipeline.add<Target>(end_value);
+    auto source = pipeline.add<Source>(std::cref(start_value));
+    auto target = pipeline.add<Target>(std::ref(end_value));
 
     source->output<0>() >> target->input<0>();
     
@@ -54,6 +54,39 @@ TEST(custom_constructor_test, reference_as_argument)
     scheduler.run();
     EXPECT_EQ(start_value, end_value);
 }
+
+TEST(custom_constructor_test, no_reference_as_argument)
+{
+    struct Task
+    {
+        Task(uint8_t no_reference, uint8_t& reference)
+            : m_no_reference(no_reference)
+            , m_reference(reference)
+        {
+        }
+
+        void run()
+        {
+            m_reference = m_no_reference;
+        }
+
+        uint8_t m_no_reference;
+        uint8_t& m_reference;
+    };
+
+    yats::pipeline pipeline;
+
+    uint8_t output_value = 10;
+    uint8_t input_value = 0;
+    pipeline.add<Task>(input_value, std::ref(output_value));
+    input_value += 5;
+
+    yats::scheduler scheduler(pipeline);
+    scheduler.run();
+
+    EXPECT_EQ(output_value, 0);
+}
+
 
 struct constructor_counter
 {
@@ -96,7 +129,7 @@ TEST(custom_constructor_test, no_unnecessary_copy)
     yats::pipeline pipeline;
 
     uint8_t copy_counter = 0;
-    pipeline.add<Task>(copy_counter, constructor_counter());
+    pipeline.add<Task>(std::ref(copy_counter), constructor_counter());
 
     // This should be the only place, where the copy constructor is called
     // Also it should be called only once

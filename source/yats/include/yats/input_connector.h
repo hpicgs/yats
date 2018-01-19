@@ -17,13 +17,13 @@ public:
     {
     }
 
-	virtual ~abstract_input_connector() = default;
+    virtual ~abstract_input_connector() = default;
 
-	abstract_input_connector(const abstract_input_connector& other) = delete;
-	abstract_input_connector(abstract_input_connector&& other) = delete;
+    abstract_input_connector(const abstract_input_connector& other) = delete;
+    abstract_input_connector(abstract_input_connector&& other) = delete;
 
-	abstract_input_connector& operator=(const abstract_input_connector& other) = delete;
-	abstract_input_connector& operator=(abstract_input_connector&& other) = delete;
+    abstract_input_connector& operator=(const abstract_input_connector& other) = delete;
+    abstract_input_connector& operator=(abstract_input_connector&& other) = delete;
 
     const abstract_output_connector* output() const
     {

@@ -24,11 +24,11 @@ public:
 
     virtual ~abstract_connection_helper() = default;
 
-	abstract_connection_helper(const abstract_connection_helper& other) = delete;
-	abstract_connection_helper(abstract_connection_helper&& other) = delete;
+    abstract_connection_helper(const abstract_connection_helper& other) = delete;
+    abstract_connection_helper(abstract_connection_helper&& other) = delete;
 
-	abstract_connection_helper& operator=(const abstract_connection_helper& other) = delete;
-	abstract_connection_helper& operator=(abstract_connection_helper&& other) = delete;
+    abstract_connection_helper& operator=(const abstract_connection_helper& other) = delete;
+    abstract_connection_helper& operator=(abstract_connection_helper&& other) = delete;
 
     virtual void bind(const abstract_output_connector* connector, void* callback) = 0;
     virtual void* target(const abstract_input_connector* connector) = 0;

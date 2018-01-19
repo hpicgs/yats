@@ -16,7 +16,7 @@ class abstract_task_configurator
 public:
     abstract_task_configurator() = default;
     
-	virtual ~abstract_task_configurator() = default;
+    virtual ~abstract_task_configurator() = default;
 
     abstract_task_configurator(const abstract_task_configurator& other) = delete;
     abstract_task_configurator(abstract_task_configurator&& other) = delete;

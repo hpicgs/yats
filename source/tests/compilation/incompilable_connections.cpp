@@ -5,12 +5,18 @@
 #include <yats/output_connector.h>
 #include <yats/pipeline.h>
 
+
+
 int main()
 {
     yats::input_connector<int> input;
-    yats::output_connector<std::string> output;
+    #ifdef SHOULD_FAIL
+        yats::output_connector<std::string> output;
+    #else
+        yats::output_connector<int> output;
+    #endif
 
     output >> input;
 
-	return 0;
+    return 0;
 }

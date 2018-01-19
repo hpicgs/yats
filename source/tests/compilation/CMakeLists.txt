@@ -10,10 +10,16 @@ function(add_compilation_test target)
     # Configure a target, that builds another target in a separate process
     add_custom_target(${target}_build 
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-    COMMAND "${CMAKE_COMMAND}" -P "${CMAKE_CURRENT_SOURCE_DIR}/run.cmake" ${target})
+    COMMAND "${CMAKE_COMMAND}" -P "${CMAKE_CURRENT_SOURCE_DIR}/run.cmake" ${target}_not_compilable ${target})
     set_target_properties(${target}_build PROPERTIES FOLDER "Tests/Compilation")
     
-    # Add the target that is not compilable.
+    # Add the target that IS NOT compilable.
+    add_executable(${target}_not_compilable EXCLUDE_FROM_ALL ${target}.cpp)
+    set_target_properties(${target}_not_compilable PROPERTIES ${DEFAULT_PROJECT_OPTIONS} FOLDER "Tests/Compilation")
+    target_link_libraries(${target}_not_compilable PRIVATE ${DEFAULT_LIBRARIES} yats-include)
+	target_compile_definitions(${target}_not_compilable PRIVATE SHOULD_FAIL)
+	
+	# Add the same target that IS compilable.
     add_executable(${target} EXCLUDE_FROM_ALL ${target}.cpp)
     set_target_properties(${target} PROPERTIES ${DEFAULT_PROJECT_OPTIONS} FOLDER "Tests/Compilation")
     target_link_libraries(${target} PRIVATE ${DEFAULT_LIBRARIES} yats-include)

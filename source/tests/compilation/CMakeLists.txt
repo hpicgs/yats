@@ -29,3 +29,4 @@ set_target_properties(compilation_test PROPERTIES FOLDER "Tests/Compilation")
 #
 
 add_compilation_test(incompilable)
+add_compilation_test(incompilable_connections)

@@ -6,6 +6,7 @@ if("${res_var}" STREQUAL "0")
   message(FATAL_ERROR "Compilation did not fail!")
 endif()
 
+#Try to compile an executable -- should compile
 execute_process(COMMAND "${CMAKE_COMMAND}" --build . --target ${CMAKE_ARGV4} RESULT_VARIABLE res_var OUTPUT_QUIET)
 
 # We fail here if the compilation WAS NOT successful.

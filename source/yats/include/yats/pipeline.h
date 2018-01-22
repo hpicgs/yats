@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 
+#include <yats/lambda_task.h>
 #include <yats/task_configurator.h>
 #include <yats/util.h>
 
@@ -14,6 +15,13 @@ class pipeline
 {
 public:
     pipeline() = default;
+
+    template <typename LambdaTask>
+    auto* add(LambdaTask task)
+    {
+        using type = decltype(make_lambda_task(&LambdaTask::operator()));
+        return add<type>(typename type::function_type(task));
+    }
 
     template <typename Task, typename... Parameters>
     task_configurator<Task, Parameters...>* add(Parameters&&... parameters)

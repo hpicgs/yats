@@ -37,7 +37,7 @@ public:
     using helper = decltype(make_helper(&Task::run));
 
     task_configurator(Parameters&&... parameters)
-        : m_construction_parameters(std::forward_as_tuple(parameters...))
+        : m_construction_parameters(std::forward<Parameters>(parameters)...)
     {
     }
     
@@ -59,7 +59,7 @@ public:
 
     std::unique_ptr<abstract_task_container> construct_task_container(std::unique_ptr<abstract_connection_helper> helper) const override
     {
-        return std::make_unique<task_container<Task, Parameters...>>(static_cast<connection_helper<Task>*>(helper.get()), m_construction_parameters);
+        return std::make_unique<task_container<Task, std::remove_reference_t<Parameters>...>>(static_cast<connection_helper<Task>*>(helper.get()), m_construction_parameters);
     }
 
     std::unique_ptr<abstract_connection_helper> construct_connection_helper() const override
@@ -98,6 +98,6 @@ protected:
 
     typename helper::input_connectors m_inputs;
     typename helper::output_connectors m_outputs;
-    const std::tuple<Parameters...> m_construction_parameters;
+    const std::tuple<std::remove_reference_t<Parameters>...> m_construction_parameters;
 };
 }

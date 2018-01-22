@@ -6,6 +6,7 @@
 
 #include <yats/input_connector.h>
 #include <yats/output_connector.h>
+#include <yats/task_helper.h>
 
 namespace yats
 {

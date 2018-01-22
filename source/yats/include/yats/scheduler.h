@@ -19,6 +19,12 @@ public:
     {
     }
 
+    scheduler(const scheduler& other) = delete;
+    scheduler(scheduler&& other) = delete;
+
+    scheduler& operator=(const scheduler& other) = delete;
+    scheduler& operator=(scheduler&& other) = delete;
+
     void run()
     {
         std::vector<abstract_task_container*> to_run;

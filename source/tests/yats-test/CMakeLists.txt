@@ -23,6 +23,7 @@ set(sources
     custom_constructor_test.cpp
     identifier_test.cpp
     main.cpp
+    pipeline_test.cpp
     scheduler_test.cpp
     slot_test.cpp
     taskconfigurator_test.cpp

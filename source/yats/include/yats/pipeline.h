@@ -16,8 +16,12 @@ class pipeline
 public:
     pipeline() = default;
     pipeline(const pipeline& other) = delete;
+    pipeline(pipeline&& other) = default;
+
+    ~pipeline() = default;
 
     pipeline& operator=(const pipeline& other) = delete;
+    pipeline& operator=(pipeline&& other) = default;
 
     template <typename LambdaTask>
     auto* add(LambdaTask task)

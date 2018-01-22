@@ -22,6 +22,8 @@ public:
     scheduler(const scheduler& other) = delete;
     scheduler(scheduler&& other) = delete;
 
+    ~scheduler() = default;
+
     scheduler& operator=(const scheduler& other) = delete;
     scheduler& operator=(scheduler&& other) = delete;
 

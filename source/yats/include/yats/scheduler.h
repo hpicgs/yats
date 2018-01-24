@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <thread>
+#include <mutex>
 
 #include <yats/pipeline.h>
 #include <yats/task_configurator.h>
@@ -27,20 +29,31 @@ public:
             to_run.push_back(elem.get());
         }
 
-        while (to_run.size() > 0)
+        std::function<void()> check_runnable;
+
+        check_runnable = [&to_run, &check_runnable, this]()
         {
+            std::lock_guard<std::mutex> lock(m_mutex);
+
             auto runnable = std::find_if(to_run.begin(), to_run.end(), [](abstract_task_container* task) {
                 return task->can_run();
             });
 
-            (*runnable)->run();
-
+            auto task = *runnable;
             to_run.erase(runnable);
-        }
+
+            m_threads.emplace_back([&to_run, &check_runnable, task]()
+            {
+                task->run();
+                check_runnable();
+            });
+        };
     }
 
 protected:
     // Stores all task_containers with their position as an implicit id
     std::vector<std::unique_ptr<abstract_task_container>> m_tasks;
+    std::vector<std::thread> m_threads;
+    std::mutex m_mutex;
 };
 }

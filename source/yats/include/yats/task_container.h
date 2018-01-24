@@ -23,6 +23,12 @@ public:
 
     virtual ~abstract_task_container() = default;
 
+    abstract_task_container(const abstract_task_container& other) = delete;
+    abstract_task_container(abstract_task_container&& other) = delete;
+
+    abstract_task_container& operator=(const abstract_task_container& other) = delete;
+    abstract_task_container& operator=(abstract_task_container&& other) = delete;
+
     virtual void run() = 0;
     virtual bool can_run() const = 0;
 

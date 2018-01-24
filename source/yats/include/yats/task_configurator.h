@@ -15,7 +15,14 @@ class abstract_task_configurator
 {
 public:
     abstract_task_configurator() = default;
+    
     virtual ~abstract_task_configurator() = default;
+
+    abstract_task_configurator(const abstract_task_configurator& other) = delete;
+    abstract_task_configurator(abstract_task_configurator&& other) = delete;
+
+    abstract_task_configurator& operator=(const abstract_task_configurator& other) = delete;
+    abstract_task_configurator& operator=(abstract_task_configurator&& other) = delete;
 
     virtual std::unique_ptr<abstract_task_container> construct_task_container(std::unique_ptr<abstract_connection_helper> helper) const = 0;
     virtual std::unique_ptr<abstract_connection_helper> construct_connection_helper() const = 0;

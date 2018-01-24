@@ -88,14 +88,9 @@ protected:
     template <size_t index>
     auto get()
     {
-        //const auto& v = *m_input;
-        //auto& queue = std::get<index>(v);
-        //decltype(queue.front()) value;
-        //std::swap(value, queue.front());
-        //auto value = std::move(queue.front());
-        //queue.pop();
-        auto value = std::move(std::get<index>(*m_input).front());
-        std::get<index>(*m_input).pop();
+        auto& queue = std::get<index>(*m_input);
+        auto value = std::move(queue.front());
+        queue.pop();
 
         return value;
     }

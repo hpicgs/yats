@@ -16,8 +16,8 @@ TEST(taskcontainer_test, return_parameters)
 
     lambda_source->output<1>() >> lambda_target->input<1>();
 
-    //yats::scheduler scheduler(pipeline);
-    //scheduler.run();
+    yats::scheduler scheduler(pipeline);
+    scheduler.run();
 
-    //EXPECT_EQ(test_int, 30);
+    EXPECT_EQ(test_int, 30);
 }

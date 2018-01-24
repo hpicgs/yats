@@ -46,7 +46,7 @@ TEST(custom_constructor_test, reference_as_argument)
 
     source->output<0>() >> target->input<0>();
     
-    auto scheduler = yats::scheduler(pipeline);
+    yats::scheduler scheduler(pipeline);
 
     EXPECT_NE(start_value, end_value);
     start_value = 2;

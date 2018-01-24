@@ -18,7 +18,7 @@ public:
 
     Return run(Parameters... parameters)
     {
-        return m_run(parameters...);
+        return m_run(std::move(parameters)...);
     }
 
 protected:

@@ -29,6 +29,7 @@ set(headers
     ${include_path}/lambda_task.h
     ${include_path}/output_connector.h
     ${include_path}/pipeline.h
+    ${include_path}/queue.h
     ${include_path}/scheduler.h
     ${include_path}/slot.h
     ${include_path}/task_configurator.h

@@ -96,13 +96,13 @@ protected:
     }
 
     template <typename SlotType, typename ValueType = typename SlotType::value_type>
-    std::enable_if_t<std::is_copy_constructible<ValueType>::value, ValueType> copy_value(const SlotType& value)
+    static std::enable_if_t<std::is_copy_constructible<ValueType>::value, ValueType> copy_value(const SlotType& value)
     {
         return value.clone();
     }
 
     template <typename SlotType, typename ValueType = typename SlotType::value_type>
-    std::enable_if_t<!std::is_copy_constructible<ValueType>::value, ValueType> copy_value(const SlotType&)
+    static std::enable_if_t<!std::is_copy_constructible<ValueType>::value, ValueType> copy_value(const SlotType&)
     {
         throw std::runtime_error("A not copyable type cannot be used in multiple connections.");
     }

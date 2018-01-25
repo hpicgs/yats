@@ -18,8 +18,9 @@ TEST(queue_test, correct_size)
     queue.push(1);
     EXPECT_EQ(queue.size(), 1);
 
-    queue.extract();
+    auto value = queue.extract();
     EXPECT_EQ(queue.size(), 0);
+    EXPECT_EQ(value, 1);
 }
 
 TEST(queue_test, push_extract_no_copy)
@@ -32,4 +33,5 @@ TEST(queue_test, push_extract_no_copy)
 
     auto unique_ptr = queue.extract();
     EXPECT_EQ(queue.size(), 0);
+    EXPECT_EQ(*unique_ptr, 42);
 }

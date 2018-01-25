@@ -96,26 +96,26 @@ protected:
     }
 
     template <typename SlotType, typename ValueType = typename SlotType::value_type>
-    std::enable_if_t<std::is_copy_constructible<ValueType>::value, ValueType> copy_value(SlotType& value)
+    std::enable_if_t<std::is_copy_constructible<ValueType>::value, ValueType> copy_value(const SlotType& value)
     {
         return value.clone();
     }
 
     template <typename SlotType, typename ValueType = typename SlotType::value_type>
-    std::enable_if_t<!std::is_copy_constructible<ValueType>::value, ValueType> copy_value(SlotType&)
+    std::enable_if_t<!std::is_copy_constructible<ValueType>::value, ValueType> copy_value(const SlotType&)
     {
-        throw std::runtime_error("An not copyable type cannot be used in multiple connections.");
+        throw std::runtime_error("A not copyable type cannot be used in multiple connections.");
     }
 
     template <size_t index = 0, typename T = typename helper::output_type, typename Output = std::enable_if_t<std::is_same<T, void>::value, T>>
     std::enable_if_t<(index < helper::output_count)> write(Output output)
     {
         auto& value = std::get<index>(output);
-        auto following_nodes = std::get<index>(m_output);
-        for (size_t i = 1; i <= following_nodes.size(); ++i)
+        const auto& following_nodes = std::get<index>(m_output);
+        for (size_t i = 0; i < following_nodes.size(); ++i)
         {
-            auto& callback = following_nodes[i - 1];
-            if (i == following_nodes.size())
+            const auto& callback = following_nodes[i];
+            if (i == following_nodes.size() - 1)
             {
                 // Move the last value.
                 callback(value.extract());

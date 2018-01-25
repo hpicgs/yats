@@ -3,7 +3,7 @@
 #include <yats/slot.h>
 #include <yats/task_configurator.h>
 
-TEST(taskconfigurator_test, return_parameters)
+TEST(task_configurator_test, return_parameters)
 {
     struct Task
     {
@@ -19,7 +19,7 @@ TEST(taskconfigurator_test, return_parameters)
     configurator.output<0>();
 }
 
-TEST(taskconfigurator_test, return_one_element_not_in_tuple)
+TEST(task_configurator_test, return_one_element_not_in_tuple)
 {
     struct Task
     {
@@ -35,7 +35,7 @@ TEST(taskconfigurator_test, return_one_element_not_in_tuple)
     configurator.output<71>();
 }
 
-TEST(taskconfigurator_test, multiple_returns_multiple_parameters)
+TEST(task_configurator_test, multiple_returns_multiple_parameters)
 {
     struct Task
     {
@@ -53,7 +53,7 @@ TEST(taskconfigurator_test, multiple_returns_multiple_parameters)
     configurator.output<1>();
 }
 
-TEST(taskconfigurator_test, get_input_output_by_id)
+TEST(task_configurator_test, get_input_output_by_id)
 {
     struct Task
     {
@@ -68,7 +68,7 @@ TEST(taskconfigurator_test, get_input_output_by_id)
     configurator.output<123>();
 }
 
-TEST(taskconfigurator_test, get_input_output_by_name)
+TEST(task_configurator_test, get_input_output_by_name)
 {
     using namespace yats;
     struct Task

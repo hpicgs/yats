@@ -30,11 +30,11 @@ TEST(task_container_test, copy_once)
 
     auto lambda_source = pipeline.add([]() -> yats::slot<constructor_counter, 1> { return constructor_counter(); });
 
-    int copy_counter_1 = -1;
+    int copy_counter_1 = 10;
     auto lambda_target_1 = pipeline.add([&copy_counter_1](yats::slot<constructor_counter, 1> value) mutable { copy_counter_1 = value->copied; });
     lambda_source->output<1>() >> lambda_target_1->input<1>();
 
-    int copy_counter_2 = -1;
+    int copy_counter_2 = 10;
     auto lambda_target_2 = pipeline.add([&copy_counter_2](yats::slot<constructor_counter, 1> value) mutable { copy_counter_2 = value->copied; });
     lambda_source->output<1>() >> lambda_target_2->input<1>();
 

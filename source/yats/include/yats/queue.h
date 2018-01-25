@@ -9,11 +9,9 @@ namespace yats
 template <typename ValueType>
 class queue
 {
-public:
     using lock = std::lock_guard<std::mutex>;
+public:
     using value_type = ValueType;
-
-    queue() = default;
 
     ValueType extract()
     {

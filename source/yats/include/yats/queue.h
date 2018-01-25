@@ -11,6 +11,7 @@ class queue
 {
 public:
     using lock = std::lock_guard<std::mutex>;
+    using value_type = ValueType;
 
     queue() = default;
 

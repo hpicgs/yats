@@ -89,11 +89,7 @@ protected:
     template <size_t index>
     auto get()
     {
-        auto queue = std::get<index>(*m_input);
-        auto value = queue.front();
-        queue.pop();
-
-        return value;
+        return std::get<index>(*m_input).extract();
     }
 
     template <size_t index = 0, typename T = typename helper::output_type, typename Output = std::enable_if_t<std::is_same<T, void>::value, T>>

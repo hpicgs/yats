@@ -21,10 +21,10 @@ public:
         return value;
     }
 
-    void push(ValueType value)
+    void push(ValueType&& value)
     {
         lock guard(m_mutex);
-        m_queue.push(std::move(value));
+        m_queue.push(std::forward<ValueType>(value));
     }
 
     size_t size()

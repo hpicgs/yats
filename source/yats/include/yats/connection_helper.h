@@ -120,7 +120,7 @@ protected:
         using parameter_type = typename std::tuple_element_t<index, typename helper::input_queue>::value_type;
         return [&current = std::get<index>(*queue)](parameter_type input) mutable
         {
-            current.push(input);
+            current.push(std::move(input));
         };
     }
 

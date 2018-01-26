@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <array>
+#include <stdexcept>
 #include <tuple>
 #include <utility>
 #include <vector>
@@ -69,15 +70,13 @@ protected:
     template <size_t... index, typename T = typename helper::output_type>
     std::enable_if_t<is_tuple_v<T>> invoke(std::integer_sequence<size_t, index...>)
     {
-        auto output = m_task.run(get<index>()...);
-        write(output);
+        write(m_task.run(get<index>()...));
     }
 
     template <size_t... index, typename T = typename helper::output_type>
     std::enable_if_t<!std::is_same<T, void>::value && !is_tuple_v<T>> invoke(std::integer_sequence<size_t, index...>)
     {
-        auto output = std::make_tuple(m_task.run(get<index>()...));
-        write(output);
+        write(std::make_tuple(m_task.run(get<index>()...)));
     }
 
     template <size_t... index, typename T = typename helper::output_type>
@@ -89,27 +88,50 @@ protected:
     template <size_t index>
     auto get()
     {
-        auto queue = std::get<index>(*m_input);
-        auto value = queue.front();
+        auto& queue = std::get<index>(*m_input);
+        auto value = std::move(queue.front());
         queue.pop();
 
         return value;
     }
 
+    template <typename SlotType, typename ValueType = typename SlotType::value_type>
+    static std::enable_if_t<std::is_copy_constructible<ValueType>::value, ValueType> copy_value(const SlotType& value)
+    {
+        return value.clone();
+    }
+
+    template <typename SlotType, typename ValueType = typename SlotType::value_type>
+    static std::enable_if_t<!std::is_copy_constructible<ValueType>::value, ValueType> copy_value(const SlotType&)
+    {
+        throw std::runtime_error("A not copyable type cannot be used in multiple connections.");
+    }
+
     template <size_t index = 0, typename T = typename helper::output_type, typename Output = std::enable_if_t<std::is_same<T, void>::value, T>>
-    std::enable_if_t<(index < helper::output_count)> write(Output& output)
+    std::enable_if_t<(index < helper::output_count)> write(Output output)
     {
         auto& value = std::get<index>(output);
-        for (auto& callback : std::get<index>(m_output))
+        const auto& following_nodes = std::get<index>(m_output);
+        for (size_t i = 0; i < following_nodes.size(); ++i)
         {
-            callback(value);
+            const auto& callback = following_nodes[i];
+            if (i == following_nodes.size() - 1)
+            {
+                // Move the last value.
+                callback(value.extract());
+            }
+            else
+            {
+                // Copy everything else.
+                callback(copy_value(value));
+            }
         }
 
-        write<index + 1>(output);
+        write<index + 1>(std::move(output));
     }
 
     template <size_t index, typename T = typename helper::output_type, typename Output = std::enable_if_t<std::is_same<T, void>::value, T>>
-    std::enable_if_t<index == helper::output_count> write(Output&)
+    std::enable_if_t<index == helper::output_count> write(Output)
     {
     }
 

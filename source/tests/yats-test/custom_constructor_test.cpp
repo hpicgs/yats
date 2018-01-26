@@ -3,6 +3,8 @@
 #include <yats/scheduler.h>
 #include <yats/slot.h>
 
+#include <test_util.h>
+
 TEST(custom_constructor_test, reference_as_argument)
 {
     struct Source
@@ -45,7 +47,7 @@ TEST(custom_constructor_test, reference_as_argument)
     auto target = pipeline.add<Target>(std::ref(end_value));
 
     source->output<0>() >> target->input<0>();
-    
+
     yats::scheduler scheduler(pipeline);
 
     EXPECT_NE(start_value, end_value);
@@ -85,26 +87,6 @@ TEST(custom_constructor_test, no_reference_as_argument)
 
     EXPECT_EQ(output_value, 0);
 }
-
-
-struct constructor_counter
-{
-    constructor_counter() = default;
-    constructor_counter(const constructor_counter& rhs)
-    {
-        copied = rhs.copied + 1;
-        moved = rhs.moved;
-    }
-
-    constructor_counter(constructor_counter&& rhs)
-    {
-        copied = rhs.copied;
-        moved = rhs.moved + 1;
-    }
-
-    uint8_t copied = 0;
-    uint8_t moved = 0;
-};
 
 TEST(custom_constructor_test, no_unnecessary_copy)
 {

@@ -63,7 +63,7 @@ public:
     {
         using type = decltype(make_lambda_task(&LambdaTask::operator()));
         constexpr auto index = get_index_by_id_v<Id, typename helper::output_tuple>;
-        std::get<index>(m_listeners).push_back(typename type::function_type(task));
+        std::get<index>(m_listeners).push_back(typename type::function_type(std::move(task)));
     }
 
     std::unique_ptr<abstract_task_container> construct_task_container(std::unique_ptr<abstract_connection_helper> helper) const override

@@ -83,22 +83,3 @@ function(enable_clang_tidy status)
     
     set(CMAKE_EXPORT_COMPILE_COMMANDS On PARENT_SCOPE)
 endfunction()
-
-# Configure cmake target to check for cmake-init template
-function(add_check_template_target current_template_sha)
-    add_custom_target(
-        check-template
-        COMMAND ${CMAKE_COMMAND}
-            -DPROJECT_SOURCE_DIR=${PROJECT_SOURCE_DIR}
-            -DPROJECT_BINARY_DIR=${PROJECT_BINARY_DIR}
-            -DAPPLIED_CMAKE_INIT_SHA=${current_template_sha}
-            -P ${PROJECT_SOURCE_DIR}/cmake/CheckTemplate.cmake
-        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-    )
-    
-    set_target_properties(check-template
-        PROPERTIES
-        FOLDER "Maintenance"
-        EXCLUDE_FROM_DEFAULT_BUILD 1
-    )
-endfunction()

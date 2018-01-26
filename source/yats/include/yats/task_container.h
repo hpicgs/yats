@@ -48,10 +48,11 @@ class task_container : public abstract_task_container
 public:
     using helper = decltype(make_helper(&Task::run));
 
-    task_container(connection_helper<Task>* connection, std::tuple<Parameters...> parameter_tuple)
+    task_container(connection_helper<Task>* connection, std::tuple<Parameters...> parameter_tuple, typename helper::output_callbacks listeners)
         : abstract_task_container(connection->following_nodes())
         , m_input(connection->queue())
         , m_output(connection->callbacks())
+        , m_listeners(std::move(listeners))
         , m_task(make_from_tuple<Task>(std::move(parameter_tuple)))
     {
     }
@@ -107,31 +108,37 @@ protected:
         throw std::runtime_error("A not copyable type cannot be used in multiple connections.");
     }
 
-    template <size_t index = 0, typename T = typename helper::output_type, typename Output = std::enable_if_t<std::is_same<T, void>::value, T>>
-    std::enable_if_t<(index < helper::output_count)> write(Output output)
+    template <size_t Index = 0, typename T = typename helper::output_type>
+    std::enable_if_t<(Index < helper::output_count)> write(T output)
     {
-        auto& value = std::get<index>(output);
-        const auto& following_nodes = std::get<index>(m_output);
-        for (size_t i = 0; i < following_nodes.size(); ++i)
+        auto& slot = std::get<Index>(output);
+
+        // Contains the callbacks which write the value into the following queues.
+        const auto& following_nodes = std::get<Index>(m_output);
+
+        // Copy everything but the last.
+        for (size_t i = 0; i < following_nodes.size() - 1; ++i)
         {
-            const auto& callback = following_nodes[i];
-            if (i == following_nodes.size() - 1)
-            {
-                // Move the last value.
-                callback(value.extract());
-            }
-            else
-            {
-                // Copy everything else.
-                callback(copy_value(value));
-            }
+            following_nodes[i](copy_value(slot));
         }
 
-        write<index + 1>(std::move(output));
+        // Move the last value.
+        const auto& callback = following_nodes.back();
+        if (std::get<Index>(m_listeners).size() == 0)
+        {
+            callback(slot.extract());
+        }
+        else
+        {
+            callback(copy_value(slot));
+            notify_listeners<Index>(std::move(slot));
+        }
+
+        write<Index + 1>(std::move(output));
     }
 
-    template <size_t index, typename T = typename helper::output_type, typename Output = std::enable_if_t<std::is_same<T, void>::value, T>>
-    std::enable_if_t<index == helper::output_count> write(Output)
+    template <size_t index, typename T = typename helper::output_type>
+    std::enable_if_t<index == helper::output_count> write(T)
     {
     }
 
@@ -148,8 +155,20 @@ protected:
         return std::get<Index>(*m_input).size() > 0;
     }
 
+    template <size_t Index>
+    void notify_listeners(std::tuple_element_t<Index, typename helper::output_tuple> slot) const
+    {
+        const auto& listeners = std::get<Index>(m_listeners);
+        for (size_t i = 0; i < listeners.size() - 1; ++i)
+        {
+            listeners[i](copy_value(slot));
+        }
+        listeners.back()(slot.extract());
+    }
+
     typename helper::input_queue_ptr m_input;
     typename helper::output_callbacks m_output;
+    typename helper::output_callbacks m_listeners;
     Task m_task;
 };
 }

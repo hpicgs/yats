@@ -57,9 +57,16 @@ public:
         return find<typename helper::output_tuple, std::tuple_element_t<index, type>>(m_outputs, Id);
     }
 
+    template <uint64_t Id>
+    void add_listener(const std::function<void(std::tuple_element_t<get_index_by_id_v<Id, typename helper::output_tuple>, typename helper::output_tuple>)>& listener)
+    {
+        constexpr auto index = get_index_by_id_v<Id, typename helper::output_tuple>;
+        std::get<index>(m_listeners).push_back(listener);
+    }
+
     std::unique_ptr<abstract_task_container> construct_task_container(std::unique_ptr<abstract_connection_helper> helper) const override
     {
-        return std::make_unique<task_container<Task, std::remove_reference_t<Parameters>...>>(static_cast<connection_helper<Task>*>(helper.get()), m_construction_parameters);
+        return std::make_unique<task_container<Task, std::remove_reference_t<Parameters>...>>(static_cast<connection_helper<Task>*>(helper.get()), m_construction_parameters, m_listeners);
     }
 
     std::unique_ptr<abstract_connection_helper> construct_connection_helper() const override
@@ -98,6 +105,7 @@ protected:
 
     typename helper::input_connectors m_inputs;
     typename helper::output_connectors m_outputs;
+    typename helper::output_callbacks m_listeners;
     const std::tuple<std::remove_reference_t<Parameters>...> m_construction_parameters;
 };
 }

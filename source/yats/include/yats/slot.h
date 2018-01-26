@@ -22,7 +22,7 @@ public:
     /// <summary>Creates a new slot object.</summary>
     /// <param name = "value">Initial value of slot</param>
     slot(value_type value)
-        : m_value{ value }
+        : m_value{ std::move(value) }
     {
     }
 
@@ -51,6 +51,17 @@ public:
     std::enable_if_t<!std::is_pointer<Type>::value, Type*> operator->()
     {
         return &m_value;
+    }
+
+    template <typename Type = T>
+    std::enable_if_t<std::is_copy_constructible<Type>::value, Type> clone() const
+    {
+        return m_value;
+    }
+
+    T extract()
+    {
+        return std::move(m_value);
     }
 
 protected:

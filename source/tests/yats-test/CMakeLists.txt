@@ -27,11 +27,15 @@ set(sources
     queue_test.cpp
     scheduler_test.cpp
     slot_test.cpp
-    taskconfigurator_test.cpp
+    task_configurator_test.cpp
+    task_container_test.cpp
     util_test.cpp
     yats_test.cpp
 )
 
+set(includes
+    test_util.h
+)
 
 # 
 # Create executable
@@ -40,6 +44,7 @@ set(sources
 # Build executable
 add_executable(${target}
     ${sources}
+    ${includes}
 )
 
 
@@ -59,6 +64,8 @@ set_target_properties(${target}
 # 
 
 target_include_directories(${target}
+    PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}
     PRIVATE
     ${DEFAULT_INCLUDE_DIRECTORIES}
     ${PROJECT_BINARY_DIR}/source/include

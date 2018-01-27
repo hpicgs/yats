@@ -7,7 +7,7 @@ namespace yats
 {
 
 template <typename ValueType>
-class queue
+class thread_safe_queue
 {
     using lock = std::lock_guard<std::mutex>;
 public:

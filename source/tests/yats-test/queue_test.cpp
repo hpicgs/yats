@@ -2,17 +2,11 @@
 
 #include <memory>
 
-#include <yats/queue.h>
-
-TEST(queue_test, construct_nothrow)
-{
-    EXPECT_NO_THROW(yats::queue<int>());
-    EXPECT_NO_THROW(yats::queue<std::unique_ptr<int>>());
-}
+#include <yats/thread_safe_queue.h>
 
 TEST(queue_test, correct_size)
 {
-    yats::queue<int> queue;
+    yats::thread_safe_queue<int> queue;
     EXPECT_EQ(queue.size(), 0);
 
     queue.push(1);
@@ -25,7 +19,7 @@ TEST(queue_test, correct_size)
 
 TEST(queue_test, push_extract_no_copy)
 {
-    yats::queue<std::unique_ptr<int>> queue;
+    yats::thread_safe_queue<std::unique_ptr<int>> queue;
     EXPECT_EQ(queue.size(), 0);
 
     queue.push(std::make_unique<int>(42));

@@ -1,12 +1,5 @@
 
 # 
-# External dependencies
-# 
-
-# find_package(THIRDPARTY REQUIRED)
-
-
-# 
 # Library name and options
 # 
 

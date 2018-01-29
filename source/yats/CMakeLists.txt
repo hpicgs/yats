@@ -27,6 +27,7 @@ set(headers
     ${include_path}/task_configurator.h
     ${include_path}/task_container.h
     ${include_path}/task_helper.h
+    ${include_path}/thread_safe_queue.h
     ${include_path}/util.h
 )
 

@@ -2,8 +2,9 @@
 
 #include <functional>
 #include <memory>
-#include <queue>
 #include <vector>
+
+#include <yats/thread_safe_queue.h>
 
 namespace yats
 {
@@ -57,7 +58,7 @@ template <typename Return, typename... ParameterTypes>
 struct task_helper
 {
     template <typename CompoundType>
-    static std::queue<typename CompoundType::value_type> transform_queue();
+    static thread_safe_queue<typename CompoundType::value_type> transform_queue();
 
     template <typename CompoundType>
     static std::function<void(typename CompoundType::value_type)> transform_callback();

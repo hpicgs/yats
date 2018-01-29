@@ -88,11 +88,7 @@ protected:
     template <size_t index>
     auto get()
     {
-        auto& queue = std::get<index>(*m_input);
-        auto value = std::move(queue.front());
-        queue.pop();
-
-        return value;
+        return std::get<index>(*m_input).extract();
     }
 
     template <typename SlotType, typename ValueType = typename SlotType::value_type>

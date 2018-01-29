@@ -103,15 +103,15 @@ protected:
         throw std::runtime_error("A not copyable type cannot be used in multiple connections.");
     }
 
-    template <size_t Index = 0, typename T = typename helper::output_type>
-    std::enable_if_t<(Index < helper::output_count)> write(T output)
+    template <size_t Index = 0, typename Output = typename helper::output_type>
+    std::enable_if_t<(Index < helper::output_count)> write(Output output)
     {
         // Contains the callbacks to write into inputs of the following tasks.
         const auto& callbacks = std::get<Index>(m_output);
         auto& slot = std::get<Index>(output);
 
         // cend() - 1 and back() will fail for empty callbacks
-        if (callbacks.size() > 0)
+        if (!callbacks.empty())
         {
             // Copy the value before we move it the last time we need it.
             for (auto it = callbacks.cbegin(); it != callbacks.cend() - 1; ++it)
@@ -124,8 +124,8 @@ protected:
         write<Index + 1>(std::move(output));
     }
 
-    template <size_t index, typename T = typename helper::output_type>
-    std::enable_if_t<index == helper::output_count> write(T)
+    template <size_t index, typename Output = typename helper::output_type>
+    std::enable_if_t<index == helper::output_count> write(Output)
     {
     }
 

@@ -58,12 +58,12 @@ public:
         return find<typename helper::output_tuple, std::tuple_element_t<index, type>>(m_outputs, Id);
     }
 
-    template <uint64_t Id, typename LambdaTask>
-    void add_listener(LambdaTask task)
+    template <uint64_t Id, typename Callable>
+    void add_listener(Callable callable)
     {
-        using type = decltype(make_lambda_task(&LambdaTask::operator()));
+        using type = decltype(make_lambda_task(&Callable::operator()));
         constexpr auto index = get_index_by_id_v<Id, typename helper::output_tuple>;
-        std::get<index>(m_listeners).push_back(typename type::function_type(std::move(task)));
+        std::get<index>(m_listeners).push_back(typename type::function_type(std::move(callable)));
     }
 
     std::unique_ptr<abstract_task_container> construct_task_container(std::unique_ptr<abstract_connection_helper> helper) const override

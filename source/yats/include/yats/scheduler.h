@@ -1,9 +1,11 @@
 #pragma once
 
 #include <algorithm>
-#include <string>
-#include <vector>
 #include <iostream>
+#include <mutex>
+#include <string>
+#include <thread>
+#include <vector>
 
 #include <yats/pipeline.h>
 #include <yats/task_configurator.h>
@@ -35,20 +37,54 @@ public:
             to_run.push_back(elem.get());
         }
 
-        while (to_run.size() > 0)
+        std::function<void()> check_runnable;
+
+        check_runnable = [&to_run, &check_runnable, this]() {
+            std::lock_guard<std::mutex> lock(m_mutex);
+
+            while (true)
+            {
+                auto runnable = std::find_if(to_run.begin(), to_run.end(), [](abstract_task_container* task) {
+                    return task->can_run();
+                });
+
+                if (runnable == to_run.end())
+                {
+                    return;
+                }
+                auto task = *runnable;
+                to_run.erase(runnable);
+
+                m_threads.emplace_back([&to_run, &check_runnable, task]() {
+                    task->run();
+                    check_runnable();
+                });
+            }
+        };
+
+        check_runnable();
+        while (true)
         {
-            auto runnable = std::find_if(to_run.begin(), to_run.end(), [](abstract_task_container* task) {
-                return task->can_run();
-            });
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            {
+                std::lock_guard<std::mutex> lock(m_mutex);
+                if (to_run.empty())
+                {
+                    break;
+                }
+            }
+        }
 
-            (*runnable)->run();
-
-            to_run.erase(runnable);
+        for (auto& thread : m_threads)
+        {
+            thread.join();
         }
     }
 
 protected:
     // Stores all task_containers with their position as an implicit id
     std::vector<std::unique_ptr<abstract_task_container>> m_tasks;
+    std::vector<std::thread> m_threads;
+    std::mutex m_mutex;
 };
 }

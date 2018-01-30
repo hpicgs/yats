@@ -36,3 +36,4 @@ set_target_properties(compilation_test PROPERTIES FOLDER "Tests/Compilation")
 
 add_compilation_test(demo)
 add_compilation_test(type_safe_connection)
+add_compilation_test(slot_move_constructible)

@@ -54,6 +54,11 @@ public:
         , m_output(connection->callbacks())
         , m_task(make_from_tuple<Task>(std::move(parameter_tuple)))
     {
+        auto copyable = check_copyable(std::make_index_sequence<helper::output_count>());
+        if (!copyable)
+        {
+            throw std::runtime_error("A not copyable type cannot be used in multiple connections.");
+        }
     }
 
     void run() override
@@ -100,7 +105,7 @@ protected:
     template <typename SlotType, typename ValueType = typename SlotType::value_type>
     static std::enable_if_t<!std::is_copy_constructible<ValueType>::value, ValueType> copy_value(const SlotType&)
     {
-        throw std::runtime_error("A not copyable type cannot be used in multiple connections.");
+        throw std::runtime_error("If this gets thrown, the library is broken.");
     }
 
     template <size_t Index = 0, typename Output = typename helper::output_type>
@@ -140,6 +145,19 @@ protected:
     bool check_input() const
     {
         return std::get<Index>(*m_input).size() > 0;
+    }
+
+    template <size_t... Index>
+    bool check_copyable(std::integer_sequence<size_t, Index...>) const
+    {
+        std::array<bool, sizeof...(Index)> copyable{ { check_copyable_impl<Index>()... } };
+        return std::all_of(copyable.cbegin(), copyable.cend(), [](bool input) { return input; });
+    }
+
+    template <size_t Index>
+    bool check_copyable_impl() const
+    {
+        return std::is_copy_constructible_v<std::tuple_element_t<Index, typename helper::output_tuple>> || std::get<Index>(m_output).size() < 2;
     }
 
     typename helper::input_queue_ptr m_input;

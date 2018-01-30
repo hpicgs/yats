@@ -1,5 +1,9 @@
 #pragma once
 
+#include <cstdint>
+#include <tuple>
+#include <type_traits>
+
 namespace yats
 {
 
@@ -18,6 +22,8 @@ class slot
 public:
     using value_type = T;
     static constexpr uint64_t id = Id;
+
+    static_assert(std::is_move_constructible_v<value_type>, "The slots value type must be move constructible.");
 
     /// <summary>Creates a new slot object.</summary>
     /// <param name = "value">Initial value of slot</param>

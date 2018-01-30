@@ -157,7 +157,7 @@ protected:
     template <size_t Index>
     bool check_copyable_impl() const
     {
-        return std::is_copy_constructible_v<std::tuple_element_t<Index, typename helper::output_tuple>> || std::get<Index>(m_output).size() < 2;
+        return std::is_copy_constructible<std::tuple_element_t<Index, typename helper::output_tuple>>::value || std::get<Index>(m_output).size() < 2;
     }
 
     typename helper::input_queue_ptr m_input;

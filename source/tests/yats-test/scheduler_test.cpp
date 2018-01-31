@@ -28,3 +28,14 @@ TEST(scheduler_test, multithreaded_timing_test)
     EXPECT_GE(duration, 100);
     EXPECT_LE(duration, 500);
 }
+
+TEST(scheduler_test, throw_on_creation)
+{
+    yats::pipeline pipeline;
+
+    auto source = pipeline.add([]() -> yats::slot<std::unique_ptr<int>, 0> { return std::make_unique<int>(0); });
+    source->add_listener<0>([](std::unique_ptr<int>) {});
+    source->add_listener<0>([](std::unique_ptr<int>) {});
+
+    EXPECT_THROW(yats::scheduler scheduler(pipeline), std::runtime_error);
+}

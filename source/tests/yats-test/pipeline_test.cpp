@@ -81,3 +81,38 @@ TEST(pipeline_test, add_multiple_listener)
     EXPECT_EQ(output1, 30);
     EXPECT_EQ(output2, 30);
 }
+
+TEST(pipeline_test, add_initial_input)
+{
+    yats::pipeline pipeline;
+
+    int value_after_add = 0;
+    int value_after_subtract = 0;
+
+    auto add = pipeline.add([&value_after_add](yats::slot<int, 0> value) -> yats::slot<int, 0>
+    {
+        value_after_add = value + 10;
+        return value_after_add;
+    });
+    auto subtract = pipeline.add([&value_after_subtract](yats::slot<int, 0> value) -> yats::slot<int, 0>
+    {
+        value_after_subtract = value - 20;
+        return value_after_subtract;
+    });
+
+    add->output<0>() >> subtract->input<0>();
+    subtract->output<0>() >> add->input<0>();
+
+    add->add_input_value<0>(10);
+
+    yats::scheduler scheduler(pipeline);
+    scheduler.run();
+
+    EXPECT_EQ(value_after_add, 20);
+    EXPECT_EQ(value_after_subtract, 0);
+
+    scheduler.run();
+
+    EXPECT_EQ(value_after_add, 10);
+    EXPECT_EQ(value_after_subtract, -10);
+}

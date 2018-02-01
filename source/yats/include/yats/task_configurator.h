@@ -58,6 +58,12 @@ public:
         return find<typename helper::output_tuple, std::tuple_element_t<index, type>>(m_outputs, Id);
     }
 
+    template <uint64_t Id, size_t Index = yats::get_index_by_id_v<Id, typename helper::input_tuple>, typename ValueType = std::tuple_element_t<Index, typename helper::input_tuple>>
+    std::enable_if_t<std::is_copy_constructible<ValueType>::value> add_input_value(ValueType value)
+    {
+        std::get<Index>(m_initial_inputs).push_back(std::move(value));
+    }
+
     template <uint64_t Id, typename Callable>
     void add_listener(Callable callable)
     {
@@ -73,7 +79,7 @@ public:
 
     std::unique_ptr<abstract_connection_helper> construct_connection_helper() const override
     {
-        return std::make_unique<connection_helper<Task>>(m_inputs, m_outputs, m_listeners);
+        return std::make_unique<connection_helper<Task>>(m_inputs, m_outputs, m_initial_inputs, m_listeners);
     }
 
 protected:
@@ -105,6 +111,7 @@ protected:
         return nullptr;
     }
 
+    typename helper::input_vector m_initial_inputs;
     typename helper::input_connectors m_inputs;
     typename helper::output_connectors m_outputs;
     typename helper::output_callbacks m_listeners;

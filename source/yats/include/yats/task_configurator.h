@@ -3,9 +3,9 @@
 #include <map>
 #include <memory>
 
+#include <yats/identifier.h>
 #include <yats/lambda_task.h>
 #include <yats/task_container.h>
-#include <yats/identifier.h>
 #include <yats/util.h>
 
 namespace yats
@@ -16,7 +16,7 @@ class abstract_task_configurator
 {
 public:
     abstract_task_configurator() = default;
-    
+
     virtual ~abstract_task_configurator() = default;
 
     abstract_task_configurator(const abstract_task_configurator& other) = delete;
@@ -41,7 +41,7 @@ public:
         : m_construction_parameters(std::forward<Parameters>(parameters)...)
     {
     }
-    
+
     template <uint64_t Id>
     auto& input()
     {

@@ -10,6 +10,7 @@ template <typename ValueType>
 class thread_safe_queue
 {
     using lock = std::lock_guard<std::mutex>;
+
 public:
     using value_type = ValueType;
 

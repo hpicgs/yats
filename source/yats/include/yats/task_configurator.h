@@ -3,9 +3,9 @@
 #include <map>
 #include <memory>
 
+#include <yats/identifier.h>
 #include <yats/lambda_task.h>
 #include <yats/task_container.h>
-#include <yats/identifier.h>
 #include <yats/util.h>
 
 namespace yats
@@ -16,7 +16,7 @@ class abstract_task_configurator
 {
 public:
     abstract_task_configurator() = default;
-    
+
     virtual ~abstract_task_configurator() = default;
 
     abstract_task_configurator(const abstract_task_configurator& other) = delete;
@@ -41,7 +41,7 @@ public:
         : m_construction_parameters(std::forward<Parameters>(parameters)...)
     {
     }
-    
+
     template <uint64_t Id>
     auto& input()
     {
@@ -56,6 +56,12 @@ public:
         constexpr auto index = get_index_by_id_v<Id, typename helper::output_tuple>;
         using type = typename helper::output_connectors;
         return find<typename helper::output_tuple, std::tuple_element_t<index, type>>(m_outputs, Id);
+    }
+
+    template <uint64_t Id, size_t Index = yats::get_index_by_id_v<Id, typename helper::input_tuple>, typename ValueType = std::tuple_element_t<Index, typename helper::input_tuple>>
+    std::enable_if_t<std::is_copy_constructible<ValueType>::value> add_input_value(ValueType value)
+    {
+        std::get<Index>(m_initial_inputs).push_back(std::move(value));
     }
 
     template <uint64_t Id, typename Callable>
@@ -73,7 +79,7 @@ public:
 
     std::unique_ptr<abstract_connection_helper> construct_connection_helper() const override
     {
-        return std::make_unique<connection_helper<Task>>(m_inputs, m_outputs, m_listeners);
+        return std::make_unique<connection_helper<Task>>(m_inputs, m_outputs, m_initial_inputs, m_listeners);
     }
 
 protected:
@@ -105,6 +111,7 @@ protected:
         return nullptr;
     }
 
+    typename helper::input_vector m_initial_inputs;
     typename helper::input_connectors m_inputs;
     typename helper::output_connectors m_outputs;
     typename helper::output_callbacks m_listeners;

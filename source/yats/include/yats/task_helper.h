@@ -61,6 +61,9 @@ struct task_helper
     static thread_safe_queue<typename CompoundType::value_type> transform_queue();
 
     template <typename CompoundType>
+    static std::vector<typename CompoundType::value_type> transform_vector();
+
+    template <typename CompoundType>
     static std::function<void(typename CompoundType::value_type)> transform_callback();
 
     template <typename CompoundType>
@@ -68,6 +71,8 @@ struct task_helper
 
     using input_queue = std::tuple<decltype(transform_queue<ParameterTypes>())...>;
     using input_queue_ptr = std::unique_ptr<input_queue>;
+
+    using input_vector = std::tuple<decltype(transform_vector<ParameterTypes>())...>;
 
     using output_type = Return;
 

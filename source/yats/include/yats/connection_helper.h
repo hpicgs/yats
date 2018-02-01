@@ -71,12 +71,13 @@ public:
     using input_sequence = std::make_index_sequence<std::tuple_size<typename helper::input_connectors>::value>;
     using output_sequence = std::make_index_sequence<std::tuple_size<typename helper::output_connectors>::value>;
 
-    connection_helper(const typename helper::input_connectors& inputs, const typename helper::output_connectors& outputs, const typename helper::output_callbacks& listeners)
+    connection_helper(const typename helper::input_connectors& inputs, const typename helper::output_connectors& outputs, const typename helper::input_vector& initial_inputs, const typename helper::output_callbacks& listeners)
         : abstract_connection_helper(map<abstract_input_connector>(inputs, input_sequence()), map<abstract_output_connector>(outputs, output_sequence()))
         , m_input(std::make_unique<typename helper::input_queue>())
         , m_output(listeners)
         , m_callbacks(generate_callbacks(m_input, std::make_index_sequence<helper::input_count>()))
     {
+        fill_input(initial_inputs);
     }
 
     void bind(const abstract_output_connector* connector, void* callback) override
@@ -119,7 +120,8 @@ protected:
     static typename std::tuple_element_t<index, typename helper::input_callbacks> generate_callback(typename helper::input_queue_ptr& queue)
     {
         using parameter_type = typename std::tuple_element_t<index, typename helper::input_queue>::value_type;
-        return [&current = std::get<index>(*queue)](parameter_type input) mutable {
+        return [&current = std::get<index>(*queue)](parameter_type input) mutable
+        {
             current.push(std::move(input));
         };
     }
@@ -162,6 +164,34 @@ protected:
     std::enable_if_t<index == helper::input_count, void*> get(size_t)
     {
         throw std::runtime_error("Input Parameter locationId not found.");
+    }
+
+    template <size_t Index = 0>
+    std::enable_if_t<(Index < helper::input_count)> fill_input(const typename helper::input_vector& initial_inputs)
+    {
+        for (const auto& input : std::get<Index>(initial_inputs))
+        {
+            copy_single_input<Index>(input);
+        }
+        fill_input<Index + 1>(initial_inputs);
+    }
+
+    template <size_t Index = 0>
+    std::enable_if_t<Index == helper::input_count> fill_input(const typename helper::input_vector&)
+    {
+    }
+
+    template <size_t Index, typename T>
+    auto copy_single_input(const T& value) -> std::enable_if_t<std::is_copy_constructible<T>::value>
+    {
+        std::get<Index>(*m_input).push(value);
+    }
+
+    template <size_t Index, typename T>
+    std::enable_if_t<!std::is_copy_constructible<T>::value> copy_single_input(const T&)
+    {
+        // This function won't ever be called but we have to implement it so the library compiles successfully.
+        throw std::runtime_error("If this gets thrown SFINAE failed us hard.");
     }
 
     typename helper::input_queue_ptr m_input;

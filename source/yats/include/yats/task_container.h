@@ -45,10 +45,13 @@ protected:
 template <typename Task, typename... Parameters>
 class task_container : public abstract_task_container
 {
-public:
     using helper = decltype(make_helper(&Task::run));
     using input_queue_ptr = typename helper::input_queue_ptr;
+    using output_callbacks = typename helper::output_callbacks;
+    using output_tuple = typename helper::output_tuple;
+    using output_type = typename helper::output_type;
 
+public:
     task_container(connection_helper<Task>* connection, std::tuple<Parameters...> parameter_tuple)
         : abstract_task_container(connection->following_nodes())
         , m_input(connection->queue())
@@ -73,19 +76,19 @@ public:
     }
 
 protected:
-    template <size_t... index, typename T = typename helper::output_type>
+    template <size_t... index, typename T = output_type>
     std::enable_if_t<is_tuple_v<T>> invoke(std::integer_sequence<size_t, index...>)
     {
         write(m_task.run(get<index>()...));
     }
 
-    template <size_t... index, typename T = typename helper::output_type>
+    template <size_t... index, typename T = output_type>
     std::enable_if_t<!std::is_same<T, void>::value && !is_tuple_v<T>> invoke(std::integer_sequence<size_t, index...>)
     {
         write(std::make_tuple(m_task.run(get<index>()...)));
     }
 
-    template <size_t... index, typename T = typename helper::output_type>
+    template <size_t... index, typename T = output_type>
     std::enable_if_t<std::is_same<T, void>::value> invoke(std::integer_sequence<size_t, index...>)
     {
         m_task.run(get<index>()...);
@@ -109,7 +112,7 @@ protected:
         throw std::runtime_error("If this gets thrown, the library is broken.");
     }
 
-    template <size_t Index = 0, typename Output = typename helper::output_type>
+    template <size_t Index = 0, typename Output = output_type>
     std::enable_if_t<(Index < helper::output_count)> write(Output output)
     {
         // Contains the callbacks to write into inputs of the following tasks.
@@ -130,7 +133,7 @@ protected:
         write<Index + 1>(std::move(output));
     }
 
-    template <size_t index, typename Output = typename helper::output_type>
+    template <size_t index, typename Output = output_type>
     std::enable_if_t<index == helper::output_count> write(Output)
     {
     }
@@ -158,11 +161,11 @@ protected:
     template <size_t Index>
     bool check_copyable_impl() const
     {
-        return std::is_copy_constructible<std::tuple_element_t<Index, typename helper::output_tuple>>::value || std::get<Index>(m_output).size() < 2;
+        return std::is_copy_constructible<std::tuple_element_t<Index, output_tuple>>::value || std::get<Index>(m_output).size() < 2;
     }
 
     input_queue_ptr m_input;
-    typename helper::output_callbacks m_output;
+    output_callbacks m_output;
     Task m_task;
 };
 }

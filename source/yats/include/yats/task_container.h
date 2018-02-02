@@ -72,10 +72,10 @@ public:
     }
 
 protected:
-    template <size_t... index, typename T = typename helper::output_type>
-    std::enable_if_t<is_tuple_v<T>> invoke(std::integer_sequence<size_t, index...>)
+    template <size_t... Index, typename T = typename helper::output_type>
+    std::enable_if_t<is_tuple_v<T>> invoke(std::integer_sequence<size_t, Index...>)
     {
-        write(m_task.run(get<index>()...));
+        write(m_task.run(get<Index>()...));
     }
 
     template <size_t... index, typename T = typename helper::output_type>
@@ -84,19 +84,20 @@ protected:
         write(std::make_tuple(m_task.run(get<index>()...)));
     }
 
-    template <size_t... index, typename T = typename helper::output_type>
-    std::enable_if_t<std::is_same<T, void>::value> invoke(std::integer_sequence<size_t, index...>)
+    template <size_t... Index, typename T = typename helper::output_type>
+    std::enable_if_t<std::is_same<T, void>::value> invoke(std::integer_sequence<size_t, Index...>)
     {
-        m_task.run(get<index>()...);
+        m_task.run(get<Index>()...);
     }
 
-    /*
+    /**
      * Extracts (removes) first value from input queue and returns it.
+     * @param <Index> Index of the input to use.
      */
-    template <size_t index>
+    template <size_t Index>
     auto get()
     {
-        return std::get<index>(*m_input).extract();
+        return std::get<Index>(*m_input).extract();
     }
 
     template <typename SlotType, typename ValueType = typename SlotType::value_type>
@@ -111,8 +112,9 @@ protected:
         throw std::runtime_error("If this gets thrown, the library is broken.");
     }
 
-    /*
+    /**
      * Writes value of output into the inputs of the following tasks
+     * @param output The output used to pass values to following inputs.
      */
     template <size_t Index = 0, typename Output = typename helper::output_type>
     std::enable_if_t<(Index < helper::output_count)> write(Output output)
@@ -135,8 +137,8 @@ protected:
         write<Index + 1>(std::move(output));
     }
 
-    template <size_t index, typename Output = typename helper::output_type>
-    std::enable_if_t<index == helper::output_count> write(Output)
+    template <size_t Index, typename Output = typename helper::output_type>
+    std::enable_if_t<Index == helper::output_count> write(Output)
     {
     }
 

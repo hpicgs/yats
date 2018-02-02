@@ -23,13 +23,12 @@ set(headers
     ${include_path}/output_connector.h
     ${include_path}/pipeline.h
     ${include_path}/scheduler.h
-    ${include_path}/scheduler_adv.h
     ${include_path}/slot.h
     ${include_path}/task_configurator.h
     ${include_path}/task_container.h
     ${include_path}/task_helper.h
     ${include_path}/thread_safe_queue.h
-	${include_path}/thread_pool.h
+    ${include_path}/thread_pool.h
     ${include_path}/util.h
 )
 

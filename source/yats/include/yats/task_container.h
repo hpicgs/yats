@@ -66,6 +66,9 @@ public:
         invoke(std::make_index_sequence<helper::input_count>());
     }
 
+    /**
+     * Prüft, ob alle Inputs anliegen.
+     */
     bool can_run() const override
     {
         return can_run_impl(std::make_index_sequence<helper::input_count>());

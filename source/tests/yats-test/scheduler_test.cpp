@@ -14,7 +14,30 @@ TEST(scheduler_test, multithreaded_timing_test)
 {
     yats::pipeline pipeline;
 
-    auto function = []() { std::this_thread::sleep_for(std::chrono::milliseconds(200)); };
+    auto function = []()
+    {
+        std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    };
+
+    pipeline.add(function);
+    pipeline.add(function);
+    pipeline.add(function);
+    pipeline.add(function);
+    pipeline.add(function);
+    pipeline.add(function);
+    pipeline.add(function);
+    pipeline.add(function);
+    pipeline.add(function);
+    pipeline.add(function);
+    pipeline.add(function);
+    pipeline.add(function);
+    pipeline.add(function);
+    pipeline.add(function);
+    pipeline.add(function);
+    pipeline.add(function);
+    pipeline.add(function);
+    pipeline.add(function);
+    pipeline.add(function);
     pipeline.add(function);
     pipeline.add(function);
     pipeline.add(function);
@@ -25,6 +48,9 @@ TEST(scheduler_test, multithreaded_timing_test)
     auto end = std::chrono::high_resolution_clock::now();
 
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+
+    std::cout << "Dauer: " << duration << std::endl;
+
     EXPECT_GE(duration, 100);
     EXPECT_LE(duration, 500);
 }

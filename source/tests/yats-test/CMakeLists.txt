@@ -25,6 +25,7 @@ set(sources
     main.cpp
     pipeline_test.cpp
     queue_test.cpp
+    scheduler_adv_test.cpp
     scheduler_test.cpp
     slot_test.cpp
     task_configurator_test.cpp

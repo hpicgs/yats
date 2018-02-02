@@ -86,12 +86,4 @@ struct task_helper
 
 template <typename ReturnType, typename TaskType, typename... ParameterTypes>
 static constexpr task_helper<ReturnType, ParameterTypes...> make_helper(ReturnType (TaskType::*)(ParameterTypes...));
-
-template <typename Task>
-struct new_task_helper
-{
-	using base = decltype(make_helper(&Task::run));
-	using input_queue_p = typename base::input_queue_ptr;
-};
-
 }

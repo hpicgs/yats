@@ -43,10 +43,11 @@ protected:
 };
 
 template <typename Task, typename... Parameters>
-class task_container : public abstract_task_container, public new_task_helper<Task>
+class task_container : public abstract_task_container
 {
 public:
     using helper = decltype(make_helper(&Task::run));
+    using input_queue_ptr = typename helper::input_queue_ptr;
 
     task_container(connection_helper<Task>* connection, std::tuple<Parameters...> parameter_tuple)
         : abstract_task_container(connection->following_nodes())
@@ -160,7 +161,7 @@ protected:
         return std::is_copy_constructible<std::tuple_element_t<Index, typename helper::output_tuple>>::value || std::get<Index>(m_output).size() < 2;
     }
 
-    input_queue_p m_input;
+    input_queue_ptr m_input;
     typename helper::output_callbacks m_output;
     Task m_task;
 };

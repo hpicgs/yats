@@ -90,6 +90,9 @@ protected:
         m_task.run(get<index>()...);
     }
 
+    /*
+     * Extracts (removes) first value from input queue and returns it.
+     */
     template <size_t index>
     auto get()
     {
@@ -108,6 +111,9 @@ protected:
         throw std::runtime_error("If this gets thrown, the library is broken.");
     }
 
+    /*
+     * Writes value of output into the inputs of the following tasks
+     */
     template <size_t Index = 0, typename Output = typename helper::output_type>
     std::enable_if_t<(Index < helper::output_count)> write(Output output)
     {

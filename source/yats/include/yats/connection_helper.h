@@ -2,10 +2,11 @@
 
 #include <map>
 #include <memory>
+#include <set>
 
 #include <yats/input_connector.h>
 #include <yats/output_connector.h>
-#include <yats/task_container.h>
+#include <yats/task_helper.h>
 
 namespace yats
 {
@@ -24,6 +25,12 @@ public:
 
     virtual ~abstract_connection_helper() = default;
 
+    abstract_connection_helper(const abstract_connection_helper& other) = delete;
+    abstract_connection_helper(abstract_connection_helper&& other) = delete;
+
+    abstract_connection_helper& operator=(const abstract_connection_helper& other) = delete;
+    abstract_connection_helper& operator=(abstract_connection_helper&& other) = delete;
+
     virtual void bind(const abstract_output_connector* connector, void* callback) = 0;
     virtual void* target(const abstract_input_connector* connector) = 0;
 
@@ -37,6 +44,11 @@ public:
         return m_out;
     }
 
+    void add_following(size_t following_node)
+    {
+        m_following.insert(following_node);
+    }
+
 protected:
     template <typename LocationType, typename SequenceType, size_t... index>
     static locations<LocationType> map(const SequenceType& outputs, std::index_sequence<index...>)
@@ -46,6 +58,7 @@ protected:
         return { std::make_pair(&std::get<index>(outputs), index)... };
     }
 
+    std::set<size_t> m_following;
     const locations<abstract_input_connector> m_in;
     const locations<abstract_output_connector> m_out;
 };
@@ -58,9 +71,10 @@ public:
     using input_sequence = std::make_index_sequence<std::tuple_size<typename helper::input_connectors>::value>;
     using output_sequence = std::make_index_sequence<std::tuple_size<typename helper::output_connectors>::value>;
 
-    connection_helper(const typename helper::input_connectors& inputs, const typename helper::output_connectors& outputs)
+    connection_helper(const typename helper::input_connectors& inputs, const typename helper::output_connectors& outputs, const typename helper::output_callbacks& listeners)
         : abstract_connection_helper(map<abstract_input_connector>(inputs, input_sequence()), map<abstract_output_connector>(outputs, output_sequence()))
         , m_input(std::make_unique<typename helper::input_queue>())
+        , m_output(listeners)
         , m_callbacks(generate_callbacks(m_input, std::make_index_sequence<helper::input_count>()))
     {
     }
@@ -87,6 +101,11 @@ public:
         return std::move(m_output);
     }
 
+    std::set<size_t> following_nodes()
+    {
+        return std::move(m_following);
+    }
+
 protected:
     template <size_t... index>
     static typename helper::input_callbacks generate_callbacks(typename helper::input_queue_ptr& queue, std::integer_sequence<size_t, index...>)
@@ -100,9 +119,8 @@ protected:
     static typename std::tuple_element_t<index, typename helper::input_callbacks> generate_callback(typename helper::input_queue_ptr& queue)
     {
         using parameter_type = typename std::tuple_element_t<index, typename helper::input_queue>::value_type;
-        return [&current = std::get<index>(*queue)](parameter_type input) mutable
-        {
-            current.push(input);
+        return [&current = std::get<index>(*queue)](parameter_type input) mutable {
+            current.push(std::move(input));
         };
     }
 

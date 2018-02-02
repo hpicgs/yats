@@ -54,6 +54,24 @@ struct is_shared_ptr<void>
 template <typename T>
 constexpr bool is_shared_ptr_v = is_shared_ptr<T>::value;
 
+template <typename T>
+struct is_tuple
+{
+    template <typename... U>
+    static char test_function(const std::tuple<U...>&);
+    static int test_function(...);
+    static constexpr bool value = sizeof(test_function(std::declval<T>())) == sizeof(char);
+};
+
+template <>
+struct is_tuple<void>
+{
+    static constexpr bool value = false;
+};
+
+template <typename T>
+constexpr bool is_tuple_v = is_tuple<T>::value;
+
 template <uint64_t Id, typename T>
 struct get_index_by_id
 {
@@ -128,4 +146,21 @@ struct has_unique_ids
 
 template <typename T>
 static constexpr bool has_unique_ids_v = has_unique_ids<T>::value;
+
+// Taken from http://en.cppreference.com/w/cpp/utility/make_from_tuple
+namespace detail
+{
+    template <class T, class Tuple, std::size_t... I>
+    constexpr T make_from_tuple_impl(Tuple&& t, std::index_sequence<I...>)
+    {
+        (void) t;
+        return T(std::get<I>(std::forward<Tuple>(t))...);
+    }
+}
+
+template <class T, class Tuple>
+constexpr T make_from_tuple(Tuple&& t)
+{
+    return detail::make_from_tuple_impl<T>(std::forward<Tuple>(t), std::make_index_sequence<std::tuple_size<std::remove_reference_t<Tuple>>::value>{});
+}
 }

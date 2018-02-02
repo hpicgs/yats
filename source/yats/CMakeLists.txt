@@ -1,12 +1,5 @@
 
 # 
-# External dependencies
-# 
-
-# find_package(THIRDPARTY REQUIRED)
-
-
-# 
 # Library name and options
 # 
 
@@ -26,6 +19,7 @@ set(headers
     ${include_path}/connection_helper.h
     ${include_path}/identifier.h
     ${include_path}/input_connector.h
+    ${include_path}/lambda_task.h
     ${include_path}/output_connector.h
     ${include_path}/pipeline.h
     ${include_path}/scheduler.h
@@ -33,6 +27,7 @@ set(headers
     ${include_path}/task_configurator.h
     ${include_path}/task_container.h
     ${include_path}/task_helper.h
+    ${include_path}/thread_safe_queue.h
     ${include_path}/util.h
 )
 

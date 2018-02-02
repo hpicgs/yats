@@ -1,7 +1,7 @@
 #include <gmock/gmock.h>
 
 #include <yats/slot.h>
-#include <yats/pipeline.h>
+#include <yats/scheduler.h>
 
 struct Source
 {
@@ -23,7 +23,7 @@ struct Target
 TEST(yats_test, simple)
 {
     yats::pipeline pipeline;
-    auto scheduler = pipeline.build();
+    yats::scheduler scheduler(pipeline);
     EXPECT_NO_THROW(scheduler.run());
 }
 
@@ -36,6 +36,6 @@ TEST(yats_test, simple_connection)
 
     source_configurator->output<0>() >> target_configurator->input<0>();
 
-    auto scheduler = pipeline.build();
+    yats::scheduler scheduler(pipeline);
     scheduler.run();
 }

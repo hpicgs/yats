@@ -9,6 +9,7 @@
 
 #include <yats/pipeline.h>
 #include <yats/task_configurator.h>
+#include <yats/thread_pool.h>
 
 namespace yats
 {
@@ -17,7 +18,12 @@ class scheduler
 {
 public:
     explicit scheduler(const pipeline& pipeline)
-        : m_tasks(pipeline.build())
+        : scheduler(pipeline, 4)
+    {
+    }
+
+    explicit scheduler(const pipeline& pipeline, const size_t number_of_threads)
+        : m_tasks(pipeline.build()), m_thread_pool(number_of_threads)
     {
     }
 
@@ -86,5 +92,6 @@ protected:
     std::vector<std::unique_ptr<abstract_task_container>> m_tasks;
     std::vector<std::thread> m_threads;
     std::mutex m_mutex;
+    yats::thread_pool m_thread_pool;
 };
 }

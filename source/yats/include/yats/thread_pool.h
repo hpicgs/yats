@@ -14,16 +14,20 @@ class thread_pool
 {
 public:
     explicit thread_pool(const size_t thread_count)
+        : m_is_cancellation_requested(false), m_is_shutdown_requested(false)
     {
-        std::cout << "initializing" << std::endl;
-        m_terminate = false;
         m_threads.reserve(thread_count);
         for (size_t i = 0; i < thread_count; i++)
         {
-            m_threads.emplace_back(&thread_pool::foo, this);
+            m_threads.emplace_back(&thread_pool::thread_function, this);
         }
-        std::cout << "initialized" << std::endl;
     }
+
+    thread_pool(const thread_pool& other) = delete;
+    thread_pool(thread_pool&& other) = delete;
+
+    thread_pool& operator=(const thread_pool& other) = delete;
+    thread_pool& operator=(thread_pool&& other) = delete;
 
     ~thread_pool()
     {
@@ -41,36 +45,59 @@ public:
 
     void terminate()
     {
-        m_terminate = true;
+        m_is_cancellation_requested = true;
+        m_function_added.notify_all();
+        join();
     }
+
+    void wait()
+    {
+        m_is_shutdown_requested = true;
+        m_function_added.notify_all();
+        join();
+    }
+
 protected:
     std::vector<std::thread> m_threads;
     std::queue < std::function<void()>> m_queue;
-    std::atomic_bool m_terminate;
+    std::atomic_bool m_is_cancellation_requested;
+    std::atomic_bool m_is_shutdown_requested;
     std::mutex m_mutex;
     std::condition_variable m_function_added;
 
-    void foo()
+    void join()
     {
-        auto thread_id = std::this_thread::get_id();
-        std::function<void()> run;
-        std::unique_lock<std::mutex> lock(m_mutex, std::defer_lock);
-        while(!m_terminate)
+        for (auto & thread : m_threads)
         {
-            lock.lock();
-            if (m_queue.empty())
+            thread.join();
+        }
+
+        m_threads.clear();
+    }
+
+    void thread_function()
+    {
+        while(!m_is_cancellation_requested)
+        {
+            std::unique_lock<std::mutex> lock(m_mutex);
+            m_function_added.wait(lock, [this] {
+                return !m_queue.empty() || m_is_cancellation_requested || m_is_shutdown_requested;
+            });
+            if (m_is_cancellation_requested)
             {
-                std::cout << thread_id << ": " << "waiting" << std::endl;
-                m_function_added.wait(lock);
+                break;
             }
-            
-            run = m_queue.front();
+            if (m_queue.empty() && m_is_shutdown_requested)
+            {
+                break;
+            }
+
+            const auto run = m_queue.front();
             m_queue.pop();
-            std::cout << thread_id << ": " << "executing" << std::endl;
             lock.unlock();
+
             run();
         }
     }
-
 };
 }

@@ -13,6 +13,10 @@ namespace yats
 class thread_pool
 {
 public:
+    /**
+     * Constructs a new thread pool.
+     * @param thread_count Number of threads to use
+     */
     explicit thread_pool(const size_t thread_count)
         : m_is_cancellation_requested(false), m_is_shutdown_requested(false)
     {
@@ -34,6 +38,12 @@ public:
         terminate();
     }
 
+    /**
+     * Executes function_to_execute in an own thread as soon as a
+     * thread of the pool is available.
+     * @param function_to_execute void() function that is to be executed in
+     * a thread
+     */
     void execute(const std::function<void()> & function_to_execute)
     {
         {
@@ -43,6 +53,11 @@ public:
         m_function_added.notify_one();
     }
 
+    /**
+     * Terminates the thread pool. The thread pool is terminated
+     * as soon as all threads have processed their current task.
+     * This functions returns after all threads have terminated.
+     */
     void terminate()
     {
         m_is_cancellation_requested = true;
@@ -50,6 +65,11 @@ public:
         join();
     }
 
+    /**
+     * Waits for the thread pool to process all tasks and terminates
+     * the threads afterwards.
+     * This function returns as all threads have been terminated.
+     */
     void wait()
     {
         m_is_shutdown_requested = true;
@@ -65,6 +85,9 @@ protected:
     std::mutex m_mutex;
     std::condition_variable m_function_added;
 
+    /**
+     * Joins all threads of the thread pool.
+     */
     void join()
     {
         for (auto & thread : m_threads)

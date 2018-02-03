@@ -1,11 +1,9 @@
 #pragma once
 
 #include <atomic>
-#include <iostream>
+#include <condition_variable>
 #include <mutex>
 #include <queue>
-
-#include <yats/thread_safe_queue.h>
 
 namespace yats
 {

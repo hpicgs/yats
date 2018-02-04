@@ -37,38 +37,14 @@ public:
 
     void run()
     {
-        std::vector<abstract_task_container*> to_run;
+        
         for (auto& elem : m_tasks)
         {
             to_run.push_back(elem.get());
         }
 
-        std::function<void()> check_runnable;
-
-        check_runnable = [&to_run, &check_runnable, this]() {
-            std::lock_guard<std::mutex> lock(m_mutex);
-
-            while (true)
-            {
-                auto runnable = std::find_if(to_run.begin(), to_run.end(), [](abstract_task_container* task) {
-                    return task->can_run();
-                });
-
-                if (runnable == to_run.end())
-                {
-                    return;
-                }
-                auto task = *runnable;
-                to_run.erase(runnable);
-
-                m_threads.emplace_back([&to_run, &check_runnable, task]() {
-                    task->run();
-                    check_runnable();
-                });
-            }
-        };
-
         check_runnable();
+
         while (true)
         {
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
@@ -81,17 +57,40 @@ public:
             }
         }
 
-        for (auto& thread : m_threads)
-        {
-            thread.join();
-        }
+        m_thread_pool.wait();
     }
 
 protected:
     // Stores all task_containers with their position as an implicit id
     std::vector<std::unique_ptr<abstract_task_container>> m_tasks;
-    std::vector<std::thread> m_threads;
-    std::mutex m_mutex;
     yats::thread_pool m_thread_pool;
+    std::vector<abstract_task_container*> to_run;
+    std::mutex m_mutex;
+
+    void check_runnable()
+    {
+        while (true)
+        {
+            const auto runnable = std::find_if(to_run.begin(), to_run.end(), [](abstract_task_container* task) {
+                return task->can_run();
+            });
+
+            if (runnable == to_run.end())
+            {
+                return;
+            }
+            auto task = *runnable;
+            to_run.erase(runnable);
+            m_thread_pool.execute([task] {task->run(); }, [this](void* v) {task_executed(v); }, task);
+        }
+    };
+
+    void task_executed(void * object)
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        auto task = static_cast<abstract_task_container*>(object);
+        std::cout << "task executed!" << std::endl;
+        check_runnable();
+    }
 };
 }

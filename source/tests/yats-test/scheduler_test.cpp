@@ -5,6 +5,8 @@
 #include <yats/thread_pool.h>
 #include <yats/util.h>
 
+#include <future>
+
 
 TEST(scheduler_test, simple_create)
 {
@@ -83,7 +85,7 @@ TEST(scheduler_test, playground)
 TEST(scheduler_test, playground_pooling_2)
 {
     const auto start = std::chrono::high_resolution_clock::now();
-    yats::thread_pool thread_pool(8);
+    yats::thread_pool thread_pool(4);
 
     for (int i = 0; i<10000; i++)
     {
@@ -96,6 +98,34 @@ TEST(scheduler_test, playground_pooling_2)
     }
 
     thread_pool.wait();
+    const auto end = std::chrono::high_resolution_clock::now();
+
+    std::cout << "Dauer: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << std::endl;
+}
+
+TEST(scheduler_test, playground_pooling_3)
+{
+    std::vector<std::future<void>> vec;
+    vec.reserve(10010);
+    const auto start = std::chrono::high_resolution_clock::now();
+    
+
+    for (int i = 0; i<10000; i++)
+    {
+        vec.emplace_back(std::async(std::launch::async,
+            []() {
+            for (size_t j = 0; j < 100000; j++)
+            {
+
+            }
+        }));
+
+    }
+    
+    for (auto &  element : vec) {
+        element.get();
+    }
+
     const auto end = std::chrono::high_resolution_clock::now();
 
     std::cout << "Dauer: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << std::endl;

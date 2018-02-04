@@ -7,7 +7,6 @@
 
 namespace yats
 {
-
 class thread_pool
 {
 public:
@@ -44,9 +43,17 @@ public:
      */
     void execute(const std::function<void()> & function_to_execute)
     {
+        const std::function<void(void*)> f = [](void*) {};
+        execute(function_to_execute, f, nullptr);
+    }
+
+
+    void execute(const std::function<void()> & function_to_execute,
+        const std::function<void(void*)> & callback, void* async_state)
+    {
         {
             std::lock_guard<std::mutex> lock(m_mutex);
-            m_queue.push(function_to_execute);
+            m_queue.emplace(function_to_execute, callback, async_state);
         }
         m_function_added.notify_one();
     }
@@ -77,7 +84,7 @@ public:
 
 protected:
     std::vector<std::thread> m_threads;
-    std::queue < std::function<void()>> m_queue;
+    std::queue < std::tuple<std::function<void()>, std::function<void(void *)>, void*>> m_queue;
     std::atomic_bool m_is_cancellation_requested;
     std::atomic_bool m_is_shutdown_requested;
     std::mutex m_mutex;
@@ -117,7 +124,9 @@ protected:
             m_queue.pop();
             lock.unlock();
 
-            run();
+            std::get<0>(run)();
+            std::get<1>(run)(std::get<2>(run));
+            // Notify that I am done...!!
         }
     }
 };

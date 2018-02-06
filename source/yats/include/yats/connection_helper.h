@@ -68,12 +68,20 @@ class connection_helper : public abstract_connection_helper
 {
 public:
     using helper = decltype(make_helper(&Task::run));
-    using input_sequence = std::make_index_sequence<std::tuple_size<typename helper::input_connectors>::value>;
-    using output_sequence = std::make_index_sequence<std::tuple_size<typename helper::output_connectors>::value>;
+    using input_callbacks = typename helper::input_callbacks;
+    using input_connectors = typename helper::input_connectors;
+    using input_queue = typename helper::input_queue;
+    using input_queue_ptr = typename helper::input_queue_ptr;
+    using output_connectors = typename helper::output_connectors;
+    using output_callbacks = typename helper::output_callbacks;
+    using output_tuple = typename helper::output_tuple;
 
-    connection_helper(const typename helper::input_connectors& inputs, const typename helper::output_connectors& outputs, const typename helper::output_callbacks& listeners)
+    using input_sequence = std::make_index_sequence<std::tuple_size<input_connectors>::value>;
+    using output_sequence = std::make_index_sequence<std::tuple_size<output_connectors>::value>;
+
+    connection_helper(const input_connectors& inputs, const output_connectors& outputs, const output_callbacks& listeners)
         : abstract_connection_helper(map<abstract_input_connector>(inputs, input_sequence()), map<abstract_output_connector>(outputs, output_sequence()))
-        , m_input(std::make_unique<typename helper::input_queue>())
+        , m_input(std::make_unique<input_queue>())
         , m_output(listeners)
         , m_callbacks(generate_callbacks(m_input, std::make_index_sequence<helper::input_count>()))
     {
@@ -108,7 +116,7 @@ public:
 
 protected:
     template <size_t... index>
-    static typename helper::input_callbacks generate_callbacks(typename helper::input_queue_ptr& queue, std::integer_sequence<size_t, index...>)
+    static input_callbacks generate_callbacks(input_queue_ptr& queue, std::integer_sequence<size_t, index...>)
     {
         // Prevent a warning about unused parameter when handling a run function with no parameters.
         (void) queue;
@@ -116,9 +124,9 @@ protected:
     }
 
     template <size_t index>
-    static typename std::tuple_element_t<index, typename helper::input_callbacks> generate_callback(typename helper::input_queue_ptr& queue)
+    static typename std::tuple_element_t<index, input_callbacks> generate_callback(input_queue_ptr& queue)
     {
-        using parameter_type = typename std::tuple_element_t<index, typename helper::input_queue>::value_type;
+        using parameter_type = typename std::tuple_element_t<index, input_queue>::value_type;
         return [&current = std::get<index>(*queue)](parameter_type input) mutable {
             current.push(std::move(input));
         };
@@ -129,7 +137,7 @@ protected:
     {
         if (index == location_id)
         {
-            using parameter = std::tuple_element_t<index, typename helper::output_tuple>;
+            using parameter = std::tuple_element_t<index, output_tuple>;
             auto callback = static_cast<std::function<void(parameter)>*>(raw_callback);
             std::get<index>(m_output).push_back(*callback);
         }
@@ -164,8 +172,8 @@ protected:
         throw std::runtime_error("Input Parameter locationId not found.");
     }
 
-    typename helper::input_queue_ptr m_input;
-    typename helper::output_callbacks m_output;
-    typename helper::input_callbacks m_callbacks;
+    input_queue_ptr m_input;
+    output_callbacks m_output;
+    input_callbacks m_callbacks;
 };
 }

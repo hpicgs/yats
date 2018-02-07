@@ -1,9 +1,7 @@
 #pragma once
 
 #include <algorithm>
-#include <iostream>
 #include <mutex>
-#include <string>
 #include <thread>
 #include <vector>
 
@@ -18,14 +16,14 @@ class scheduler
 {
 public:
     explicit scheduler(const pipeline& pipeline, const size_t number_of_threads = 4)
-        : m_tasks(pipeline.build()), m_thread_pool(number_of_threads)
+        : m_tasks(pipeline.build()), m_thread_pool(number_of_threads), m_tasks_processed(0)
     {
-        const std::function<void(abstract_task_container*)> f = [this](abstract_task_container* bla)
+        const std::function<void(abstract_task_container*)> callback = [this](abstract_task_container* task)
         {
-            task_executed(bla);
+            task_executed(task);
         };
        
-        m_thread_pool.subscribe(f);
+        m_thread_pool.subscribe(callback);
     }
 
     scheduler(const scheduler& other) = delete;
@@ -38,14 +36,14 @@ public:
 
     void run()
     {
-        for (auto& elem : m_tasks)
+        for (size_t i = 0; i < m_tasks.size(); i++)
         {
-            to_run.push_back(elem.get());
+            to_run.push_back(true);
         }
 
-        check_runnable();
+        schedule_all_runnable_tasks();
 
-        while (!to_run.empty())
+        while (m_tasks_processed < m_tasks.size())
         {
             abstract_task_container* task;
             {
@@ -54,12 +52,10 @@ public:
 
                 task = m_tasks_to_process.front();
                 m_tasks_to_process.pop();
+                m_tasks_processed++;
             }
 
-
-            to_run.erase(std::remove(to_run.begin(), to_run.end(), task));
-
-            check_runnable(task);
+            schedule_following_tasks(task);
         }
         ASSERT_EQ(m_tasks_to_process.empty(), true);
     }
@@ -70,7 +66,8 @@ protected:
     // Stores all task_containers with their position as an implicit id
     std::vector<std::unique_ptr<abstract_task_container>> m_tasks;
     yats::thread_pool m_thread_pool;
-    std::vector<abstract_task_container*> to_run;
+    std::vector<bool> to_run;
+    size_t m_tasks_processed;
     std::condition_variable m_wait_for_task_executed;
     std::queue<abstract_task_container*> m_tasks_to_process;
     std::mutex m_mutex;
@@ -79,13 +76,11 @@ protected:
      * Schedules any runnable task to be executed as soon
      * a thread is available.
      */
-    void check_runnable()
+    void schedule_all_runnable_tasks()
     {
-        for (auto & task : to_run) {
-            if (task->can_run())
-            {
-                m_thread_pool.execute(task);
-            }
+        for (size_t i = 0; i < to_run.size(); i++)
+        {
+            schedule_if_runnable(i);
         }
     }
 
@@ -94,10 +89,25 @@ protected:
      * if their preconditions are met.
      * @param task Task whose following tasks should be scheduled.
      */
-    void check_runnable(abstract_task_container* task)
+    void schedule_following_tasks(abstract_task_container* task)
     {
-        // Add task.following_nodes() to to_run.
-        check_runnable();
+        for (auto & i : task->following_nodes())
+        {
+            schedule_if_runnable(i);
+        }
+    }
+
+    /**
+     * Schedukes the task m_tasks[index] if it may be executed
+     * @param index index of task to schedule
+     */
+    void schedule_if_runnable(const size_t index)
+    {
+        if (to_run[index] && m_tasks[index]->can_run())
+        {
+            to_run[index] = false;
+            m_thread_pool.execute(m_tasks[index].get());
+        }
     }
 
     /**
@@ -111,5 +121,16 @@ protected:
         m_wait_for_task_executed.notify_one();
     }
 
+    int index_of(abstract_task_container* task)
+    {
+        for (size_t i = 0; i  < m_tasks.size(); i++)
+        {
+            if (m_tasks[i].get()  == task)
+            {
+                return static_cast<int>(i);
+            }
+        }
+        return -1;
+    }
 };
 }

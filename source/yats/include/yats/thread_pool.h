@@ -5,6 +5,9 @@
 #include <mutex>
 #include <queue>
 
+#include <yats/task_container.h>
+
+// Task container execution pool.
 namespace yats
 {
 class thread_pool
@@ -41,21 +44,13 @@ public:
      * @param function_to_execute void() function that is to be executed in
      * a thread
      */
-    void execute(const std::function<void()> & function_to_execute)
-    {
-        const std::function<void(void*)> f = [](void*) {};
-        execute(function_to_execute, f, nullptr);
-    }
-
-
-    void execute(const std::function<void()> & function_to_execute,
-        const std::function<void(void*)> & callback, void* async_state)
+    void execute(abstract_task_container * task)
     {
         {
             std::lock_guard<std::mutex> lock(m_mutex);
-            m_queue.emplace(function_to_execute, callback, async_state);
+            m_task_queue.push(task);
         }
-        m_function_added.notify_one();
+        m_task_added.notify_one();
     }
 
     /**
@@ -66,7 +61,7 @@ public:
     void terminate()
     {
         m_is_cancellation_requested = true;
-        m_function_added.notify_all();
+        m_task_added.notify_all();
         join();
     }
 
@@ -78,17 +73,23 @@ public:
     void wait()
     {
         m_is_shutdown_requested = true;
-        m_function_added.notify_all();
+        m_task_added.notify_all();
         join();
+    }
+
+    void subscribe(const std::function<void(abstract_task_container*)> & listener)
+    {
+        m_listeners.push_back(listener);
     }
 
 protected:
     std::vector<std::thread> m_threads;
-    std::queue < std::tuple<std::function<void()>, std::function<void(void *)>, void*>> m_queue;
+    std::queue <abstract_task_container*> m_task_queue;
     std::atomic_bool m_is_cancellation_requested;
     std::atomic_bool m_is_shutdown_requested;
     std::mutex m_mutex;
-    std::condition_variable m_function_added;
+    std::condition_variable m_task_added;
+    std::vector<std::function<void(abstract_task_container*)>> m_listeners;
 
     /**
      * Joins all threads of the thread pool.
@@ -103,30 +104,38 @@ protected:
         m_threads.clear();
     }
 
+    void on_task_executed(abstract_task_container* task)
+    {
+        for (auto & listener : m_listeners) {
+            listener(task);
+        }
+    }
+
     void thread_function()
     {
+        abstract_task_container* task;
         while(!m_is_cancellation_requested)
         {
-            std::unique_lock<std::mutex> lock(m_mutex);
-            m_function_added.wait(lock, [this] {
-                return !m_queue.empty() || m_is_cancellation_requested || m_is_shutdown_requested;
-            });
-            if (m_is_cancellation_requested)
             {
-                break;
-            }
-            if (m_queue.empty() && m_is_shutdown_requested)
-            {
-                break;
+                std::unique_lock<std::mutex> lock(m_mutex);
+                m_task_added.wait(lock, [this] {
+                    return !m_task_queue.empty() || m_is_cancellation_requested || m_is_shutdown_requested;
+                });
+                if (m_is_cancellation_requested)
+                {
+                    break;
+                }
+                if (m_task_queue.empty() && m_is_shutdown_requested)
+                {
+                    break;
+                }
+
+                task = m_task_queue.front();
+                m_task_queue.pop();
             }
 
-            const auto run = m_queue.front();
-            m_queue.pop();
-            lock.unlock();
-
-            std::get<0>(run)();
-            std::get<1>(run)(std::get<2>(run));
-            // Notify that I am done...!!
+            task->run();
+            on_task_executed(task);
         }
     }
 };

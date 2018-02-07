@@ -51,24 +51,71 @@ TEST(scheduler_test, throw_on_creation)
     EXPECT_THROW(yats::scheduler scheduler(pipeline), std::runtime_error);
 }
 
+
+class base
+{
+public:
+    const std::string s = "mathias";
+    virtual void do_something()
+    {
+        std::cout << s << std::endl;
+    }
+};
+
+class derived : public base
+{
+public:
+    const std::string s = "flueggen";
+    void do_something() override
+    {
+        std::cout << s << std::endl;
+    }
+};
+
+void foo(base & b)
+{
+    b.do_something();
+}
+
+
+class simple_task : public yats::abstract_task_container
+{
+public:
+    simple_task() : abstract_task_container(std::set<size_t> {})
+    {
+    }
+
+    ~simple_task()
+    {
+        std::cout << "~";
+    }
+
+    void run() override
+    {
+        for (size_t i = 0; i < 100000; i++)
+        {
+
+        }
+    }
+
+    bool can_run() const override
+    {
+        return  true;
+    }
+};
+
 TEST(scheduler_test, playground)
 {
-    std::mutex mutex;
-    std::vector<std::thread> threads;
+   std::vector<std::thread> threads;
 
     auto start = std::chrono::high_resolution_clock::now();
  
     for (int i = 0; i<10000; i++)
     {
-        threads.emplace_back(std::thread([&mutex]()
+        threads.emplace_back(std::thread([]()
         {
-            //std::this_thread::sleep_for(std::chrono::milliseconds(400));
-           // std::lock_guard<std::mutex> lock(mutex);
-           // std::cout << "Running Thread " << i << std::endl;
-            for (size_t i = 0; i < 100000; i++)
-            {
-                
-            }
+            simple_task st;
+            st.run();
         }));
     }
 
@@ -87,14 +134,17 @@ TEST(scheduler_test, playground_pooling_2)
     const auto start = std::chrono::high_resolution_clock::now();
     yats::thread_pool thread_pool(4);
 
+    std::vector<std::unique_ptr<simple_task>> tasks;
+
+    auto d = std::make_unique<derived>();
+    foo(*d);
+
+    
+    tasks.reserve(10000);
     for (int i = 0; i<10000; i++)
     {
-        thread_pool.execute([] {
-            for (size_t j = 0; j < 100000; j++)
-            {
-
-            }
-        });
+        tasks.push_back(std::make_unique<simple_task>());
+        thread_pool.execute(tasks.back().get());
     }
 
     thread_pool.wait();

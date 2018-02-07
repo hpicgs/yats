@@ -39,10 +39,9 @@ public:
     }
 
     /**
-     * Executes function_to_execute in an own thread as soon as a
+     * Executes task in an own thread as soon as a
      * thread of the pool is available.
-     * @param function_to_execute void() function that is to be executed in
-     * a thread
+     * @param task Pointer to task to execute
      */
     void execute(abstract_task_container * task)
     {
@@ -104,6 +103,10 @@ protected:
         m_threads.clear();
     }
 
+    /**
+     * Notifies listerners that a task has been executed
+     * @param task Task, which was executed.
+     */
     void on_task_executed(abstract_task_container* task)
     {
         for (auto & listener : m_listeners) {

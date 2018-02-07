@@ -75,6 +75,10 @@ protected:
     std::queue<abstract_task_container*> m_tasks_to_process;
     std::mutex m_mutex;
 
+    /**
+     * Schedules any runnable task to be executed as soon
+     * a thread is available.
+     */
     void check_runnable()
     {
         for (auto & task : to_run) {
@@ -85,12 +89,21 @@ protected:
         }
     }
 
+    /**
+     * Schedules all following tasks of task to be executed,
+     * if their preconditions are met.
+     * @param task Task whose following tasks should be scheduled.
+     */
     void check_runnable(abstract_task_container* task)
     {
         // Add task.following_nodes() to to_run.
         check_runnable();
     }
 
+    /**
+     * Called by the thread pool after task has been executed.
+     * @param task Task which was executed.
+     */
     void task_executed(abstract_task_container* task)
     {
         std::lock_guard<std::mutex> lock(m_mutex);

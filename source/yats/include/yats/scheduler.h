@@ -36,6 +36,9 @@ public:
 
     void run()
     {
+        to_run.clear();
+        m_tasks_processed = 0;
+
         for (size_t i = 0; i < m_tasks.size(); i++)
         {
             to_run.push_back(true);

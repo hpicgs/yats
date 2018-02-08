@@ -16,7 +16,7 @@ namespace yats
 class scheduler
 {
 public:
-    explicit scheduler(const pipeline& pipeline)
+    explicit scheduler(pipeline pipeline)
         : m_tasks(pipeline.build())
     {
     }

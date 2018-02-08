@@ -4,6 +4,8 @@
 #include <yats/scheduler.h>
 #include <yats/slot.h>
 
+#include <test_util.h>
+
 TEST(pipeline_test, add_lambda_task)
 {
     yats::pipeline pipeline;
@@ -14,7 +16,7 @@ TEST(pipeline_test, add_lambda_task)
 
     lambda_source->output<1>() >> lambda_target->input<1>();
 
-    yats::scheduler scheduler(pipeline);
+    yats::scheduler scheduler(std::move(pipeline));
     scheduler.run();
 
     EXPECT_EQ(test_int, 30);
@@ -29,7 +31,7 @@ TEST(pipeline_test, add_one_listener)
     int output = 0;
     lambda_source->add_listener<0>([&output](int value) { output = value; });
 
-    yats::scheduler scheduler(pipeline);
+    yats::scheduler scheduler(std::move(pipeline));
     scheduler.run();
 
     EXPECT_EQ(output, 30);
@@ -47,7 +49,7 @@ TEST(pipeline_test, add_listener_and_task)
 
     lambda_source->output<0>() >> lambda_target->input<0>();
 
-    yats::scheduler scheduler(pipeline);
+    yats::scheduler scheduler(std::move(pipeline));
     scheduler.run();
 
     EXPECT_EQ(output, 30);
@@ -60,7 +62,7 @@ TEST(pipeline_test, add_no_listener)
     auto lambda_source = pipeline.add([]() -> yats::slot<int, 0> { return 30; });
     (void) lambda_source;
 
-    yats::scheduler scheduler(pipeline);
+    yats::scheduler scheduler(std::move(pipeline));
     scheduler.run();
 }
 
@@ -75,7 +77,7 @@ TEST(pipeline_test, add_multiple_listener)
     lambda_source->add_listener<0>([&output1](int value) { output1 = value; });
     lambda_source->add_listener<0>([&output2](int value) { output2 = value; });
 
-    yats::scheduler scheduler(pipeline);
+    yats::scheduler scheduler(std::move(pipeline));
     scheduler.run();
 
     EXPECT_EQ(output1, 30);

@@ -23,7 +23,7 @@ struct Target
 TEST(yats_test, simple)
 {
     yats::pipeline pipeline;
-    yats::scheduler scheduler(pipeline);
+    yats::scheduler scheduler(std::move(pipeline));
     EXPECT_NO_THROW(scheduler.run());
 }
 
@@ -36,6 +36,6 @@ TEST(yats_test, simple_connection)
 
     source_configurator->output<0>() >> target_configurator->input<0>();
 
-    yats::scheduler scheduler(pipeline);
+    yats::scheduler scheduler(std::move(pipeline));
     scheduler.run();
 }

@@ -1,29 +1,31 @@
 #pragma once
 
-#include <algorithm>
+#include <cassert>
 #include <mutex>
-#include <thread>
 #include <vector>
 
 #include <yats/pipeline.h>
-#include <yats/thread_pool.h>
 #include <yats/task_container.h>
+#include <yats/thread_pool.h>
 
 namespace yats
 {
-
-class scheduler
+class scheduler : public abstract_thread_pool_observer
 {
 public:
-    explicit scheduler(const pipeline& pipeline, const size_t number_of_threads = 4)
-        : m_tasks(pipeline.build()), m_thread_pool(number_of_threads), m_tasks_processed(0)
-    {
-        const std::function<void(abstract_task_container*)> callback = [this](abstract_task_container* task)
+    explicit scheduler(const pipeline& pipeline, size_t number_of_threads = 4)
+        : m_tasks(pipeline.build()), m_thread_pool(number_of_threads)
+    {      
+        m_thread_pool.subscribe(this);
+        
+        // Determines all tasks wich can be run right from the start.
+        for (auto & task : m_tasks)
         {
-            task_executed(task);
-        };
-       
-        m_thread_pool.subscribe(callback);
+            if (task->can_run())
+            {
+                m_initial_tasks.push_back(task.get());
+            }
+        }
     }
 
     scheduler(const scheduler& other) = delete;
@@ -36,18 +38,23 @@ public:
 
     void run()
     {
-        to_run.clear();
-        m_tasks_processed = 0;
-
-        for (size_t i = 0; i < m_tasks.size(); i++)
+        size_t tasks_processed = 0;
+        m_scheduled_task_count = 0;
+     
+        if (!m_tasks.empty() && m_initial_tasks.empty())
         {
-            to_run.push_back(true);
+            throw std::runtime_error("No schedulable initial task found.");
         }
 
-        schedule_all_runnable_tasks();
+        schedule_initial_tasks();
 
-        while (m_tasks_processed < m_tasks.size())
+        while (tasks_processed < m_tasks.size())
         {
+            if (m_scheduled_task_count == 0)
+            {
+                throw std::runtime_error("No schedulable task found.");
+            }
+
             abstract_task_container* task;
             {
                 std::unique_lock<std::mutex> lock(m_mutex);
@@ -55,35 +62,45 @@ public:
 
                 task = m_tasks_to_process.front();
                 m_tasks_to_process.pop();
-                m_tasks_processed++;
             }
 
             schedule_following_tasks(task);
+            ++tasks_processed;
+            --m_scheduled_task_count;
         }
-        ASSERT_EQ(m_tasks_to_process.empty(), true);
+        assert(m_tasks_to_process.empty());
     }
 
-
+    /**
+    * Called by the thread pool after task has been executed.
+    * @param task Task which was executed.
+    */
+    void task_executed(abstract_task_container* task) override
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        m_tasks_to_process.push(task);
+        m_wait_for_task_executed.notify_one();
+    }
 
 protected:
     // Stores all task_containers with their position as an implicit id
     std::vector<std::unique_ptr<abstract_task_container>> m_tasks;
+    std::vector<abstract_task_container*> m_initial_tasks;
     yats::thread_pool m_thread_pool;
-    std::vector<bool> to_run;
-    size_t m_tasks_processed;
     std::condition_variable m_wait_for_task_executed;
     std::queue<abstract_task_container*> m_tasks_to_process;
     std::mutex m_mutex;
+    std::size_t m_scheduled_task_count;
 
     /**
-     * Schedules any runnable task to be executed as soon
-     * a thread is available.
+     * Schedules all initial tasks (tasks, that are runnable from the start),
+     * to be executed as soon as a thread is available.
      */
-    void schedule_all_runnable_tasks()
+    void schedule_initial_tasks()
     {
-        for (size_t i = 0; i < to_run.size(); i++)
+        for (auto & task : m_initial_tasks)
         {
-            schedule_if_runnable(i);
+            schedule(task);
         }
     }
 
@@ -104,36 +121,18 @@ protected:
      * Schedukes the task m_tasks[index] if it may be executed
      * @param index index of task to schedule
      */
-    void schedule_if_runnable(const size_t index)
+    void schedule_if_runnable(size_t index)
     {
-        if (to_run[index] && m_tasks[index]->can_run())
+        if (m_tasks[index]->can_run())
         {
-            to_run[index] = false;
-            m_thread_pool.execute(m_tasks[index].get());
+            schedule(m_tasks[index].get());
         }
     }
 
-    /**
-     * Called by the thread pool after task has been executed.
-     * @param task Task which was executed.
-     */
-    void task_executed(abstract_task_container* task)
+    void schedule(abstract_task_container* task)
     {
-        std::lock_guard<std::mutex> lock(m_mutex);
-        m_tasks_to_process.push(task);
-        m_wait_for_task_executed.notify_one();
-    }
-
-    int index_of(abstract_task_container* task)
-    {
-        for (size_t i = 0; i  < m_tasks.size(); i++)
-        {
-            if (m_tasks[i].get()  == task)
-            {
-                return static_cast<int>(i);
-            }
-        }
-        return -1;
+        ++m_scheduled_task_count;
+        m_thread_pool.execute(task);
     }
 };
 }

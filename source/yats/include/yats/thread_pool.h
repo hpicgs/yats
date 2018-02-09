@@ -7,18 +7,28 @@
 
 #include <yats/task_container.h>
 
-// Task container execution pool.
 namespace yats
 {
+class abstract_thread_pool_observer
+{
+public:
+    abstract_thread_pool_observer() = default;
+    abstract_thread_pool_observer(const abstract_thread_pool_observer& other) = delete;
+    abstract_thread_pool_observer(abstract_thread_pool_observer&& other) = delete;
+
+    abstract_thread_pool_observer& operator=(const abstract_thread_pool_observer& other) = delete;
+    abstract_thread_pool_observer& operator=(abstract_thread_pool_observer&& other) = delete;
+
+    virtual ~abstract_thread_pool_observer() = default;
+    
+    virtual void task_executed(abstract_task_container* task) = 0;
+};
+
 class thread_pool
 {
 public:
-    /**
-     * Constructs a new thread pool.
-     * @param thread_count Number of threads to use
-     */
-    explicit thread_pool(const size_t thread_count)
-        : m_is_cancellation_requested(false), m_is_shutdown_requested(false)
+    explicit thread_pool(size_t thread_count)
+        : m_is_cancellation_requested(false), m_observer(nullptr)
     {
         m_threads.reserve(thread_count);
         for (size_t i = 0; i < thread_count; i++)
@@ -64,31 +74,18 @@ public:
         join();
     }
 
-    /**
-     * Waits for the thread pool to process all tasks and terminates
-     * the threads afterwards.
-     * This function returns as all threads have been terminated.
-     */
-    void wait()
+    void subscribe(abstract_thread_pool_observer* observer)
     {
-        m_is_shutdown_requested = true;
-        m_task_added.notify_all();
-        join();
-    }
-
-    void subscribe(const std::function<void(abstract_task_container*)> & listener)
-    {
-        m_listeners.push_back(listener);
+        m_observer = observer;
     }
 
 protected:
     std::vector<std::thread> m_threads;
     std::queue <abstract_task_container*> m_task_queue;
     std::atomic_bool m_is_cancellation_requested;
-    std::atomic_bool m_is_shutdown_requested;
     std::mutex m_mutex;
     std::condition_variable m_task_added;
-    std::vector<std::function<void(abstract_task_container*)>> m_listeners;
+    abstract_thread_pool_observer* m_observer;
 
     /**
      * Joins all threads of the thread pool.
@@ -104,13 +101,14 @@ protected:
     }
 
     /**
-     * Notifies listerners that a task has been executed
+     * Notifies observer that a task was executed
      * @param task Task, which was executed.
      */
-    void on_task_executed(abstract_task_container* task)
+    void on_task_executed(abstract_task_container* task) const
     {
-        for (auto & listener : m_listeners) {
-            listener(task);
+        if (m_observer != nullptr)
+        {
+            m_observer->task_executed(task);
         }
     }
 
@@ -122,13 +120,9 @@ protected:
             {
                 std::unique_lock<std::mutex> lock(m_mutex);
                 m_task_added.wait(lock, [this] {
-                    return !m_task_queue.empty() || m_is_cancellation_requested || m_is_shutdown_requested;
+                    return !m_task_queue.empty() || m_is_cancellation_requested;
                 });
                 if (m_is_cancellation_requested)
-                {
-                    break;
-                }
-                if (m_task_queue.empty() && m_is_shutdown_requested)
                 {
                     break;
                 }

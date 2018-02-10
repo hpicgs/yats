@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <mutex>
+#include <thread>
 #include <vector>
 
 #include <yats/pipeline.h>
@@ -15,7 +16,7 @@ class scheduler : public abstract_thread_pool_observer
 public:
     explicit scheduler(const pipeline& pipeline, size_t number_of_threads = 4)
         : m_tasks(pipeline.build()), m_thread_pool(number_of_threads), m_may_run(false),
-          m_terminate(false), m_scheduled_task_count(0)
+          m_terminate(false), m_scheduled_task_count(0), m_tasks_processed(0)
     {      
         m_thread_pool.subscribe(this);
         m_task_distribution_thread = std::thread(&scheduler::distribute_tasks, this);
@@ -118,7 +119,7 @@ protected:
     bool m_terminate;
     
     std::size_t m_scheduled_task_count;
-    std::size_t m_tasks_processed;
+    std::size_t m_tasks_processed{};
 
     /**
      * Schedules all initial tasks (tasks, that are runnable from the start),

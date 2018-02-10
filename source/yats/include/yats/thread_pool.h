@@ -4,6 +4,7 @@
 #include <condition_variable>
 #include <mutex>
 #include <queue>
+#include <thread>
 
 #include <yats/task_container.h>
 

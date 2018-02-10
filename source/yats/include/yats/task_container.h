@@ -71,7 +71,7 @@ public:
     }
 
     /**
-     * Prüft, ob alle Inputs anliegen.
+     * Checks if all inputs are available.
      */
     bool can_run() const override
     {

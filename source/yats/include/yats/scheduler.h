@@ -14,9 +14,11 @@ class scheduler : public abstract_thread_pool_observer
 {
 public:
     explicit scheduler(const pipeline& pipeline, size_t number_of_threads = 4)
-        : m_tasks(pipeline.build()), m_thread_pool(number_of_threads)
+        : m_tasks(pipeline.build()), m_thread_pool(number_of_threads), m_may_run(false),
+          m_terminate(false), m_scheduled_task_count(0)
     {      
         m_thread_pool.subscribe(this);
+        m_task_distribution_thread = std::thread(&scheduler::distribute_tasks, this);
         
         // Determines all tasks wich can be run right from the start.
         for (auto & task : m_tasks)
@@ -31,14 +33,22 @@ public:
     scheduler(const scheduler& other) = delete;
     scheduler(scheduler&& other) = delete;
 
-    ~scheduler() = default;
+    ~scheduler()
+    {
+        {
+            std::lock_guard<std::mutex> lock(m_mutex_run);
+            m_terminate = true;
+            m_wait_for_run.notify_one();
+        }
+        m_task_distribution_thread.join();
+    }
 
     scheduler& operator=(const scheduler& other) = delete;
     scheduler& operator=(scheduler&& other) = delete;
 
     void run()
     {
-        size_t tasks_processed = 0;
+        m_tasks_processed = 0;
         m_scheduled_task_count = 0;
      
         if (!m_tasks.empty() && m_initial_tasks.empty())
@@ -46,38 +56,44 @@ public:
             throw std::runtime_error("No schedulable initial task found.");
         }
 
-        schedule_initial_tasks();
-
-        while (tasks_processed < m_tasks.size())
+        m_may_run = true;
         {
-            if (m_scheduled_task_count == 0)
-            {
-                throw std::runtime_error("No schedulable task found.");
-            }
-
-            abstract_task_container* task;
-            {
-                std::unique_lock<std::mutex> lock(m_mutex);
-                m_wait_for_task_executed.wait(lock, [this] {return !m_tasks_to_process.empty(); });
-
-                task = m_tasks_to_process.front();
-                m_tasks_to_process.pop();
-            }
-
-            schedule_following_tasks(task);
-            ++tasks_processed;
-            --m_scheduled_task_count;
+            std::lock_guard<std::mutex> lock(m_mutex_run);
+            m_wait_for_run.notify_one();
         }
-        assert(m_tasks_to_process.empty());
-    }
 
+        while(m_tasks_processed < m_tasks.size())
+        {
+            abstract_task_container* task = nullptr;
+            {
+                std::unique_lock<std::mutex> lock(m_mutex_main_thread);
+                m_wait_for_main_thread_task.wait(lock, [this]()
+                {
+                    return m_tasks_processed <= m_tasks.size();
+                });
+
+                if (!m_tasks_to_process_in_main_thread.empty())
+                {
+                    task = m_tasks_to_process_in_main_thread.front();
+                    m_tasks_to_process_in_main_thread.pop();
+                }
+            }
+
+            if (task != nullptr)
+            {
+                task->run();
+                task_executed(task);
+            }
+        }
+    }
+    
     /**
     * Called by the thread pool after task has been executed.
     * @param task Task which was executed.
     */
     void task_executed(abstract_task_container* task) override
     {
-        std::lock_guard<std::mutex> lock(m_mutex);
+        std::lock_guard<std::mutex> lock(m_mutex_thread_pool);
         m_tasks_to_process.push(task);
         m_wait_for_task_executed.notify_one();
     }
@@ -87,10 +103,22 @@ protected:
     std::vector<std::unique_ptr<abstract_task_container>> m_tasks;
     std::vector<abstract_task_container*> m_initial_tasks;
     yats::thread_pool m_thread_pool;
+    std::mutex m_mutex_thread_pool;
     std::condition_variable m_wait_for_task_executed;
     std::queue<abstract_task_container*> m_tasks_to_process;
-    std::mutex m_mutex;
+
+    std::condition_variable m_wait_for_main_thread_task;
+    std::mutex m_mutex_main_thread;
+    std::queue<abstract_task_container*> m_tasks_to_process_in_main_thread;
+
+    std::thread m_task_distribution_thread;
+    std::condition_variable m_wait_for_run;
+    std::mutex m_mutex_run;
+    bool m_may_run;
+    bool m_terminate;
+    
     std::size_t m_scheduled_task_count;
+    std::size_t m_tasks_processed;
 
     /**
      * Schedules all initial tasks (tasks, that are runnable from the start),
@@ -133,6 +161,58 @@ protected:
     {
         ++m_scheduled_task_count;
         m_thread_pool.execute(task);
+    }
+
+    void distribute_tasks()
+    {
+        while (true)
+        {
+            {
+                std::unique_lock<std::mutex> lock(m_mutex_run);
+                m_wait_for_run.wait(lock, [this]() {return m_may_run || m_terminate; });
+                m_may_run = false;
+            }
+
+            if (m_terminate)
+            {
+                break;
+            }
+
+            if (!m_tasks.empty() && m_initial_tasks.empty())
+            {
+                throw std::runtime_error("No schedulable initial task found.");
+            }
+
+            schedule_initial_tasks();
+
+            while (m_tasks_processed < m_tasks.size())
+            {
+                //Todo: Exception handling.
+                if (m_scheduled_task_count == 0)
+                {
+                    throw std::runtime_error("No schedulable task found.");
+                }
+
+                abstract_task_container* task;
+                {
+                    std::unique_lock<std::mutex> lock(m_mutex_thread_pool);
+                    m_wait_for_task_executed.wait(lock, [this] {return !m_tasks_to_process.empty(); });
+
+                    task = m_tasks_to_process.front();
+                    m_tasks_to_process.pop();
+                }
+
+                schedule_following_tasks(task);
+                ++m_tasks_processed;
+                --m_scheduled_task_count;
+
+                {
+                    std::lock_guard<std::mutex> lock(m_mutex_main_thread);
+                    m_wait_for_main_thread_task.notify_one();
+                }
+            }
+            assert(m_tasks_to_process.empty());
+        }
     }
 };
 }

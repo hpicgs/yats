@@ -34,6 +34,22 @@ TEST(scheduler_test, multithreaded_timing_test)
     EXPECT_LE(duration, 500);
 }
 
+TEST(scheduler_test, run_twice)
+{
+    yats::pipeline pipeline;
+
+    int output = 0;
+    auto task = pipeline.add([]() -> yats::slot<int, 0> { return 1; });
+    task->add_listener<0>([&output](int value) {output += value; });
+
+    yats::scheduler scheduler(pipeline);
+    EXPECT_EQ(output, 0);
+    scheduler.run();
+    EXPECT_EQ(output, 1);
+    scheduler.run();
+    EXPECT_EQ(output, 2);
+}
+
 TEST(scheduler_test, throw_on_creation)
 {
     yats::pipeline pipeline;

@@ -63,7 +63,7 @@ public:
             m_wait_for_run.notify_one();
         }
 
-        while(m_tasks_processed < m_tasks.size())
+        while(true)
         {
             abstract_task_container* task = nullptr;
             {
@@ -77,6 +77,11 @@ public:
                 {
                     task = m_tasks_to_process_in_main_thread.front();
                     m_tasks_to_process_in_main_thread.pop();
+                }
+
+                if (m_tasks_processed >= m_tasks.size())
+                {
+                    break;
                 }
             }
 
@@ -179,11 +184,6 @@ protected:
                 break;
             }
 
-            if (!m_tasks.empty() && m_initial_tasks.empty())
-            {
-                throw std::runtime_error("No schedulable initial task found.");
-            }
-
             schedule_initial_tasks();
 
             while (m_tasks_processed < m_tasks.size())
@@ -204,11 +204,11 @@ protected:
                 }
 
                 schedule_following_tasks(task);
-                ++m_tasks_processed;
-                --m_scheduled_task_count;
 
                 {
                     std::lock_guard<std::mutex> lock(m_mutex_main_thread);
+                    ++m_tasks_processed;
+                    --m_scheduled_task_count;
                     m_wait_for_main_thread_task.notify_one();
                 }
             }

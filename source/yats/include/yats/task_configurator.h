@@ -11,7 +11,6 @@
 namespace yats
 {
 
-/**/
 class abstract_task_configurator
 {
 public:
@@ -37,6 +36,8 @@ class task_configurator : public abstract_task_configurator
     using helper = decltype(make_helper(&Task::run));
     using input_connectors = typename helper::input_connectors;
     using input_tuple = typename helper::input_tuple;
+    using input_writers = typename helper::input_writers;
+    using input_writers_ptr = typename helper::input_writers_ptr;
     using output_callbacks = typename helper::output_callbacks;
     using output_connectors = typename helper::output_connectors;
     using output_tuple = typename helper::output_tuple;
@@ -44,6 +45,7 @@ class task_configurator : public abstract_task_configurator
 public:
     task_configurator(Parameters&&... parameters)
         : m_construction_parameters(std::forward<Parameters>(parameters)...)
+        , m_writers(std::make_unique<input_writers>())
     {
     }
     
@@ -61,6 +63,13 @@ public:
         return find<output_tuple, std::tuple_element_t<index, output_connectors>>(m_outputs, Id);
     }
 
+    template <uint64_t Id>
+    const auto& writer() const
+    {
+        constexpr auto index = get_index_by_id_v<Id, input_tuple>;
+        return std::get<index>(*m_writers).external_function;
+    }
+
     template <uint64_t Id, typename Callable>
     void add_listener(Callable callable)
     {
@@ -71,7 +80,7 @@ public:
 
     std::unique_ptr<abstract_task_container> construct_task_container(std::unique_ptr<abstract_connection_helper> helper) override
     {
-        return std::make_unique<task_container<Task, std::remove_reference_t<Parameters>...>>(static_cast<connection_helper<Task>*>(helper.get()), std::move(m_construction_parameters));
+        return std::make_unique<task_container<Task, std::remove_reference_t<Parameters>...>>(static_cast<connection_helper<Task>*>(helper.get()), std::move(m_writers), std::move(m_construction_parameters));
     }
 
     std::unique_ptr<abstract_connection_helper> construct_connection_helper() const override
@@ -110,6 +119,7 @@ protected:
 
     input_connectors m_inputs;
     output_connectors m_outputs;
+    input_writers_ptr m_writers;
     output_callbacks m_listeners;
     std::tuple<std::remove_reference_t<Parameters>...> m_construction_parameters;
 };

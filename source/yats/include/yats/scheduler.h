@@ -79,6 +79,8 @@ public:
         {
             thread.join();
         }
+
+        m_threads.clear();
     }
 
 protected:

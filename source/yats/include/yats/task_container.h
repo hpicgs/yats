@@ -46,15 +46,18 @@ template <typename Task, typename... Parameters>
 class task_container : public abstract_task_container
 {
     using helper = decltype(make_helper(&Task::run));
+    using input_tuple = typename helper::input_tuple;
     using input_queue_ptr = typename helper::input_queue_ptr;
+    using input_writers_ptr = typename helper::input_writers_ptr;
     using output_callbacks = typename helper::output_callbacks;
     using output_tuple = typename helper::output_tuple;
     using output_type = typename helper::output_type;
 
 public:
-    task_container(connection_helper<Task>* connection, std::tuple<Parameters...> parameter_tuple)
+    task_container(connection_helper<Task>* connection, input_writers_ptr writers, std::tuple<Parameters...> parameter_tuple)
         : abstract_task_container(connection->following_nodes())
         , m_input(connection->queue())
+        , m_writers(std::move(writers))
         , m_output(connection->callbacks())
         , m_task(make_from_tuple<Task>(std::move(parameter_tuple)))
     {
@@ -63,6 +66,8 @@ public:
         {
             throw std::runtime_error("A not copyable type cannot be used in multiple connections.");
         }
+
+        initialize_writers();
     }
 
     void run() override
@@ -164,7 +169,24 @@ protected:
         return std::is_copy_constructible<std::tuple_element_t<Index, output_tuple>>::value || std::get<Index>(m_output).size() < 2;
     }
 
+    template <size_t Index = 0>
+    std::enable_if_t<(Index < helper::input_count)> initialize_writers() const
+    {
+        using parameter_type = std::tuple_element_t<Index, input_tuple>::value_type;
+        std::get<Index>(*m_writers).internal_function = [this](parameter_type parameter)
+        {
+            std::get<Index>(*m_input).push(std::move(parameter));
+        };
+        initialize_writers<Index + 1>();
+    }
+
+    template <size_t Index = 0>
+    std::enable_if_t<Index == helper::input_count> initialize_writers() const
+    {
+    }
+
     input_queue_ptr m_input;
+    input_writers_ptr m_writers;
     output_callbacks m_output;
     Task m_task;
 };

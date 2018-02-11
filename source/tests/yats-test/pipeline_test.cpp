@@ -83,3 +83,45 @@ TEST(pipeline_test, add_multiple_listener)
     EXPECT_EQ(output1, 30);
     EXPECT_EQ(output2, 30);
 }
+
+TEST(pipeline_test, call_writer)
+{
+    yats::pipeline pipeline;
+    int expected_value = 0;
+
+    auto lambda_source = pipeline.add([]() -> yats::slot<int, 0> { return 30; });
+    auto lambda_target = pipeline.add([&expected_value](yats::slot<int, 0> input) { expected_value = input; });
+    lambda_source->output<0>() >> lambda_target->input<0>();
+    
+    auto& writer = lambda_target->writer<0>();
+
+    yats::scheduler scheduler(std::move(pipeline));
+    writer(15);
+
+    scheduler.run();
+    EXPECT_EQ(expected_value, 15);
+
+    scheduler.run();
+    EXPECT_EQ(expected_value, 30);
+}
+
+TEST(pipeline_test, writer_move)
+{
+    yats::pipeline pipeline;
+    int expected_value = 0;
+
+    auto lambda_source = pipeline.add([]() -> yats::slot<std::unique_ptr<int>, 0> { return std::make_unique<int>(30); });
+    auto lambda_target = pipeline.add([&expected_value](yats::slot<std::unique_ptr<int>, 0> input) { expected_value = **input; });
+    lambda_source->output<0>() >> lambda_target->input<0>();
+
+    auto& writer = lambda_target->writer<0>();
+
+    yats::scheduler scheduler(std::move(pipeline));
+    writer(std::make_unique<int>(15));
+
+    scheduler.run();
+    EXPECT_EQ(expected_value, 15);
+
+    scheduler.run();
+    EXPECT_EQ(expected_value, 30);
+}

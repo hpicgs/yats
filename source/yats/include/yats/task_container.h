@@ -172,7 +172,7 @@ protected:
     template <size_t Index = 0>
     std::enable_if_t<(Index < helper::input_count)> initialize_writers() const
     {
-        using parameter_type = std::tuple_element_t<Index, input_tuple>::value_type;
+        using parameter_type = typename std::tuple_element_t<Index, input_tuple>::value_type;
         std::get<Index>(*m_writers).internal_function = [this](parameter_type parameter)
         {
             std::get<Index>(*m_input).push(std::move(parameter));

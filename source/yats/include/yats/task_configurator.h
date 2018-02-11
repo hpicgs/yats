@@ -44,8 +44,8 @@ class task_configurator : public abstract_task_configurator
 
 public:
     task_configurator(Parameters&&... parameters)
-        : m_construction_parameters(std::forward<Parameters>(parameters)...)
-        , m_writers(std::make_unique<input_writers>())
+        : m_writers(std::make_unique<input_writers>())
+        , m_construction_parameters(std::forward<Parameters>(parameters)...)
     {
     }
     

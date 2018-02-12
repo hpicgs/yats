@@ -18,7 +18,7 @@ TEST(task_container_test, perfect_forward_return_values)
 
     lambda_source->output<1>() >> lambda_target->input<1>();
 
-    yats::scheduler scheduler(pipeline);
+    yats::scheduler scheduler(std::move(pipeline));
     scheduler.run();
 
     EXPECT_EQ(test_int, 30);
@@ -38,7 +38,7 @@ TEST(task_container_test, copy_once)
     auto lambda_target_2 = pipeline.add([&copy_counter_2](yats::slot<constructor_counter, 1> value) mutable { copy_counter_2 = value->copied; });
     lambda_source->output<1>() >> lambda_target_2->input<1>();
 
-    yats::scheduler scheduler(pipeline);
+    yats::scheduler scheduler(std::move(pipeline));
     scheduler.run();
 
     EXPECT_EQ(copy_counter_1 + copy_counter_2, 1);

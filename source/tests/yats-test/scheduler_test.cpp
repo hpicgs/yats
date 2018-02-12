@@ -6,8 +6,7 @@
 
 TEST(scheduler_test, simple_create)
 {
-    yats::pipeline empty_task_configs;
-    EXPECT_NO_THROW(yats::scheduler{ empty_task_configs });
+    EXPECT_NO_THROW(yats::scheduler{ yats::pipeline() });
 }
 
 TEST(scheduler_test, multithreaded_timing_test)
@@ -19,7 +18,7 @@ TEST(scheduler_test, multithreaded_timing_test)
     pipeline.add(function);
     pipeline.add(function);
 
-    yats::scheduler scheduler(pipeline);
+    yats::scheduler scheduler(std::move(pipeline));
     auto start = std::chrono::high_resolution_clock::now();
     scheduler.run();
     auto end = std::chrono::high_resolution_clock::now();
@@ -37,5 +36,5 @@ TEST(scheduler_test, throw_on_creation)
     source->add_listener<0>([](std::unique_ptr<int>) {});
     source->add_listener<0>([](std::unique_ptr<int>) {});
 
-    EXPECT_THROW(yats::scheduler scheduler(pipeline), std::runtime_error);
+    EXPECT_THROW(yats::scheduler scheduler(std::move(pipeline)), std::runtime_error);
 }

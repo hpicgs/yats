@@ -24,8 +24,21 @@ public:
     abstract_task_configurator& operator=(const abstract_task_configurator& other) = delete;
     abstract_task_configurator& operator=(abstract_task_configurator&& other) = delete;
 
-    virtual std::unique_ptr<abstract_task_container> construct_task_container(std::unique_ptr<abstract_connection_helper> helper) = 0;
+    virtual std::unique_ptr<abstract_task_container> construct_task_container(std::unique_ptr<abstract_connection_helper> helper, const std::function<void(abstract_task_container*)>& external_callback) = 0;
     virtual std::unique_ptr<abstract_connection_helper> construct_connection_helper() const = 0;
+
+    bool is_external(const abstract_input_connector* connector) const
+    {
+        return std::find(m_externals.cbegin(), m_externals.cend(), connector) != m_externals.cend();
+    }
+
+protected:
+    void mark_as_external(const abstract_input_connector* connector)
+    {
+        m_externals.push_back(connector);
+    }
+
+    std::vector<const abstract_input_connector*> m_externals;
 };
 
 template <typename Task, typename... Parameters>
@@ -64,8 +77,9 @@ public:
     }
 
     template <uint64_t Id>
-    const auto& writer() const
+    const auto& mark_as_external()
     {
+        abstract_task_configurator::mark_as_external(&input<Id>());
         constexpr auto index = get_index_by_id_v<Id, input_tuple>;
         return std::get<index>(*m_writers).external_function;
     }
@@ -78,9 +92,9 @@ public:
         std::get<index>(m_listeners).push_back(typename type::function_type(std::move(callable)));
     }
 
-    std::unique_ptr<abstract_task_container> construct_task_container(std::unique_ptr<abstract_connection_helper> helper) override
+    std::unique_ptr<abstract_task_container> construct_task_container(std::unique_ptr<abstract_connection_helper> helper, const std::function<void(abstract_task_container*)>& external_callback) override
     {
-        return std::make_unique<task_container<Task, std::remove_reference_t<Parameters>...>>(static_cast<connection_helper<Task>*>(helper.get()), std::move(m_writers), std::move(m_construction_parameters));
+        return std::make_unique<task_container<Task, std::remove_reference_t<Parameters>...>>(static_cast<connection_helper<Task>*>(helper.get()), std::move(m_writers), external_callback, std::move(m_construction_parameters));
     }
 
     std::unique_ptr<abstract_connection_helper> construct_connection_helper() const override

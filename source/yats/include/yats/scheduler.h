@@ -17,7 +17,7 @@ class scheduler
 {
 public:
     explicit scheduler(pipeline pipeline)
-        : m_tasks(pipeline.build())
+        : m_tasks(pipeline.build([this](abstract_task_container* task) { task_received_input(task); }))
     {
     }
 
@@ -84,6 +84,14 @@ public:
     }
 
 protected:
+    void task_received_input(abstract_task_container* task)
+    {
+        (void) task;
+        // TODO: the scheduler should check if this can run and schedule it
+        // it is not implemented yet, because the current scheduler can not do this easily
+        // and we change the scheduler right now anyway
+    }
+
     // Stores all task_containers with their position as an implicit id
     std::vector<std::unique_ptr<abstract_task_container>> m_tasks;
     std::vector<std::thread> m_threads;

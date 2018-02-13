@@ -54,7 +54,7 @@ class task_container : public abstract_task_container
     using output_type = typename helper::output_type;
 
 public:
-    task_container(connection_helper<Task>* connection, input_writers_ptr writers, std::tuple<Parameters...> parameter_tuple)
+    task_container(connection_helper<Task>* connection, input_writers_ptr writers, const std::function<void(abstract_task_container*)>& external_callback, std::tuple<Parameters...> parameter_tuple)
         : abstract_task_container(connection->following_nodes())
         , m_input(connection->queue())
         , m_writers(std::move(writers))
@@ -67,7 +67,7 @@ public:
             throw std::runtime_error("A not copyable type cannot be used in multiple connections.");
         }
 
-        initialize_writers();
+        initialize_writers(external_callback);
     }
 
     void run() override
@@ -170,18 +170,19 @@ protected:
     }
 
     template <size_t Index = 0>
-    std::enable_if_t<(Index < helper::input_count)> initialize_writers() const
+    std::enable_if_t<(Index < helper::input_count)> initialize_writers(const std::function<void(abstract_task_container*)>& external_callback)
     {
         using parameter_type = typename std::tuple_element_t<Index, input_tuple>::value_type;
-        std::get<Index>(*m_writers).internal_function = [this](parameter_type parameter)
+        std::get<Index>(*m_writers).internal_function = [this, external_callback](parameter_type parameter)
         {
             std::get<Index>(*m_input).push(std::move(parameter));
+            external_callback(this);
         };
-        initialize_writers<Index + 1>();
+        initialize_writers<Index + 1>(external_callback);
     }
 
     template <size_t Index = 0>
-    std::enable_if_t<Index == helper::input_count> initialize_writers() const
+    std::enable_if_t<Index == helper::input_count> initialize_writers(const std::function<void(abstract_task_container*)>&)
     {
     }
 

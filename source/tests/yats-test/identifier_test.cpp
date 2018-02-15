@@ -2,6 +2,8 @@
 
 #include <yats/identifier.h>
 
+using namespace yats;
+
 template <uint64_t>
 void is_compiletime_constant()
 {
@@ -9,14 +11,12 @@ void is_compiletime_constant()
 
 TEST(identifier_test, is_compiletime_constant)
 {
-    using namespace yats;
     is_compiletime_constant<"value"_id>();
     is_compiletime_constant<id("value")>();
 }
 
 TEST(identifier_test, different_syntax_is_same)
 {
-    using namespace yats;
     EXPECT_EQ("value"_id, id("value"));
 }
 

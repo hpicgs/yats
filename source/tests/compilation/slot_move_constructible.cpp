@@ -1,5 +1,7 @@
 #include <yats/slot.h>
 
+using namespace yats;
+
 struct test
 {
     test() = default;
@@ -14,6 +16,6 @@ struct test
 int main()
 {
     test t;
-    yats::slot<test, 0> slot(t);
+    slot<test, 0> slot(t);
     return 0;
 }

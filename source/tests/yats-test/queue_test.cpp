@@ -1,12 +1,14 @@
-#include <gmock/gmock.h>
-
 #include <memory>
+
+#include <gmock/gmock.h>
 
 #include <yats/thread_safe_queue.h>
 
+using namespace yats;
+
 TEST(queue_test, correct_size)
 {
-    yats::thread_safe_queue<int> queue;
+    thread_safe_queue<int> queue;
     EXPECT_EQ(queue.size(), 0);
 
     queue.push(1);
@@ -19,7 +21,7 @@ TEST(queue_test, correct_size)
 
 TEST(queue_test, push_extract_no_copy)
 {
-    yats::thread_safe_queue<std::unique_ptr<int>> queue;
+    thread_safe_queue<std::unique_ptr<int>> queue;
     EXPECT_EQ(queue.size(), 0);
 
     queue.push(std::make_unique<int>(42));

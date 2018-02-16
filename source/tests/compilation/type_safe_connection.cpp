@@ -9,7 +9,7 @@ int main()
 {
     input_connector<int> input;
 #ifdef SHOULD_FAIL
-    yats::output_connector<std::string> output;
+    output_connector<std::string> output;
 #else
     output_connector<int> output;
 #endif

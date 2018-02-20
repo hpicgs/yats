@@ -1,7 +1,7 @@
 #pragma once
 
-#include <map>
 #include <memory>
+#include <set>
 
 #include <yats/lambda_task.h>
 #include <yats/task_container.h>
@@ -29,16 +29,16 @@ public:
 
     bool is_external(const abstract_input_connector* connector) const
     {
-        return std::find(m_externals.cbegin(), m_externals.cend(), connector) != m_externals.cend();
+        return m_externals.find(connector) != m_externals.cend();
     }
 
 protected:
     void mark_as_external(const abstract_input_connector* connector)
     {
-        m_externals.push_back(connector);
+        m_externals.insert(connector);
     }
 
-    std::vector<const abstract_input_connector*> m_externals;
+    std::set<const abstract_input_connector*> m_externals;
 };
 
 template <typename Task, typename... Parameters>

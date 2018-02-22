@@ -1,6 +1,9 @@
 #pragma once
 
+#include <numeric>
 #include <memory>
+#include <condition_variable>
+#include <mutex>
 
 namespace yats
 {
@@ -17,6 +20,19 @@ struct has_run
 
 template <typename T>
 constexpr bool has_run_v = has_run<T>::value;
+
+template <typename T>
+struct has_options
+{
+    template <typename U>
+    static char test_function(decltype(&U::options));
+    template <typename U>
+    static int test_function(...);
+    static constexpr bool value = sizeof(test_function<T>(0)) == sizeof(char);
+};
+
+template <typename T>
+constexpr bool has_options_v = has_options<T>::value;
 
 template <typename T>
 struct is_unique_ptr
@@ -163,4 +179,95 @@ constexpr T make_from_tuple(Tuple&& t)
 {
     return detail::make_from_tuple_impl<T>(std::forward<Tuple>(t), std::make_index_sequence<std::tuple_size<std::remove_reference_t<Tuple>>::value>{});
 }
+
+class condition
+{
+public:
+    condition(size_t number_of_threads)
+        : m_is_active(true)
+        , m_number_of_threads(number_of_threads)
+        , m_notify_count({ {"thread", number_of_threads } })
+    {
+    }
+
+    class thread_guard
+    {
+    public:
+        thread_guard(condition *condition)
+            : m_condition(condition)
+        {
+            m_condition->reserve("thread");
+        }
+
+        ~thread_guard()
+        {
+            m_condition->notify("thread");
+        }
+
+        operator bool() const
+        {
+            return m_condition->is_active();
+        }
+
+    protected:
+        condition *m_condition;
+    };
+
+    thread_guard wait(const std::string& constraint)
+    {
+        reserve(constraint);
+        return thread_guard(this);
+    }
+
+    void notify(const std::string& constraint)
+    {
+        std::unique_lock<std::mutex> guard(m_mutex);
+        ++m_notify_count[constraint];
+        m_task_added[constraint].notify_one();
+    }
+
+    void terminate()
+    {
+        std::unique_lock<std::mutex> guard(m_mutex);
+        m_is_active = false;
+        for (auto& elem : m_task_added)
+        {
+            elem.second.notify_all();
+        }
+    }
+
+    bool is_active() const
+    {
+        return m_is_active;
+    }
+
+    bool has_finished()
+    {
+        //m_mutex.unlock();
+        std::unique_lock<std::mutex> guard(m_mutex);
+        auto count = std::accumulate(m_notify_count.cbegin(), m_notify_count.cend(), 0ull, [](size_t count, const auto& node)
+        {
+            return node.second + count;
+        });
+        return count == m_number_of_threads && m_notify_count["thread"] == m_number_of_threads;
+    }
+
+protected:
+    void reserve(const std::string& constraint)
+    {
+        std::unique_lock<std::mutex> guard(m_mutex);
+        // First we wait on the resource condition.
+        while (m_notify_count[constraint] == 0 && m_is_active)
+        {
+            m_task_added[constraint].wait(guard);
+        }
+        --m_notify_count[constraint];
+    }
+
+    bool m_is_active;
+    std::mutex m_mutex;
+    std::map<std::string, std::condition_variable> m_task_added;
+    std::map<std::string, size_t> m_notify_count;
+    size_t m_number_of_threads;
+};
 }

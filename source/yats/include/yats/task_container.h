@@ -14,11 +14,17 @@
 namespace yats
 {
 
+struct constraint_t
+{
+    std::string thread_identifier;
+};
+
 class abstract_task_container
 {
 public:
-    abstract_task_container(const std::set<size_t>& following_nodes)
+    abstract_task_container(const std::set<size_t>& following_nodes, constraint_t constraint)
         : m_following_nodes(following_nodes.cbegin(), following_nodes.cend())
+        , m_constraint(constraint)
     {
     }
 
@@ -38,8 +44,14 @@ public:
         return m_following_nodes;
     }
 
+    const constraint_t& constraint() const
+    {
+        return m_constraint;
+    }
+
 protected:
     const std::vector<size_t> m_following_nodes;
+    const constraint_t m_constraint;
 };
 
 template <typename Task, typename... Parameters>
@@ -52,8 +64,8 @@ class task_container : public abstract_task_container
     using output_type = typename helper::output_type;
 
 public:
-    task_container(connection_helper<Task>* connection, std::tuple<Parameters...> parameter_tuple)
-        : abstract_task_container(connection->following_nodes())
+    task_container(connection_helper<Task>* connection, std::tuple<Parameters...> parameter_tuple, constraint_t constraint)
+        : abstract_task_container(connection->following_nodes(), constraint)
         , m_input(connection->queue())
         , m_output(connection->callbacks())
         , m_task(make_from_tuple<Task>(std::move(parameter_tuple)))

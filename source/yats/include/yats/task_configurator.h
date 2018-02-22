@@ -27,6 +27,8 @@ public:
 
     virtual std::unique_ptr<abstract_task_container> construct_task_container(std::unique_ptr<abstract_connection_helper> helper) const = 0;
     virtual std::unique_ptr<abstract_connection_helper> construct_connection_helper() const = 0;
+
+    virtual void set_thread(const std::string &name) = 0;
 };
 
 template <typename Task, typename... Parameters>
@@ -71,12 +73,17 @@ public:
 
     std::unique_ptr<abstract_task_container> construct_task_container(std::unique_ptr<abstract_connection_helper> helper) const override
     {
-        return std::make_unique<task_container<Task, std::remove_reference_t<Parameters>...>>(static_cast<connection_helper<Task>*>(helper.get()), m_construction_parameters);
+        return std::make_unique<task_container<Task, std::remove_reference_t<Parameters>...>>(static_cast<connection_helper<Task>*>(helper.get()), m_construction_parameters, m_constraint);
     }
 
     std::unique_ptr<abstract_connection_helper> construct_connection_helper() const override
     {
         return std::make_unique<connection_helper<Task>>(m_inputs, m_outputs, m_listeners);
+    }
+
+    void set_thread(const std::string &name) override
+    {
+        m_constraint.thread_identifier = name;
     }
 
 protected:
@@ -112,5 +119,6 @@ protected:
     output_connectors m_outputs;
     output_callbacks m_listeners;
     const std::tuple<std::remove_reference_t<Parameters>...> m_construction_parameters;
+    constraint_t m_constraint;
 };
 }

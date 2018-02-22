@@ -193,8 +193,9 @@ public:
     class thread_guard
     {
     public:
-        thread_guard(condition *condition)
+        thread_guard(condition *condition, std::function<void(void)> callback)
             : m_condition(condition)
+            , m_callback(callback)
         {
             m_condition->reserve("thread");
         }
@@ -202,6 +203,7 @@ public:
         ~thread_guard()
         {
             m_condition->notify("thread");
+            m_callback();
         }
 
         operator bool() const
@@ -211,12 +213,20 @@ public:
 
     protected:
         condition *m_condition;
+        std::function<void(void)> m_callback;
     };
 
     thread_guard wait(const std::string& constraint)
     {
         reserve(constraint);
-        return thread_guard(this);
+
+        std::function<void(void)> callback = []{};
+        if (constraint != "main")
+        {
+            callback = [this]() { notify("main"); };
+        }
+        
+        return thread_guard(this, callback);
     }
 
     void notify(const std::string& constraint)

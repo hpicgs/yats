@@ -46,20 +46,22 @@ public:
         initial_schedule();
 
         static const std::string main_thread_pool = "main";
-        while (!m_condition.has_finished())
+        while (auto guard = m_condition.wait(main_thread_pool))
         {
-            if (auto guard = m_condition.wait(main_thread_pool))
-            {
-                auto current_task = get(main_thread_pool);
-                m_tasks[current_task]->run();
-
-                // This can be removed after the change of control flow.
-                schedule(current_task);
-            }
-            else
+            if (m_condition.has_finished())
             {
                 break;
             }
+            {
+                std::unique_lock<std::mutex> local_guard(m_mutex);
+                if (m_tasks_to_process[main_thread_pool].empty()) continue;
+            }
+
+            auto current_task = get(main_thread_pool);
+            m_tasks[current_task]->run();
+
+            // This can be removed after the change of control flow.
+            schedule(current_task);
         }
     }
 

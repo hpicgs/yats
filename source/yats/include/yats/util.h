@@ -193,30 +193,63 @@ public:
     class thread_guard
     {
     public:
-        thread_guard(condition *condition)
+        thread_guard(condition *condition, bool is_active, std::unique_lock<std::mutex> &guard)
             : m_condition(condition)
+            , m_is_active(is_active)
         {
-            m_condition->reserve("thread");
+            // Wait on the resource condition.
+            while (condition->m_notify_count["thread"] == 0 && m_is_active)
+            {
+                condition->m_task_added["thread"].wait(guard);
+            }
+            --condition->m_notify_count["thread"];
         }
 
         ~thread_guard()
         {
             m_condition->notify("thread");
+            if (m_is_active)
+            {
+                m_condition->check_finish();
+            }
         }
 
         operator bool() const
         {
-            return m_condition->is_active();
+            return m_is_active;
         }
 
     protected:
         condition *m_condition;
+        const bool m_is_active;
     };
 
     thread_guard wait(const std::string& constraint)
     {
-        reserve(constraint);
-        return thread_guard(this);
+        std::unique_lock<std::mutex> guard(m_mutex);
+
+        // Wait on the resource condition.
+        while (m_notify_count[constraint] == 0 && m_is_active)
+        {
+            m_task_added[constraint].wait(guard);
+        }
+        --m_notify_count[constraint];
+
+        return thread_guard(this, m_is_active, guard);
+    }
+
+    thread_guard wait_main(const std::string& constraint)
+    {
+        std::unique_lock<std::mutex> guard(m_mutex);
+
+        // Wait on the resource condition.
+        while (m_notify_count[constraint] == 0 && m_is_active)
+        {
+            m_task_added[constraint].wait(guard);
+        }
+        --m_notify_count[constraint];
+
+        return thread_guard(this, !has_finished(), guard);
     }
 
     void notify(const std::string& constraint)
@@ -224,6 +257,17 @@ public:
         std::unique_lock<std::mutex> guard(m_mutex);
         ++m_notify_count[constraint];
         m_task_added[constraint].notify_one();
+    }
+
+    void check_finish()
+    {
+        std::unique_lock<std::mutex> guard(m_mutex);
+        if (has_finished() && m_notify_count["main"] == 0)
+        {
+            std::cout << "checked finish:" << std::this_thread::get_id() << std::endl;
+            ++m_notify_count["main"];
+            m_task_added["main"].notify_one();
+        }
     }
 
     void terminate()
@@ -243,8 +287,6 @@ public:
 
     bool has_finished()
     {
-        //m_mutex.unlock();
-        std::unique_lock<std::mutex> guard(m_mutex);
         auto count = std::accumulate(m_notify_count.cbegin(), m_notify_count.cend(), 0ull, [](size_t count, const auto& node)
         {
             return node.second + count;
@@ -252,22 +294,23 @@ public:
         return count == m_number_of_threads && m_notify_count["thread"] == m_number_of_threads;
     }
 
-protected:
-    void reserve(const std::string& constraint)
-    {
-        std::unique_lock<std::mutex> guard(m_mutex);
-        // First we wait on the resource condition.
-        while (m_notify_count[constraint] == 0 && m_is_active)
-        {
-            m_task_added[constraint].wait(guard);
-        }
-        --m_notify_count[constraint];
-    }
+//protected:
+    //void reserve(const std::string& constraint, std::unique_lock<std::mutex>& guard)
+    //{
+    //    std::unique_lock<std::mutex> guard(m_mutex);
+    //    // Wait on the resource condition.
+    //    while (m_notify_count[constraint] == 0 && m_is_active)
+    //    {
+    //        m_task_added[constraint].wait(guard);
+    //    }
+    //    --m_notify_count[constraint];
+    //}
 
     bool m_is_active;
     std::mutex m_mutex;
     std::map<std::string, std::condition_variable> m_task_added;
     std::map<std::string, size_t> m_notify_count;
     size_t m_number_of_threads;
+
 };
 }

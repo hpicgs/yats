@@ -18,7 +18,6 @@ public:
         , m_thread_pool(m_condition)
         , m_tasks(pipeline.build())
     {
-
         static const std::string unnamed_thread_pool;
         for (size_t i = 0; i < number_of_threads; ++i)
         {
@@ -43,23 +42,19 @@ public:
 
     void run()
     {
-        initial_schedule();
+        if (!initial_schedule())
+        {
+            return;
+        }
 
         static const std::string main_thread_pool = "main";
-        while (!m_condition.has_finished())
+        while (auto guard = m_condition.wait_main(main_thread_pool))
         {
-            if (auto guard = m_condition.wait(main_thread_pool))
-            {
-                auto current_task = get(main_thread_pool);
-                m_tasks[current_task]->run();
+            auto current_task = get(main_thread_pool);
+            m_tasks[current_task]->run();
 
-                // This can be removed after the change of control flow.
-                schedule(current_task);
-            }
-            else
-            {
-                break;
-            }
+            // This can be removed after the change of control flow.
+            schedule(current_task);
         }
     }
 
@@ -86,8 +81,9 @@ protected:
         }
     }
 
-    void initial_schedule()
+    bool initial_schedule()
     {
+        bool active = false;
         for (size_t i = 0; i < m_tasks.size(); ++i)
         {
             if (m_tasks[i]->can_run())
@@ -95,8 +91,11 @@ protected:
                 auto& constraint = m_tasks[i]->constraint().thread_identifier;
                 m_tasks_to_process[constraint].push(i);
                 m_condition.notify(constraint);
+                active = true;
             }
         }
+
+        return active;
     }
 
     condition m_condition;

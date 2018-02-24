@@ -48,3 +48,21 @@ TEST(identifier_test, handles_special_characters)
     // Every special character that is not supported gets converted to '_'.
     EXPECT_EQ(id("123#()[]"), id("___#____"));
 }
+
+TEST(identifier_test, is_invertible_simple)
+{
+    EXPECT_EQ(id_to_string(id("")), "");
+    EXPECT_EQ(id_to_string(id("y")), "Y");
+    EXPECT_EQ(id_to_string(id("abc")), "ABC");
+}
+
+TEST(identifier_test, is_invertible_too_long)
+{
+    EXPECT_EQ(id_to_string(id("abcdefghijkl")), "ABCDEFGHIJKL");
+    EXPECT_EQ(id_to_string(id("abcdefghijklmno")), "ABCDEFGHIJKL");
+}
+
+TEST(identifier_test, is_invertible_special_characters)
+{
+    EXPECT_EQ(id_to_string(id("ACPP WS17/18")), "ACPP WS__/__");
+}

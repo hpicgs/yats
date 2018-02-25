@@ -1,17 +1,17 @@
-#include <iostream>
 #include <string>
 
 #include <yats/input_connector.h>
 #include <yats/output_connector.h>
-#include <yats/pipeline.h>
+
+using namespace yats;
 
 int main()
 {
-    yats::input_connector<int> input;
+    input_connector<int> input;
 #ifdef SHOULD_FAIL
-    yats::output_connector<std::string> output;
+    output_connector<std::string> output;
 #else
-    yats::output_connector<int> output;
+    output_connector<int> output;
 #endif
 
     output >> input;

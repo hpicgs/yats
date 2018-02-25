@@ -79,10 +79,10 @@ public:
     using input_sequence = std::make_index_sequence<std::tuple_size<input_connectors>::value>;
     using output_sequence = std::make_index_sequence<std::tuple_size<output_connectors>::value>;
 
-    connection_helper(const input_connectors& inputs, const output_connectors& outputs, const output_callbacks& listeners)
+    connection_helper(const input_connectors& inputs, const output_connectors& outputs, output_callbacks listeners)
         : abstract_connection_helper(map<abstract_input_connector>(inputs, input_sequence()), map<abstract_output_connector>(outputs, output_sequence()))
         , m_input(std::make_unique<input_queue>())
-        , m_output(listeners)
+        , m_output(std::move(listeners))
         , m_callbacks(generate_callbacks(m_input, std::make_index_sequence<helper::input_count>()))
     {
     }

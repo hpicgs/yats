@@ -2,17 +2,17 @@
 
 #include <yats/scheduler.h>
 #include <yats/slot.h>
-#include <yats/thread_pool.h>
+
+using namespace yats;
 
 TEST(scheduler_test, simple_create)
 {
-    yats::pipeline empty_task_configs;
-    EXPECT_NO_THROW(yats::scheduler{ empty_task_configs });
+    EXPECT_NO_THROW(yats::scheduler{ yats::pipeline() });
 }
 
 TEST(scheduler_test, multithreaded_timing_test)
 {
-    yats::pipeline pipeline;
+    pipeline pipeline;
 
     auto function = []()
     {
@@ -23,7 +23,7 @@ TEST(scheduler_test, multithreaded_timing_test)
     pipeline.add(function);
     pipeline.add(function);
 
-    yats::scheduler scheduler(pipeline);
+    scheduler scheduler(std::move(pipeline));
     auto start = std::chrono::high_resolution_clock::now();
     scheduler.run();
     auto end = std::chrono::high_resolution_clock::now();
@@ -52,12 +52,12 @@ TEST(scheduler_test, run_twice)
 
 TEST(scheduler_test, throw_on_creation)
 {
-    yats::pipeline pipeline;
+    pipeline pipeline;
 
-    auto source = pipeline.add([]() -> yats::slot<std::unique_ptr<int>, 0> { return std::make_unique<int>(0); });
+    auto source = pipeline.add([]() -> slot<std::unique_ptr<int>, 0> { return std::make_unique<int>(0); });
     source->add_listener<0>([](std::unique_ptr<int>) {});
     source->add_listener<0>([](std::unique_ptr<int>) {});
 
-    EXPECT_THROW(yats::scheduler scheduler(pipeline), std::runtime_error);
+    EXPECT_THROW(yats::scheduler scheduler(std::move(pipeline)), std::runtime_error);
 }
 

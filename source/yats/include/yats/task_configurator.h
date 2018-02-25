@@ -29,7 +29,7 @@ public:
     abstract_task_configurator& operator=(const abstract_task_configurator& other) = delete;
     abstract_task_configurator& operator=(abstract_task_configurator&& other) = delete;
 
-    virtual std::unique_ptr<abstract_task_container> construct_task_container(std::unique_ptr<abstract_connection_helper> helper) const = 0;
+    virtual std::unique_ptr<abstract_task_container> construct_task_container(std::unique_ptr<abstract_connection_helper> helper) = 0;
     virtual std::unique_ptr<abstract_connection_helper> construct_connection_helper() const = 0;
 
     void add_thread_constraint(const thread_group& group)
@@ -86,14 +86,14 @@ public:
         std::get<index>(m_listeners).push_back(typename type::function_type(std::move(callable)));
     }
 
-    std::unique_ptr<abstract_task_container> construct_task_container(std::unique_ptr<abstract_connection_helper> helper) const override
+    std::unique_ptr<abstract_task_container> construct_task_container(std::unique_ptr<abstract_connection_helper> helper) override
     {
-        return std::make_unique<task_container<Task, std::remove_reference_t<Parameters>...>>(static_cast<connection_helper<Task>*>(helper.get()), m_construction_parameters);
+        return std::make_unique<task_container<Task, std::remove_reference_t<Parameters>...>>(static_cast<connection_helper<Task>*>(helper.get()), std::move(m_construction_parameters));
     }
 
     std::unique_ptr<abstract_connection_helper> construct_connection_helper() const override
     {
-        return std::make_unique<connection_helper<Task>>(m_inputs, m_outputs, m_listeners);
+        return std::make_unique<connection_helper<Task>>(m_inputs, m_outputs, std::move(m_listeners));
     }
 
 protected:
@@ -128,6 +128,6 @@ protected:
     input_connectors m_inputs;
     output_connectors m_outputs;
     output_callbacks m_listeners;
-    const std::tuple<std::remove_reference_t<Parameters>...> m_construction_parameters;
+    std::tuple<std::remove_reference_t<Parameters>...> m_construction_parameters;
 };
 }

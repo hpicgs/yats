@@ -3,66 +3,68 @@
 #include <yats/slot.h>
 #include <yats/util.h>
 
+using namespace yats;
+
 TEST(util_test, is_unique_ptr_test)
 {
-    EXPECT_TRUE(yats::is_unique_ptr_v<std::unique_ptr<int>>);
-    EXPECT_FALSE(yats::is_unique_ptr_v<std::shared_ptr<int>>);
-    EXPECT_FALSE(yats::is_unique_ptr_v<int>);
-    EXPECT_FALSE(yats::is_unique_ptr_v<int*>);
-    EXPECT_FALSE(yats::is_unique_ptr_v<int&>);
-    EXPECT_FALSE(yats::is_unique_ptr_v<const int&>);
-    EXPECT_FALSE(yats::is_unique_ptr_v<void>);
+    EXPECT_TRUE(is_unique_ptr_v<std::unique_ptr<int>>);
+    EXPECT_FALSE(is_unique_ptr_v<std::shared_ptr<int>>);
+    EXPECT_FALSE(is_unique_ptr_v<int>);
+    EXPECT_FALSE(is_unique_ptr_v<int*>);
+    EXPECT_FALSE(is_unique_ptr_v<int&>);
+    EXPECT_FALSE(is_unique_ptr_v<const int&>);
+    EXPECT_FALSE(is_unique_ptr_v<void>);
 
     struct no_unique_ptr
     {
         char dummy;
     };
 
-    EXPECT_FALSE(yats::is_unique_ptr_v<no_unique_ptr>);
-    EXPECT_FALSE(yats::is_unique_ptr_v<no_unique_ptr*>);
+    EXPECT_FALSE(is_unique_ptr_v<no_unique_ptr>);
+    EXPECT_FALSE(is_unique_ptr_v<no_unique_ptr*>);
 }
 
 TEST(util_test, is_shared_ptr_test)
 {
-    EXPECT_TRUE(yats::is_shared_ptr_v<std::shared_ptr<int>>);
-    EXPECT_FALSE(yats::is_shared_ptr_v<std::unique_ptr<int>>);
-    EXPECT_FALSE(yats::is_shared_ptr_v<int>);
-    EXPECT_FALSE(yats::is_shared_ptr_v<int*>);
-    EXPECT_FALSE(yats::is_shared_ptr_v<int&>);
-    EXPECT_FALSE(yats::is_shared_ptr_v<const int&>);
-    EXPECT_FALSE(yats::is_shared_ptr_v<void>);
+    EXPECT_TRUE(is_shared_ptr_v<std::shared_ptr<int>>);
+    EXPECT_FALSE(is_shared_ptr_v<std::unique_ptr<int>>);
+    EXPECT_FALSE(is_shared_ptr_v<int>);
+    EXPECT_FALSE(is_shared_ptr_v<int*>);
+    EXPECT_FALSE(is_shared_ptr_v<int&>);
+    EXPECT_FALSE(is_shared_ptr_v<const int&>);
+    EXPECT_FALSE(is_shared_ptr_v<void>);
 
     struct no_shared_ptr
     {
         char dummy;
     };
 
-    EXPECT_FALSE(yats::is_unique_ptr_v<no_shared_ptr>);
-    EXPECT_FALSE(yats::is_unique_ptr_v<no_shared_ptr*>);
+    EXPECT_FALSE(is_unique_ptr_v<no_shared_ptr>);
+    EXPECT_FALSE(is_unique_ptr_v<no_shared_ptr*>);
 }
 
 TEST(util_test, is_tuple_test)
 {
-    EXPECT_TRUE(yats::is_tuple_v<std::tuple<>>);
-    EXPECT_TRUE(yats::is_tuple_v<std::tuple<int>>);
-    auto val = yats::is_tuple_v<std::tuple<int, float>>;
+    EXPECT_TRUE(is_tuple_v<std::tuple<>>);
+    EXPECT_TRUE(is_tuple_v<std::tuple<int>>);
+    auto val = is_tuple_v<std::tuple<int, float>>;
     EXPECT_TRUE(val);
 
-    EXPECT_FALSE(yats::is_tuple_v<std::shared_ptr<int>>);
-    EXPECT_FALSE(yats::is_tuple_v<std::unique_ptr<int>>);
-    EXPECT_FALSE(yats::is_tuple_v<int>);
-    EXPECT_FALSE(yats::is_tuple_v<int*>);
-    EXPECT_FALSE(yats::is_tuple_v<int&>);
-    EXPECT_FALSE(yats::is_tuple_v<const int&>);
-    EXPECT_FALSE(yats::is_tuple_v<void>);
+    EXPECT_FALSE(is_tuple_v<std::shared_ptr<int>>);
+    EXPECT_FALSE(is_tuple_v<std::unique_ptr<int>>);
+    EXPECT_FALSE(is_tuple_v<int>);
+    EXPECT_FALSE(is_tuple_v<int*>);
+    EXPECT_FALSE(is_tuple_v<int&>);
+    EXPECT_FALSE(is_tuple_v<const int&>);
+    EXPECT_FALSE(is_tuple_v<void>);
 
     struct no_shared_ptr
     {
         char dummy;
     };
 
-    EXPECT_FALSE(yats::is_tuple_v<no_shared_ptr>);
-    EXPECT_FALSE(yats::is_tuple_v<no_shared_ptr*>);
+    EXPECT_FALSE(is_tuple_v<no_shared_ptr>);
+    EXPECT_FALSE(is_tuple_v<no_shared_ptr*>);
 }
 
 TEST(util_test, has_run_test)
@@ -87,9 +89,9 @@ TEST(util_test, has_run_test)
         int i;
     };
 
-    EXPECT_TRUE(yats::has_run_v<member_run>);
-    EXPECT_TRUE(yats::has_run_v<static_run>);
-    EXPECT_FALSE(yats::has_run_v<no_run>);
+    EXPECT_TRUE(has_run_v<member_run>);
+    EXPECT_TRUE(has_run_v<static_run>);
+    EXPECT_FALSE(has_run_v<no_run>);
 }
 
 TEST(util_test, get_value_type_test)
@@ -98,10 +100,10 @@ TEST(util_test, get_value_type_test)
     {
     };
 
-    using test_tuple2 = std::tuple<yats::slot<float, 321>, yats::slot<int, 123>>;
+    using test_tuple2 = std::tuple<slot<float, 321>, slot<int, 123>>;
 
-    constexpr auto index1 = yats::get_index_by_id_v<321, test_tuple2>;
-    constexpr auto index2 = yats::get_index_by_id_v<123, test_tuple2>;
+    constexpr auto index1 = get_index_by_id_v<321, test_tuple2>;
+    constexpr auto index2 = get_index_by_id_v<123, test_tuple2>;
 
     EXPECT_EQ(index1, 0);
     EXPECT_EQ(index2, 1);
@@ -109,13 +111,13 @@ TEST(util_test, get_value_type_test)
 
 TEST(util_test, has_unique_ids_test)
 {
-    constexpr auto yes = yats::has_unique_ids_v<std::tuple<yats::slot<int, 123>, yats::slot<float, 321>>>;
-    constexpr auto no = yats::has_unique_ids_v<std::tuple<yats::slot<int, 123>, yats::slot<float, 123>>>;
+    constexpr auto yes = has_unique_ids_v<std::tuple<slot<int, 123>, slot<float, 321>>>;
+    constexpr auto no = has_unique_ids_v<std::tuple<slot<int, 123>, slot<float, 123>>>;
 
     EXPECT_TRUE(yes);
     EXPECT_FALSE(no);
 
-    constexpr auto yes_empty = yats::has_unique_ids_v<std::tuple<>>;
+    constexpr auto yes_empty = has_unique_ids_v<std::tuple<>>;
 
     EXPECT_TRUE(yes_empty);
 }

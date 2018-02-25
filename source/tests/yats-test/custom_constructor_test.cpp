@@ -1,9 +1,13 @@
+#include <test_util.h>
+
 #include <gmock/gmock.h>
 
 #include <yats/scheduler.h>
 #include <yats/slot.h>
 
-#include <test_util.h>
+
+
+using namespace yats;
 
 TEST(custom_constructor_test, reference_as_argument)
 {
@@ -14,7 +18,7 @@ TEST(custom_constructor_test, reference_as_argument)
         {
         }
 
-        yats::output_bundle<yats::slot<int, 0>> run()
+        output_bundle<slot<int, 0>> run()
         {
             return std::make_tuple(m_value);
         }
@@ -30,7 +34,7 @@ TEST(custom_constructor_test, reference_as_argument)
         {
         }
 
-        void run(yats::slot<int, 0> value)
+        void run(slot<int, 0> value)
         {
             m_value = value;
         }
@@ -42,13 +46,13 @@ TEST(custom_constructor_test, reference_as_argument)
     int start_value = 1;
     int end_value = -1;
 
-    yats::pipeline pipeline;
+    pipeline pipeline;
     auto source = pipeline.add<Source>(std::cref(start_value));
     auto target = pipeline.add<Target>(std::ref(end_value));
 
     source->output<0>() >> target->input<0>();
 
-    yats::scheduler scheduler(pipeline);
+    scheduler scheduler(std::move(pipeline));
 
     EXPECT_NE(start_value, end_value);
     start_value = 2;
@@ -75,20 +79,20 @@ TEST(custom_constructor_test, no_reference_as_argument)
         uint8_t& m_reference;
     };
 
-    yats::pipeline pipeline;
+    pipeline pipeline;
 
     uint8_t output_value = 10;
     uint8_t input_value = 0;
     pipeline.add<Task>(input_value, std::ref(output_value));
     input_value += 5;
 
-    yats::scheduler scheduler(pipeline);
+    scheduler scheduler(std::move(pipeline));
     scheduler.run();
 
     EXPECT_EQ(output_value, 0);
 }
 
-TEST(custom_constructor_test, no_unnecessary_copy)
+TEST(custom_constructor_test, no_copy)
 {
     struct Task
     {
@@ -107,15 +111,13 @@ TEST(custom_constructor_test, no_unnecessary_copy)
         constructor_counter counter;
     };
 
-    yats::pipeline pipeline;
+    pipeline pipeline;
 
     uint8_t copy_counter = 0;
     pipeline.add<Task>(std::ref(copy_counter), constructor_counter());
 
-    // This should be the only place, where the copy constructor is called
-    // Also it should be called only once
-    yats::scheduler scheduler(pipeline);
+    scheduler scheduler(std::move(pipeline));
     scheduler.run();
 
-    EXPECT_EQ(copy_counter, 1);
+    EXPECT_EQ(copy_counter, 0);
 }

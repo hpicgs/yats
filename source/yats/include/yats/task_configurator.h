@@ -3,9 +3,10 @@
 #include <map>
 #include <memory>
 
+#include <yats/constraint.h>
+#include <yats/identifier.h>
 #include <yats/lambda_task.h>
 #include <yats/task_container.h>
-#include <yats/identifier.h>
 #include <yats/util.h>
 
 namespace yats
@@ -15,8 +16,11 @@ namespace yats
 class abstract_task_configurator
 {
 public:
-    abstract_task_configurator() = default;
-    
+    abstract_task_configurator()
+        : m_thread_constraint(thread_group::any_thread())
+    {
+    }
+
     virtual ~abstract_task_configurator() = default;
 
     abstract_task_configurator(const abstract_task_configurator& other) = delete;
@@ -28,7 +32,18 @@ public:
     virtual std::unique_ptr<abstract_task_container> construct_task_container(std::unique_ptr<abstract_connection_helper> helper) const = 0;
     virtual std::unique_ptr<abstract_connection_helper> construct_connection_helper() const = 0;
 
-    virtual void set_thread(const std::string &name) = 0;
+    void add_thread_constraint(const thread_group& group)
+    {
+        m_thread_constraint |= group;
+    }
+
+    const thread_group& thread_constraint() const
+    {
+        return m_thread_constraint;
+    }
+
+protected:
+    thread_group m_thread_constraint;
 };
 
 template <typename Task, typename... Parameters>
@@ -48,7 +63,7 @@ public:
         : m_construction_parameters(std::forward<Parameters>(parameters)...)
     {
     }
-    
+
     template <uint64_t Id>
     auto& input()
     {
@@ -73,17 +88,12 @@ public:
 
     std::unique_ptr<abstract_task_container> construct_task_container(std::unique_ptr<abstract_connection_helper> helper) const override
     {
-        return std::make_unique<task_container<Task, std::remove_reference_t<Parameters>...>>(static_cast<connection_helper<Task>*>(helper.get()), m_construction_parameters, m_constraint);
+        return std::make_unique<task_container<Task, std::remove_reference_t<Parameters>...>>(static_cast<connection_helper<Task>*>(helper.get()), m_construction_parameters);
     }
 
     std::unique_ptr<abstract_connection_helper> construct_connection_helper() const override
     {
         return std::make_unique<connection_helper<Task>>(m_inputs, m_outputs, m_listeners);
-    }
-
-    void set_thread(const std::string &name) override
-    {
-        m_constraint.thread_identifier = name;
     }
 
 protected:
@@ -119,6 +129,5 @@ protected:
     output_connectors m_outputs;
     output_callbacks m_listeners;
     const std::tuple<std::remove_reference_t<Parameters>...> m_construction_parameters;
-    constraint_t m_constraint;
 };
 }

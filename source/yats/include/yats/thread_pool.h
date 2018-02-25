@@ -2,13 +2,15 @@
 
 #include <thread>
 
+#include <yats/condition.h>
+
 namespace yats
 {
 
 class thread_pool
 {
 public:
-    thread_pool(condition &condition)
+    thread_pool(condition& condition)
         : m_condition(condition)
     {
     }
@@ -22,17 +24,16 @@ public:
     ~thread_pool()
     {
         m_condition.terminate();
-        for (auto &thread : m_threads)
+        for (auto& thread : m_threads)
         {
             thread.join();
         }
     }
 
     template <typename Callable>
-    void execute(Callable thread_function, const std::string &constraint)
+    void execute(Callable thread_function, size_t constraint)
     {
-        m_threads.emplace_back([this, thread_function, constraint]() mutable
-        {
+        m_threads.emplace_back([this, thread_function, constraint]() mutable {
             while (auto guard = m_condition.wait(constraint))
             {
                 thread_function();
@@ -42,6 +43,6 @@ public:
 
 protected:
     std::vector<std::thread> m_threads;
-    condition &m_condition;
+    condition& m_condition;
 };
 }

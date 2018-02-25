@@ -127,7 +127,8 @@ protected:
     static typename std::tuple_element_t<index, input_callbacks> generate_callback(input_queue_ptr& queue)
     {
         using parameter_type = typename std::tuple_element_t<index, input_queue>::value_type;
-        return [&current = std::get<index>(*queue)](parameter_type input) mutable {
+        return [&current = std::get<index>(*queue)](parameter_type input) mutable
+        {
             current.push(std::move(input));
         };
     }

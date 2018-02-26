@@ -16,8 +16,8 @@ namespace yats
 class abstract_task_configurator
 {
 public:
-    abstract_task_configurator()
-        : m_thread_constraint(thread_group::any_thread())
+    abstract_task_configurator(const thread_group& thread_constraint)
+        : m_thread_constraint(thread_constraint)
     {
     }
 
@@ -37,7 +37,7 @@ public:
         m_thread_constraint |= group;
     }
 
-    const thread_group& thread_constraint() const
+    const thread_group& thread_constraints() const
     {
         return m_thread_constraint;
     }
@@ -60,7 +60,8 @@ class task_configurator : public abstract_task_configurator
 
 public:
     task_configurator(Parameters&&... parameters)
-        : m_construction_parameters(std::forward<Parameters>(parameters)...)
+        : abstract_task_configurator(default_thread_constraints())
+        , m_construction_parameters(std::forward<Parameters>(parameters)...)
     {
     }
 
@@ -123,6 +124,18 @@ protected:
     std::enable_if_t<Index == std::tuple_size<IdTuple>::value, Return*> get(Parameter&, uint64_t)
     {
         return nullptr;
+    }
+
+    template <typename LocalTask = Task>
+    static std::enable_if_t<has_thread_constraints_v<LocalTask>, thread_group> default_thread_constraints()
+    {
+        return LocalTask::thread_constraints();
+    }
+
+    template <typename LocalTask = Task>
+    static std::enable_if_t<!has_thread_constraints_v<LocalTask>, thread_group> default_thread_constraints()
+    {
+        return thread_group::any_thread();
     }
 
     input_connectors m_inputs;

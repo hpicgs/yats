@@ -79,7 +79,7 @@ public:
             tasks.push_back(m_tasks[i]->construct_task_container(std::move(helpers[i])));
 
             std::vector<size_t> constraints;
-            for (const auto& constraint_name : m_tasks[i]->thread_constraint().names())
+            for (const auto& constraint_name : m_tasks[i]->thread_constraints().names())
             {
                 constraints.push_back(constraint_map.at(constraint_name));
             }
@@ -106,7 +106,7 @@ protected:
         size_t next_constraint = 2;
         for (const auto& task : m_tasks)
         {
-            for (const auto& constraint_name : task->thread_constraint().names())
+            for (const auto& constraint_name : task->thread_constraints().names())
             {
                 auto success = constraint_map.emplace(constraint_name, next_constraint);
                 if (success.second)

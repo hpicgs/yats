@@ -70,4 +70,16 @@ public:
 protected:
     std::set<std::string> m_names;
 };
+
+template <typename T>
+struct has_thread_constraints
+{
+    template <typename U> static auto test_function(int) -> decltype(U::thread_constraints());
+    template <typename U> static std::false_type test_function(...);
+
+    static constexpr bool value = std::is_same<decltype(test_function<T>(0)), yats::thread_group>::value;
+};
+
+template <typename T>
+static constexpr bool has_thread_constraints_v = has_thread_constraints<T>::value;
 }

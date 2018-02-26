@@ -2,7 +2,6 @@
 
 #include <set>
 #include <string>
-#include <vector>
 
 namespace yats
 {
@@ -47,20 +46,18 @@ public:
         return 0;
     }
 
-    const std::vector<std::string>& names() const
+    const std::set<std::string>& names() const
     {
         return m_names;
     }
 
     thread_group& operator|=(const thread_group& other)
     {
-        auto end_it = m_names.end();
+        m_names.insert(other.m_names.cbegin(), other.m_names.cend());
+
         // As soon as we have a thread constraint we no longer want the any thread constraint
-        if (m_names[0] == any_thread_name())
-        {
-            --end_it;
-        }
-        m_names.insert(end_it, other.m_names.cbegin(), other.m_names.cend());
+        m_names.erase(any_thread_name());
+
         return *this;
     }
 
@@ -71,6 +68,6 @@ public:
     }
 
 protected:
-    std::vector<std::string> m_names;
+    std::set<std::string> m_names;
 };
 }

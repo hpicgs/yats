@@ -26,7 +26,7 @@ public:
                 m_tasks[current_task]->run();
 
                 // This can be removed after the change of control flow.
-                schedule(current_task);
+                schedule_following(current_task);
             }, thread_group::any_thread_number());
         }
     }
@@ -52,7 +52,7 @@ public:
             m_tasks[current_task]->run();
 
             // This can be removed after the change of control flow.
-            schedule(current_task);
+            schedule_following(current_task);
         }
     }
 
@@ -67,20 +67,26 @@ protected:
 
     void schedule(size_t index)
     {
+        const auto& constraints = m_tasks[index]->constraints();
+
+        // If there are multiple threads we can chose from take the one with the smallest current workload
+        // TODO: theres probably a better method to check which thread to take
+        auto constraint_it = std::min_element(constraints.cbegin(), constraints.cend(), [this](size_t lhs, size_t rhs) {
+            return m_tasks_to_process[lhs].size() < m_tasks_to_process[rhs].size();
+        });
+
+        m_tasks_to_process[*constraint_it].push(index);
+        m_condition.notify(*constraint_it);
+    }
+
+    void schedule_following(size_t index)
+    {
         std::unique_lock<std::mutex> guard(m_mutex);
         for (auto next_task : m_tasks[index]->following_nodes())
         {
             if (m_tasks[next_task]->can_run())
             {
-                const auto& constraints = m_tasks[next_task]->constraints();
-
-                // If there are multiple threads we can chose from take the one with the smallest current workload
-                auto constraint_it = std::min_element(constraints.cbegin(), constraints.cend(), [this](size_t lhs, size_t rhs) {
-                    return m_tasks_to_process[lhs] < m_tasks_to_process[rhs];
-                });
-
-                m_tasks_to_process[*constraint_it].push(next_task);
-                m_condition.notify(*constraint_it);
+                schedule(next_task);
             }
         }
     }
@@ -92,16 +98,7 @@ protected:
         {
             if (m_tasks[i]->can_run())
             {
-                const auto& constraints = m_tasks[i]->constraints();
-
-                // If there are multiple threads we can chose from take the one with the smallest current workload
-                // TODO: theres probably a better method to check which thread to take
-                auto constraint_it = std::min_element(constraints.cbegin(), constraints.cend(), [this](size_t lhs, size_t rhs) {
-                    return m_tasks_to_process[lhs] < m_tasks_to_process[rhs];
-                });
-
-                m_tasks_to_process[*constraint_it].push(i);
-                m_condition.notify(*constraint_it);
+                schedule(i);
                 active = true;
             }
         }

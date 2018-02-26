@@ -10,6 +10,8 @@ namespace yats
 const size_t width_of_character = 5;
 // Number of bits used to encode the string length.
 const size_t width_of_length = 4;
+// Id for first special character
+const size_t unique_begin = 26;
 
 //! This function transformes a character to a smaller alphabet.
 constexpr int lookup(char character)
@@ -26,8 +28,6 @@ constexpr int lookup(char character)
         return character - 'a';
     }
 
-    // Special characters
-    constexpr int unique_begin = 26;
     switch (character)
     {
     case ' ':
@@ -73,13 +73,11 @@ constexpr uint64_t name(const char* string, size_t length)
 static char int_to_char(uint64_t character)
 {
     // Upper case
-    if (character <= 25)
+    if (character < unique_begin)
     {
         return static_cast<char>(character + 'A');
     }
 
-    // Special characters
-    constexpr auto unique_begin = 26;
     switch (character)
     {
     case unique_begin + 0:
@@ -93,7 +91,6 @@ static char int_to_char(uint64_t character)
     case unique_begin + 4:
         return '#';
     default:
-    case '_':
         return '_';
     }
 }
@@ -103,17 +100,17 @@ static std::string id_to_string(uint64_t id)
     std::string s;
 
     // lowest 4 bits = length;
-    const int length = id & 15;
+    const int length = id & 0b1111;
     // cut off length (last 4 bits)
     id = id >> width_of_length;
 
     s.reserve(length);
 
-    const auto mask = 0b11111;
+    const uint64_t mask = 0b11111;
 
     for (auto i = 0; i < length; ++i)
     {
-        const uint64_t char_as_int = id & mask;
+        const auto char_as_int = id & mask;
         s.push_back(int_to_char(char_as_int));
         id = id >> width_of_character;
     }

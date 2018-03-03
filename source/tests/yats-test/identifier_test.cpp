@@ -25,7 +25,7 @@ TEST(identifier_test, supports_full_range)
     // Test if every possible character returns a valid output.
     for (int i = std::numeric_limits<char>::min(); i <= std::numeric_limits<char>::max(); ++i)
     {
-        EXPECT_LT(yats::lookup(static_cast<char>(i)), 32);
+        EXPECT_LT(yats::identifier::char_to_int(static_cast<char>(i)), 32);
     }
 }
 
@@ -39,7 +39,6 @@ TEST(identifier_test, is_case_insensitive)
 TEST(identifier_test, ignores_characters_after_max_length)
 {
     EXPECT_EQ(id("123456789012"), id("1234567890123"));
-
     EXPECT_EQ(id("1234567890124"), id("1234567890123"));
 }
 
@@ -51,18 +50,18 @@ TEST(identifier_test, handles_special_characters)
 
 TEST(identifier_test, is_invertible_simple)
 {
-    EXPECT_EQ(id_to_string(id("")), "");
-    EXPECT_EQ(id_to_string(id("y")), "Y");
-    EXPECT_EQ(id_to_string(id("abc")), "ABC");
+    EXPECT_EQ(yats::identifier::id_to_string(id("")), "");
+    EXPECT_EQ(yats::identifier::id_to_string(id("y")), "Y");
+    EXPECT_EQ(yats::identifier::id_to_string(id("abc")), "ABC");
 }
 
 TEST(identifier_test, is_invertible_too_long)
 {
-    EXPECT_EQ(id_to_string(id("abcdefghijkl")), "ABCDEFGHIJKL");
-    EXPECT_EQ(id_to_string(id("abcdefghijklmno")), "ABCDEFGHIJKL");
+    EXPECT_EQ(yats::identifier::id_to_string(id("abcdefghijkl")), "ABCDEFGHIJKL");
+    EXPECT_EQ(yats::identifier::id_to_string(id("abcdefghijklmno")), "ABCDEFGHIJKL");
 }
 
 TEST(identifier_test, is_invertible_special_characters)
 {
-    EXPECT_EQ(id_to_string(id("ACPP WS17/18")), "ACPP WS__/__");
+    EXPECT_EQ(yats::identifier::id_to_string(id("ACPP WS17/18")), "ACPP WS__/__");
 }

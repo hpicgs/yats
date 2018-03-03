@@ -89,12 +89,6 @@ public:
         return tasks;
     }
 
-    size_t constraint_count() const
-    {
-        //TODO kinda inefficient
-        return convert_constraints().size();
-    }
-
 protected:
     std::map<std::string, size_t> convert_constraints() const
     {

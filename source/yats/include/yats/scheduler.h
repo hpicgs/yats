@@ -15,8 +15,8 @@ class scheduler
 public:
     explicit scheduler(const pipeline& pipeline, size_t number_of_threads = std::thread::hardware_concurrency())
         : m_tasks(pipeline.build())
-        , m_tasks_to_process(pipeline.constraint_count())
-        , m_condition(number_of_threads, pipeline.constraint_count())
+        , m_tasks_to_process(number_of_constraints(m_tasks))
+        , m_condition(number_of_threads, number_of_constraints(m_tasks))
         , m_thread_pool(m_condition)
     {
         for (size_t i = 0; i < number_of_threads; ++i)
@@ -104,6 +104,17 @@ protected:
         }
 
         return active;
+    }
+
+    static size_t number_of_constraints(const std::vector<std::unique_ptr<abstract_task_container>>& tasks)
+    {
+        size_t max_constraint = 0;
+        for (const auto& task : tasks)
+        {
+            max_constraint = std::max(max_constraint, *std::max_element(task->constraints().cbegin(), task->constraints().cend()));
+        }
+        // We have to add 1 because constraints start at 0
+        return max_constraint + 1;
     }
 
     std::vector<std::unique_ptr<abstract_task_container>> m_tasks;

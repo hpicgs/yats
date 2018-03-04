@@ -13,7 +13,7 @@ namespace yats
 class scheduler
 {
 public:
-    explicit scheduler(const pipeline& pipeline, size_t number_of_threads = std::thread::hardware_concurrency())
+    explicit scheduler(const pipeline& pipeline, size_t number_of_threads = std::max(std::thread::hardware_concurrency(), 1u))
         : m_tasks(pipeline.build())
         , m_tasks_to_process(number_of_constraints(m_tasks))
         , m_condition(number_of_threads, number_of_constraints(m_tasks))
@@ -69,7 +69,7 @@ protected:
     {
         const auto& constraints = m_tasks[index]->constraints();
 
-        // If there are multiple threads we can chose from take the one with the smallest current workload
+        // If there are multiple threads we choose the one with the smallest current workload
         // TODO: theres probably a better method to check which thread to take
         auto constraint_it = std::min_element(constraints.cbegin(), constraints.cend(), [this](size_t lhs, size_t rhs) {
             return m_tasks_to_process[lhs].size() < m_tasks_to_process[rhs].size();
@@ -113,8 +113,10 @@ protected:
         {
             max_constraint = std::max(max_constraint, *std::max_element(task->constraints().cbegin(), task->constraints().cend()));
         }
-        // We have to add 1 because constraints start at 0
-        return max_constraint + 1;
+		// We have to add 2 because we have 2 constraints, which exist even though they are not chosen
+		// 1. any thread
+		// 2. main thread
+        return max_constraint + 2;
     }
 
     std::vector<std::unique_ptr<abstract_task_container>> m_tasks;

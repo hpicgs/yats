@@ -98,7 +98,6 @@ public:
         std::unique_lock<std::mutex> guard(m_mutex);
         if (has_finished() && m_notify_count[thread_group::main_thread_number()] == 0)
         {
-            std::cout << "checked finish:" << std::this_thread::get_id() << std::endl;
             ++m_notify_count[thread_group::main_thread_number()];
             m_task_added[thread_group::main_thread_number()].notify_one();
         }
@@ -121,9 +120,7 @@ public:
 
     bool has_finished()
     {
-        auto count = std::accumulate(m_notify_count.cbegin(), m_notify_count.cend(), 0ull, [](size_t count, size_t node) {
-            return node + count;
-        });
+        auto count = std::accumulate(m_notify_count.cbegin(), m_notify_count.cend(), 0ull);
         return count == m_number_of_threads && m_notify_count[m_thread_identifier] == m_number_of_threads;
     }
 

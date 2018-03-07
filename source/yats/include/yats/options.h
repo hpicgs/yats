@@ -26,7 +26,7 @@ template <typename Task, typename Type>
 struct typed_member : public abstract_member<Task>
 {
     typed_member(Type Task::* member_pointer)
-        : abstract_member(typeid(Type))
+        : abstract_member<Task>(typeid(Type))
         , pointer(member_pointer)
     {
     }

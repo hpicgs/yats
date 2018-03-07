@@ -43,7 +43,8 @@ class task_configurator : public abstract_task_configurator
 
 public:
     task_configurator(Parameters&&... parameters)
-        : m_construction_parameters(std::forward<Parameters>(parameters)...)
+        : m_options(construct_options_map())
+        , m_construction_parameters(std::forward<Parameters>(parameters)...)
     {
     }
     
@@ -71,7 +72,7 @@ public:
 
     std::unique_ptr<abstract_task_container> construct_task_container(std::unique_ptr<abstract_connection_helper> helper) override
     {
-        return std::make_unique<task_container<Task, std::remove_reference_t<Parameters>...>>(static_cast<connection_helper<Task>*>(helper.get()), std::move(m_construction_parameters));
+        return std::make_unique<task_container<Task, std::remove_reference_t<Parameters>...>>(static_cast<connection_helper<Task>*>(helper.get()), std::move(m_options), std::move(m_construction_parameters));
     }
 
     std::unique_ptr<abstract_connection_helper> construct_connection_helper() const override
@@ -108,9 +109,22 @@ protected:
         return nullptr;
     }
 
+    template <typename T = Task>
+    std::enable_if_t<has_options_v<T>, options<T>> construct_options_map()
+    {
+        return Task::options();
+    }
+
+    template <typename T = Task>
+    std::enable_if_t<!has_options_v<T>, options<T>> construct_options_map()
+    {
+        return options_map<Task>();
+    }
+
     input_connectors m_inputs;
     output_connectors m_outputs;
     output_callbacks m_listeners;
+    options<Task> m_options;
     std::tuple<std::remove_reference_t<Parameters>...> m_construction_parameters;
 };
 }

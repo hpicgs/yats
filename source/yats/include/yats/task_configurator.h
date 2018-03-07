@@ -43,7 +43,7 @@ class task_configurator : public abstract_task_configurator
 
 public:
     task_configurator(Parameters&&... parameters)
-        : m_options(construct_options_map())
+        : m_options(std::make_unique<option_storage<Task>>(construct_options_map()))
         , m_construction_parameters(std::forward<Parameters>(parameters)...)
     {
     }
@@ -80,6 +80,11 @@ public:
         return std::make_unique<connection_helper<Task>>(m_inputs, m_outputs, std::move(m_listeners));
     }
 
+    typename options_ptr<Task>::pointer options()
+    {
+        return m_options.get();
+    }
+
 protected:
     template <typename IdTuple, typename Return, typename Parameter>
     Return& find(Parameter& tuple, uint64_t id)
@@ -110,13 +115,13 @@ protected:
     }
 
     template <typename T = Task>
-    std::enable_if_t<has_options_v<T>, options<T>> construct_options_map()
+    static std::enable_if_t<has_options_v<T>, options_map<T>> construct_options_map()
     {
         return Task::options();
     }
 
     template <typename T = Task>
-    std::enable_if_t<!has_options_v<T>, options<T>> construct_options_map()
+    static std::enable_if_t<!has_options_v<T>, options_map<T>> construct_options_map()
     {
         return options_map<Task>();
     }
@@ -124,7 +129,7 @@ protected:
     input_connectors m_inputs;
     output_connectors m_outputs;
     output_callbacks m_listeners;
-    options<Task> m_options;
+    options_ptr<Task> m_options;
     std::tuple<std::remove_reference_t<Parameters>...> m_construction_parameters;
 };
 }

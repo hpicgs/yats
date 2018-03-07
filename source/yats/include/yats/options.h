@@ -35,27 +35,25 @@ struct typed_member : public abstract_member<Task>
 };
 
 template <typename Task>
-class member_pointer
+struct member_pointer
 {
-public:
     template <typename Type>
     member_pointer(Type Task::* pointer)
         : member(std::make_unique<typed_member<Task, Type>>(pointer))
     {
     }
 
-protected:
-    std::unique_ptr<abstract_member<Task>> member;
+    std::shared_ptr<abstract_member<Task>> member;
 };
 
 template <typename Task>
 using options_map = std::map<std::string, member_pointer<Task>>;
 
 template <typename Task>
-class options
+class option_storage
 {
 public:
-    options(options_map<Task> option)
+    option_storage(options_map<Task> option)
         : m_values(std::move(option))
     {
     }
@@ -69,16 +67,16 @@ public:
             throw std::logic_error("key: '" + key + "' not found.");
         }
 
-        auto member_pointer = option.second.member.get();
-        if (member_pointer->type != std::type_index(typeid(Type)))
+        auto member = option->second.member.get();
+        if (member->type != std::type_index(typeid(Type)))
         {
             throw std::logic_error("key: '" + key + "' has an incompatible type.");
         }
 
-        auto typed_member_pointer = static_cast<member<Task, Type>>(member_pointer).pointer;
+        auto typed_member_pointer = static_cast<typed_member<Task, Type>*>(member)->pointer;
         m_changes.push_back([typed_member_pointer, value = std::move(value)](Task *task) mutable
         {
-            task.*typed_member_pointer = std::move(value);
+            task->*typed_member_pointer = std::move(value);
         });
     }
 
@@ -95,5 +93,8 @@ protected:
     options_map<Task> m_values;
     std::vector<std::function<void(Task*)>> m_changes;
 };
+
+template <typename Task>
+using options_ptr = std::unique_ptr<option_storage<Task>>;
 
 }

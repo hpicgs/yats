@@ -53,7 +53,7 @@ class task_container : public abstract_task_container
     using output_type = typename helper::output_type;
 
 public:
-    task_container(connection_helper<Task>* connection, options<Task> options, std::tuple<Parameters...> parameter_tuple)
+    task_container(connection_helper<Task>* connection, options_ptr<Task> options, std::tuple<Parameters...> parameter_tuple)
         : abstract_task_container(connection->following_nodes())
         , m_input(connection->queue())
         , m_output(connection->callbacks())
@@ -69,6 +69,7 @@ public:
 
     void run() override
     {
+        m_options->make_updates_visible(&m_task);
         invoke(std::make_index_sequence<helper::input_count>());
     }
 
@@ -168,7 +169,7 @@ protected:
 
     input_queue_ptr m_input;
     output_callbacks m_output;
-    options<Task> m_options;
+    options_ptr<Task> m_options;
     Task m_task;
 };
 }

@@ -115,11 +115,6 @@ public:
     }
 
 private:
-    /**
-     * Prevents class from being instantiated.
-     */
-    identifier() = default;
-
     // Defines a protocol to convert a string to an id.
     // Size of a single character in bits
     static const size_t width_of_character = 5;

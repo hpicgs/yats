@@ -32,7 +32,7 @@ public:
 template <typename Task, typename... Parameters>
 class task_configurator : public abstract_task_configurator
 {
-    static_assert(has_run_v<Task>, "Can not create task_configurator because its task has no run function.");
+    static_assert(has_run_v<Task>, "Cannot create task_configurator because its task has no run function.");
 
     using helper = decltype(make_helper(&Task::run));
     using input_connectors = typename helper::input_connectors;
@@ -47,6 +47,9 @@ public:
     {
     }
     
+    /**
+     * Get input with {@code Id}.
+     */
     template <uint64_t Id>
     auto& input()
     {
@@ -54,6 +57,9 @@ public:
         return find<input_tuple, std::tuple_element_t<index, input_connectors>>(m_inputs, Id);
     }
 
+    /**
+     * Gets output with {@code Id}.
+     */
     template <uint64_t Id>
     auto& output()
     {

@@ -83,3 +83,33 @@ TEST(pipeline_test, add_multiple_listener)
     EXPECT_EQ(output1, 30);
     EXPECT_EQ(output2, 30);
 }
+
+TEST(pipeline_test, save_to_file)
+{
+    pipeline p;
+
+    // Liste mir alle inputs und outputs zu einem Task.
+
+    struct add_task
+    {
+        output_bundle<slot<int, "sum"_id>> run(slot<int, "summand_a"_id> a, slot<int, "summand_b"_id> b)
+        {
+            return a + b;
+        }
+    };
+
+    struct multiply_task
+    {
+        output_bundle<slot<int, "product"_id>> run(slot<int, "factor_a"_id> a, slot<int, "factor_b"_id> b)
+        {
+            return a * b;
+        }
+    };
+
+    auto add_cfg = p.add<add_task>();
+    auto multiply_cfg = p.add<multiply_task>();
+
+    add_cfg->output<"sum"_id>() >> multiply_cfg->input<"factor_a"_id>();
+
+    p.save_to_file("C:\\Users\\Mapp\\graph.txt");
+}

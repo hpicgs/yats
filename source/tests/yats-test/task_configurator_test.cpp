@@ -72,7 +72,6 @@ TEST(task_configurator_test, get_input_output_by_id)
 
 TEST(task_configurator_test, get_input_output_by_name)
 {
-    using namespace yats;
     struct Task
     {
         output_bundle<slot<int, "output"_id>> run(slot<int, "input"_id> input)

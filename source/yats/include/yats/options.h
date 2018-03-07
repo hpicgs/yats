@@ -3,6 +3,7 @@
 #include <functional>
 #include <map>
 #include <memory>
+#include <mutex>
 #include <string>
 #include <typeindex>
 #include <vector>
@@ -25,20 +26,20 @@ struct abstract_member
 template <typename Task, typename Type>
 struct typed_member : public abstract_member<Task>
 {
-    typed_member(Type Task::* member_pointer)
+    typed_member(Type Task::*member_pointer)
         : abstract_member<Task>(typeid(Type))
         , pointer(member_pointer)
     {
     }
 
-    Type Task::* pointer;
+    Type Task::*pointer;
 };
 
 template <typename Task>
 struct member_pointer
 {
     template <typename Type>
-    member_pointer(Type Task::* pointer)
+    member_pointer(Type Task::*pointer)
         : member(std::make_unique<typed_member<Task, Type>>(pointer))
     {
     }
@@ -59,8 +60,9 @@ public:
     }
 
     template <typename Type>
-    void update(const std::string &key, Type value)
+    void update(const std::string& key, Type value)
     {
+        std::lock_guard<std::mutex> lock(m_mutex);
         auto option = m_values.find(key);
         if (option == m_values.end())
         {
@@ -74,15 +76,15 @@ public:
         }
 
         auto typed_member_pointer = static_cast<typed_member<Task, Type>*>(member)->pointer;
-        m_changes.push_back([typed_member_pointer, value = std::move(value)](Task *task) mutable
-        {
+        m_changes.push_back([typed_member_pointer, value = std::move(value)](Task* task) mutable {
             task->*typed_member_pointer = std::move(value);
         });
     }
 
-    void make_updates_visible(Task *task)
+    void make_updates_visible(Task* task)
     {
-        for (auto &change : m_changes)
+        std::lock_guard<std::mutex> lock(m_mutex);
+        for (auto& change : m_changes)
         {
             change(task);
         }
@@ -92,9 +94,9 @@ public:
 protected:
     options_map<Task> m_values;
     std::vector<std::function<void(Task*)>> m_changes;
+    std::mutex m_mutex;
 };
 
 template <typename Task>
 using options_ptr = std::unique_ptr<option_storage<Task>>;
-
 }

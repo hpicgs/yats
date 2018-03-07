@@ -10,15 +10,14 @@ struct task
 {
     static options_map<task> options()
     {
-        return
-        {
+        return {
             { "value", &task::val }
         };
     }
 
-    output_bundle<slot<int, 0>> run(slot<int, 0> input)
+    slot<int, 0> run(slot<int, 0> input)
     {
-        return std::make_tuple(static_cast<int>(input * val));
+        return input * val;
     }
 
 private:
@@ -35,9 +34,9 @@ TEST(options_test, construct_without_options)
 {
     struct task_without_options
     {
-        output_bundle<slot<int, 0>> run(slot<int, 0> input)
+        slot<int, 0> run(slot<int, 0> input)
         {
-            return std::make_tuple(static_cast<int>(input * val));
+            return input * val;
         }
 
     private:
@@ -82,15 +81,14 @@ TEST(options_test, runtime_update)
 {
     struct runtime_task
     {
-        runtime_task(int *external)
+        runtime_task(int* external)
             : external(external)
         {
         }
 
         static options_map<runtime_task> options()
         {
-            return
-            {
+            return {
                 { "value", &runtime_task::val }
             };
         }
@@ -101,7 +99,7 @@ TEST(options_test, runtime_update)
         }
 
     private:
-        int *external;
+        int* external;
         int val = 5;
     };
 
@@ -122,15 +120,14 @@ TEST(options_test, multiple_updates)
 {
     struct runtime_task
     {
-        runtime_task(int *external)
+        runtime_task(int* external)
             : external(external)
         {
         }
 
         static options_map<runtime_task> options()
         {
-            return
-            {
+            return {
                 { "value", &runtime_task::val }
             };
         }
@@ -141,7 +138,7 @@ TEST(options_test, multiple_updates)
         }
 
     private:
-        int *external;
+        int* external;
         int val = 5;
     };
 

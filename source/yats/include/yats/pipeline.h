@@ -2,12 +2,15 @@
 
 #include <memory>
 #include <fstream>
+#include <sstream>
 #include <string>
 #include <vector>
 
+#include <yats/identifier.h>
 #include <yats/lambda_task.h>
 #include <yats/task_configurator.h>
 #include <yats/util.h>
+#include <locale>
 
 namespace yats
 {
@@ -105,20 +108,78 @@ public:
         // gehe durch alle inputs und outputs -> stehen in den connection_helpern.
 
         // pro connection helper können wir schon einmal ein entsprechendes struct anlegen.
-        // NODE_NAME [label = "NODE_NAME|{{<KEY1>INPUT1|<KEY2>INPUT2...}|{<KEY3>OUTPUT1|<KEY4>OUTPUT2...}}"];
-        const std::string node_line_mask = "%s [label = \"%s|{{%s}|{%s}}\"]";
-        // get_input_id (index 1, 2, 3, ...)
-
+        
         std::ofstream file;
         file.open(filename, std::ios_base::out | std::ios_base::trunc);
         std::string input_ids;
         std::string output_ids;
         
- 
+        file << "digraph structs {" << std::endl;
+        file << '\t' << "rankdir = LR;" << std::endl << std::endl;
+        file << '\t' << "node [shape = record];" << std::endl;
+
+        // Alle Knoten mit Inputs und Outputs erstellen
+        // NODE_NAME [label = "NODE_NAME|{{<KEY1>INPUT1|<KEY2>INPUT2...}|{<KEY3>OUTPUT1|<KEY4>OUTPUT2...}}"];
         for (size_t i = 0; i < helpers.size(); ++i)
         {
-           // helpers[i].in
+            file << '\t' << "n" << i << "[label = \"" << "n" << i << "|{";
+            file << '{' << inputs_to_string(*helpers[i]) << "}|";
+            file << '{' << outputs_to_string(*helpers[i]) << '}';
+            file << "}\"]" << std::endl;
         }
+
+        file << std::endl;
+
+        // Map output to helper index
+        // outputs are unique
+        std::map<const abstract_output_connector*, size_t> output_owner;
+        std::set<const abstract_output_connector*> unused_outputs;
+        for (size_t i = 0; i < m_tasks.size(); ++i)
+        {
+            auto outputs = helpers[i]->outputs();
+            for (const auto output : outputs)
+            {
+                output_owner.emplace(output.first, i);
+                unused_outputs.insert(output.first);
+            }
+        }
+        
+        int id_counter = 0;
+
+        for (size_t i = 0; i < helpers.size(); ++i)
+        {
+            auto inputs = helpers[i]->inputs();
+            for (const auto input : inputs)
+            {
+                auto source_location = input.first->output();
+                
+                // Input is not connected to an output
+                if (source_location == nullptr)
+                {
+                    file << '\t' << "node [shape = point]; ";
+                    file << 'u' << id_counter << ';' << std::endl;
+                    file << '\t' << 'u' << id_counter << "->" << 'n' << i << ':' << "<i" << input.second << '>' << std::endl;
+                    ++id_counter;
+                }
+                else
+                {
+                    const auto source_task_id = output_owner.at(source_location);
+                    file << '\t' << 'n' << source_task_id << ':' << "<o" << helpers[source_task_id]->get_output_index(source_location) << "> -> " << 'n' << i << ':' << "<i" << input.second << '>' << std::endl;
+                    unused_outputs.erase(source_location);
+                }
+            }
+        }
+
+        for (const auto& output : unused_outputs)
+        {
+            const auto helper_index = output_owner.at(output);
+            file << '\t' << "node [shape = point]; ";
+            file << 'u' << id_counter << ';' << std::endl;
+            file << '\t' << 'n' << helper_index << ':' << "<o" << helpers[helper_index]->get_output_index(output) << '>' << "->" << 'u' << id_counter << std::endl;
+            ++id_counter;
+        }
+
+        file << '}' << std::endl;
 
         file.close();
 
@@ -132,10 +193,42 @@ public:
 
     static std::string inputs_to_string(abstract_connection_helper& helper)
     {
+        std::stringstream input_id_stream;
+
         for (const auto& input : helper.inputs())
         {
-            
+            const auto index = input.second;
+            input_id_stream << "<i" << index << ">" << yats::identifier::id_to_string(helper.get_input_id(index)) << "|";
         }
+    
+        auto tmp = input_id_stream.str();
+
+        if (!tmp.empty())
+        {
+            tmp.pop_back();
+        }
+
+        return tmp;
+    }
+
+    static std::string outputs_to_string(abstract_connection_helper& helper)
+    {
+        std::stringstream output_id_stream;
+
+        for (const auto& output : helper.outputs())
+        {
+            const auto index = output.second;
+            output_id_stream << "<o" << index << ">" << yats::identifier::id_to_string(helper.get_output_id(index)) << "|";
+        }
+
+        auto tmp = output_id_stream.str();
+
+        if (!tmp.empty())
+        {
+            tmp.pop_back();
+        }
+
+        return tmp;
     }
 
 protected:

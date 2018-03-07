@@ -111,5 +111,5 @@ TEST(pipeline_test, save_to_file)
 
     add_cfg->output<"sum"_id>() >> multiply_cfg->input<"factor_a"_id>();
 
-    p.save_to_file("C:\\Users\\Mapp\\graph.txt");
+    p.save_to_file("graph.txt");
 }

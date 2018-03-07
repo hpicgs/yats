@@ -51,6 +51,11 @@ public:
         return m_out;
     }
 
+    size_t get_output_index(const abstract_output_connector* output_connector)
+    {
+        return m_out.at(output_connector);
+    }
+
     void add_following(size_t following_node)
     {
         m_following.insert(following_node);
@@ -214,14 +219,14 @@ protected:
 
     void initialize_output_ids()
     {
-        get_input_ids(m_output_ids);
+        get_output_ids(m_output_ids);
     }
 
     template <size_t Index = 0>
     std::enable_if_t<Index < helper::output_count> get_output_ids(std::vector<uint64_t>& ids)
     {
         ids.push_back(std::tuple_element_t<Index, output_tuple>::id);
-        get_input_ids<Index + 1>(ids);
+        get_output_ids<Index + 1>(ids);
     }
 
     template <size_t Index = 0>

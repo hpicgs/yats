@@ -8,6 +8,7 @@
 #include <vector>
 
 #include <yats/connection_helper.h>
+#include <yats/options.h>
 #include <yats/task_helper.h>
 #include <yats/util.h>
 
@@ -52,10 +53,11 @@ class task_container : public abstract_task_container
     using output_type = typename helper::output_type;
 
 public:
-    task_container(connection_helper<Task>* connection, std::tuple<Parameters...> parameter_tuple)
+    task_container(connection_helper<Task>* connection, options_ptr<Task> options, std::tuple<Parameters...> parameter_tuple)
         : abstract_task_container(connection->following_nodes())
         , m_input(connection->queue())
         , m_output(connection->callbacks())
+        , m_options(std::move(options))
         , m_task(make_from_tuple<Task>(std::move(parameter_tuple)))
     {
         auto copyable = check_copyable(std::make_index_sequence<helper::output_count>());
@@ -67,6 +69,7 @@ public:
 
     void run() override
     {
+        m_options->make_updates_visible(&m_task);
         invoke(std::make_index_sequence<helper::input_count>());
     }
 
@@ -166,6 +169,7 @@ protected:
 
     input_queue_ptr m_input;
     output_callbacks m_output;
+    options_ptr<Task> m_options;
     Task m_task;
 };
 }

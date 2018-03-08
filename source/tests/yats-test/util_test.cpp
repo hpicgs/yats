@@ -94,6 +94,25 @@ TEST(util_test, has_run_test)
     EXPECT_FALSE(has_run_v<no_run>);
 }
 
+TEST(util_test, has_options_test)
+{
+    struct static_options
+    {
+        static float options(float, int, char)
+        {
+            return 0.f;
+        }
+    };
+
+    struct no_options
+    {
+        int i;
+    };
+
+    EXPECT_TRUE(has_options_v<static_options>);
+    EXPECT_FALSE(has_options_v<no_options>);
+}
+
 TEST(util_test, get_value_type_test)
 {
     struct Test

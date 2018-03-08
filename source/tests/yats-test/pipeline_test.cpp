@@ -94,7 +94,7 @@ TEST(pipeline_test, save_to_file)
     {
         output_bundle<slot<int, "sum"_id>> run(slot<int, "summand_a"_id> a, slot<int, "summand_b"_id> b)
         {
-            return a + b;
+            return std::make_tuple(a + b);
         }
     };
 
@@ -102,7 +102,7 @@ TEST(pipeline_test, save_to_file)
     {
         output_bundle<slot<int, "product"_id>> run(slot<int, "factor_a"_id> a, slot<int, "factor_b"_id> b)
         {
-            return a * b;
+            return std::make_tuple(a * b);
         }
     };
 

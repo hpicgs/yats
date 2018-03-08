@@ -19,7 +19,7 @@ class io_iterator
 {
 public:
     explicit io_iterator(const std::vector<std::unique_ptr<abstract_task_configurator>>* tasks)
-        : m_helper_index(std::numeric_limits<size_t>::max()), m_tasks(tasks)
+        : m_helper_index(std::numeric_limits<size_t>::max()), m_tasks(tasks), m_iterator_changed(false)
     {
         for (const auto& configurator : *m_tasks) {
             m_helpers.emplace_back(configurator->construct_connection_helper());
@@ -56,11 +56,16 @@ public:
         return m_input_iterator->first;
     }
 
+    size_t index_of_input() const
+    {
+        return m_input_iterator->second;
+    }
+
     size_t source_index() const
     {
         if (source() != nullptr)
         {
-            return m_output_owners.at(source());
+            return get_helper_index_to_output(source());
         }
         return std::numeric_limits<size_t>::max();
     }
@@ -70,9 +75,24 @@ public:
         return input()->output();
     }
 
+    const std::vector<std::unique_ptr<abstract_connection_helper>>* helpers() const
+    {
+        return &m_helpers;
+    }
+
     std::vector<std::unique_ptr<abstract_connection_helper>> take_helpers()
     {
         return std::move(m_helpers);
+    }
+
+    size_t helper_index() const
+    {
+        return m_helper_index;
+    }
+
+    size_t get_helper_index_to_output(const abstract_output_connector* output) const
+    {
+        return m_output_owners.at(output);
     }
 
 protected:
@@ -82,6 +102,7 @@ protected:
     std::map<const abstract_input_connector*, size_t> m_inputs;
     std::vector<std::unique_ptr<abstract_connection_helper>> m_helpers;
     std::map<const abstract_output_connector*, size_t> m_output_owners;
+    bool m_iterator_changed;
 
     bool advance_to_next_helper()
     {
@@ -92,7 +113,7 @@ protected:
         }
         m_inputs = m_helpers[m_helper_index]->inputs();
         m_input_iterator = m_inputs.begin();
-        --m_input_iterator;
+        m_iterator_changed = true;
         return true;
     }
 
@@ -103,7 +124,14 @@ protected:
             return false;
         }
 
-        ++m_input_iterator;
+        if (m_iterator_changed)
+        {
+            m_iterator_changed = false;
+        }
+        else
+        {
+            ++m_input_iterator;
+        }
         
         return m_input_iterator != m_inputs.end();
     }
@@ -195,99 +223,73 @@ public:
      */
     void save_to_file(const std::string& filename)
     {
-        // Das gleiche wie oben.
-        std::vector<std::unique_ptr<abstract_connection_helper>> helpers;
-        for (const auto& configurator : m_tasks)
-        {
-            helpers.emplace_back(configurator->construct_connection_helper());
-        }
+        io_iterator iter(&m_tasks);
 
-        // gehe durch alle Tasks
-        // gehe durch alle inputs und outputs -> stehen in den connection_helpern.
-
-       
-        // Gerüst anlegen        
         std::ofstream file;
         file.exceptions(std::ifstream::failbit | std::ifstream::badbit);
         file.open(filename, std::ios_base::trunc);
-                
+        
+        // writes first part of the body for the DOT file. 
         file << "digraph structs {" << std::endl;
         file << '\t' << "rankdir = LR;" << std::endl << std::endl;
         file << '\t' << "node [shape = record];" << std::endl;
 
-        // Alle Knoten mit Inputs und Outputs erstellen
+        // Creates a vertex for each task including the task's inputs and outputs
         // NODE_NAME [label = "NODE_NAME|{{<KEY1>INPUT1|<KEY2>INPUT2...}|{<KEY3>OUTPUT1|<KEY4>OUTPUT2...}}"];
-        for (size_t i = 0; i < helpers.size(); ++i)
+        auto helpers = iter.helpers();
+        for (size_t i = 0; i < helpers->size(); ++i)
         {
             file << '\t' << "n" << i << "[label = \"" << "n" << i << "|{";
-            file << '{' << inputs_to_string(*helpers[i]) << "}|";
-            file << '{' << outputs_to_string(*helpers[i]) << '}';
+            file << '{' << inputs_to_string(*helpers->at(i)) << "}|";
+            file << '{' << outputs_to_string(*helpers->at(i)) << '}';
             file << "}\"]" << std::endl;
         }
 
         file << std::endl;
 
-        // Map output to helper index
-        std::map<const abstract_output_connector*, size_t> output_owner;
         std::set<const abstract_output_connector*> unused_outputs;
         for (size_t i = 0; i < m_tasks.size(); ++i)
         {
-            auto outputs = helpers[i]->outputs();
+            auto outputs = helpers->at(i)->outputs();
             for (const auto output : outputs)
             {
-                output_owner.emplace(output.first, i);
                 unused_outputs.insert(output.first);
             }
         }
         
         auto id_counter = 0;
-        // the same as above
-        for (size_t i = 0; i < helpers.size(); ++i)
+
+        while (iter.next())
         {
-            auto inputs = helpers[i]->inputs();
-            for (const auto input : inputs)
+            // Input is not connected to an output
+            if (iter.source() == nullptr)
             {
-                auto source_location = input.first->output();
-                
-                // Input is not connected to an output
-                // individual
-                if (source_location == nullptr)
-                {
-                    file << '\t' << "node [shape = point]; ";
-                    file << 'u' << id_counter << ';' << std::endl;
-                    file << '\t' << 'u' << id_counter << "->" << 'n' << i << ':' << "<i" << input.second << '>' << std::endl;
-                    ++id_counter;
-                }
-                else
-                {
-                    // individual
-                    const auto source_task_id = output_owner.at(source_location);
-                    file << '\t' << 'n' << source_task_id << ':' << "<o" << helpers[source_task_id]->get_output_index(source_location) << "> -> " << 'n' << i << ':' << "<i" << input.second << '>' << std::endl;
-                    unused_outputs.erase(source_location);
-                }
+                file << '\t' << "node [shape = point]; ";
+                file << 'u' << id_counter << ';' << std::endl;
+                file << '\t' << 'u' << id_counter << "->" << 'n' << iter.helper_index() << ':' << "<i" << iter.index_of_input() << '>' << std::endl;
+                ++id_counter;
+            }
+            else
+            {
+                file << '\t' << 'n' << iter.source_index() << ':' << "<o" << helpers->at(iter.source_index())->get_output_index(iter.source());
+                file << "> -> " << 'n' << iter.helper_index() << ':' << "<i" << iter.index_of_input() << '>' << std::endl;
+                unused_outputs.erase(iter.source());
             }
         }
 
-        // individual
         for (const auto& output : unused_outputs)
         {
-            const auto helper_index = output_owner.at(output);
+            const auto helper_index = iter.get_helper_index_to_output(output);
             file << '\t' << "node [shape = point]; ";
             file << 'u' << id_counter << ';' << std::endl;
-            file << '\t' << 'n' << helper_index << ':' << "<o" << helpers[helper_index]->get_output_index(output) << '>' << "->" << 'u' << id_counter << std::endl;
+            file << '\t' << 'n' << helper_index << ':' << "<o" << helpers->at(helper_index)->get_output_index(output);
+            file << '>' << "->" << 'u' << id_counter << std::endl;
             ++id_counter;
         }
 
         file << '}' << std::endl;
 
         file.close();
-
-        // Als nächstes müssen die Verbindungen gesetzt werden:
-        // ein zweiter loop über alle helper um die Verbindung anzulegen.
-        // Wir haben inputs, die nicht von einem output geschrieben werden
-        // Outputs, die keinen Input schreiben
-        // und outputs, die in Inputs schreiben (normal).
-
     }
 
     static std::string inputs_to_string(abstract_connection_helper& helper)

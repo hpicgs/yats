@@ -15,6 +15,100 @@
 namespace yats
 {
 
+class io_iterator
+{
+public:
+    explicit io_iterator(const std::vector<std::unique_ptr<abstract_task_configurator>>* tasks)
+        : m_helper_index(std::numeric_limits<size_t>::max()), m_tasks(tasks)
+    {
+        for (const auto& configurator : *m_tasks) {
+            m_helpers.emplace_back(configurator->construct_connection_helper());
+        }
+
+        for (size_t i = 0; i < m_tasks->size(); ++i) {
+            auto outputs = m_helpers[i]->outputs();
+            for (const auto output : outputs) {
+                m_output_owners.emplace(output.first, i);
+            }
+        }
+    }
+
+    bool next()
+    {
+        if (advance_to_next_input())
+        {
+            return true;
+        }
+
+        while (advance_to_next_helper())
+        {
+            if (advance_to_next_input())
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    const abstract_input_connector* input() const
+    {
+        return m_input_iterator->first;
+    }
+
+    size_t source_index() const
+    {
+        if (source() != nullptr)
+        {
+            return m_output_owners.at(source());
+        }
+        return std::numeric_limits<size_t>::max();
+    }
+
+    const abstract_output_connector* source() const
+    {
+        return input()->output();
+    }
+
+    std::vector<std::unique_ptr<abstract_connection_helper>> take_helpers()
+    {
+        return std::move(m_helpers);
+    }
+
+protected:
+    size_t m_helper_index;
+    const std::vector<std::unique_ptr<abstract_task_configurator>>* m_tasks;
+    std::map<const abstract_input_connector*, size_t>::iterator m_input_iterator;
+    std::map<const abstract_input_connector*, size_t> m_inputs;
+    std::vector<std::unique_ptr<abstract_connection_helper>> m_helpers;
+    std::map<const abstract_output_connector*, size_t> m_output_owners;
+
+    bool advance_to_next_helper()
+    {
+        ++m_helper_index;
+        if (m_helper_index >= m_helpers.size())
+        {
+            return false;
+        }
+        m_inputs = m_helpers[m_helper_index]->inputs();
+        m_input_iterator = m_inputs.begin();
+        --m_input_iterator;
+        return true;
+    }
+
+    bool advance_to_next_input()
+    {
+        if (m_helper_index >= m_helpers.size())
+        {
+            return false;
+        }
+
+        ++m_input_iterator;
+        
+        return m_input_iterator != m_inputs.end();
+    }
+};
+
 class pipeline
 {
 public:
@@ -95,9 +189,13 @@ public:
         return tasks;
     }
 
+    /**
+     * Saves the pipeline to a file in the Graphviz DOT format.
+     * @param filename Filename to save the pipeline to.
+     */
     void save_to_file(const std::string& filename)
     {
-        // hier werden die helper angelegt
+        // Das gleiche wie oben.
         std::vector<std::unique_ptr<abstract_connection_helper>> helpers;
         for (const auto& configurator : m_tasks)
         {
@@ -107,13 +205,12 @@ public:
         // gehe durch alle Tasks
         // gehe durch alle inputs und outputs -> stehen in den connection_helpern.
 
-        // pro connection helper können wir schon einmal ein entsprechendes struct anlegen.
-        
+       
+        // Gerüst anlegen        
         std::ofstream file;
-        file.open(filename, std::ios_base::out | std::ios_base::trunc);
-        std::string input_ids;
-        std::string output_ids;
-        
+        file.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+        file.open(filename, std::ios_base::trunc);
+                
         file << "digraph structs {" << std::endl;
         file << '\t' << "rankdir = LR;" << std::endl << std::endl;
         file << '\t' << "node [shape = record];" << std::endl;
@@ -131,7 +228,6 @@ public:
         file << std::endl;
 
         // Map output to helper index
-        // outputs are unique
         std::map<const abstract_output_connector*, size_t> output_owner;
         std::set<const abstract_output_connector*> unused_outputs;
         for (size_t i = 0; i < m_tasks.size(); ++i)
@@ -144,8 +240,8 @@ public:
             }
         }
         
-        int id_counter = 0;
-
+        auto id_counter = 0;
+        // the same as above
         for (size_t i = 0; i < helpers.size(); ++i)
         {
             auto inputs = helpers[i]->inputs();
@@ -154,6 +250,7 @@ public:
                 auto source_location = input.first->output();
                 
                 // Input is not connected to an output
+                // individual
                 if (source_location == nullptr)
                 {
                     file << '\t' << "node [shape = point]; ";
@@ -163,6 +260,7 @@ public:
                 }
                 else
                 {
+                    // individual
                     const auto source_task_id = output_owner.at(source_location);
                     file << '\t' << 'n' << source_task_id << ':' << "<o" << helpers[source_task_id]->get_output_index(source_location) << "> -> " << 'n' << i << ':' << "<i" << input.second << '>' << std::endl;
                     unused_outputs.erase(source_location);
@@ -170,6 +268,7 @@ public:
             }
         }
 
+        // individual
         for (const auto& output : unused_outputs)
         {
             const auto helper_index = output_owner.at(output);

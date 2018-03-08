@@ -9,16 +9,14 @@ struct Source
 {
     output_bundle<slot<int, 0>> run()
     {
-        std::cout << "Send 42" << std::endl;
         return std::make_tuple(42);
     }
 };
 
 struct Target
 {
-    void run(slot<int, 0> input)
+    void run(slot<int, 0>)
     {
-        std::cout << "Received " << input << ". Adding + 1" << std::endl;
     }
 };
 

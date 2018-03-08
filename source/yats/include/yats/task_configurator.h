@@ -82,7 +82,7 @@ public:
 
     std::unique_ptr<abstract_connection_helper> construct_connection_helper() const override
     {
-        return std::make_unique<connection_helper<Task>>(m_inputs, m_outputs, std::move(m_listeners));
+        return std::make_unique<connection_helper<Task>>(m_inputs, m_outputs, m_listeners);
     }
 
 protected:

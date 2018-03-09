@@ -25,7 +25,7 @@ public:
 protected:
 #ifdef __GNUC__
     template <typename T>
-    static std::string get_class_name_gcc(std::string name)
+    static std::string get_class_name_gcc()
     {
         std::string name(__PRETTY_FUNCTION__);
         const auto start = name.find("with T = ");

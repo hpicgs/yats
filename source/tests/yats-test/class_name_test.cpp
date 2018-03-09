@@ -35,11 +35,4 @@ TEST(class_name_test, templated_nested_class_test)
 {
     using why = some_templated_class<char, int>;
     EXPECT_EQ(class_name::get<why>(), "some_templated_class<char,int>");
-
-    /*std::cout <<  msvc_class_name_parser::get_gcc_class_name<int>("std::string get() [with T = YOLO; std::string = std::basic_string<char>]") << std::endl;
-    std::cout << msvc_class_name_parser::get_gcc_class_name<int>("std::string get()[with T = int; std::string = std::basic_string<char>]") << std::endl;
-    std::cout << msvc_class_name_parser::get_gcc_class_name<int>("std::string get()[with T = main()::some_struct; std::string = std::basic_string<char>]") << std::endl;
-    std::cout << msvc_class_name_parser::get_gcc_class_name<int>("std::string get()[with T = YOLO2<main()::some_struct>; std::string = std::basic_string<char>]") << std::endl;
-    std::cout << msvc_class_name_parser::get_gcc_class_name<int>("std::string get()[with T = YOLO2<main()::some_struct, int>; std::string = std::basic_string<char>]") << std::endl;*/
-    
 }

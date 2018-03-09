@@ -42,6 +42,9 @@ public:
     virtual uint64_t get_input_id(size_t index) const = 0;
     virtual uint64_t get_output_id(size_t index) const = 0;
 
+    /**
+     * Returns the name of the task associated with the helper.
+     */
     virtual std::string get_task_name() const = 0;
 
     const auto& inputs()
@@ -54,6 +57,10 @@ public:
         return m_out;
     }
 
+    /**
+     * Returns the index of {@code output_connector} in the returned tuple
+     * of the run function.
+     */
     size_t get_output_index(const abstract_output_connector* output_connector)
     {
         return m_out.at(output_connector);
@@ -111,9 +118,6 @@ public:
         add(location_id, callback);
     }
 
-    /**
-     * 
-     */
     void* target(const abstract_input_connector* connector) override
     {
         auto location_id = m_in.at(connector);
@@ -135,16 +139,31 @@ public:
         return std::move(m_following);
     }
 
+    /**
+     * Returns the id of the input connector with {@code index}
+     * in the run function.
+     * @param index Index of input connector in run functions which id is to be returned.
+     * @return Id;
+     */
     uint64_t get_input_id(size_t index) const override
     {
         return m_input_ids[index];
     }
 
+    /**
+    * Returns the id of the output connector with {@code index}
+    * in the return value of the run function.
+    * @param index Index of output connector in the return value of the run function.
+    * @return Id;
+    */
     uint64_t get_output_id(size_t index) const override
     {
         return m_output_ids[index];
     }
 
+    /**
+    * Returns the name of the task associated with the helper.
+    */
     std::string get_task_name() const override
     {
         return class_name::get<Task>();
@@ -208,6 +227,14 @@ protected:
         throw std::runtime_error("Input Parameter locationId not found.");
     }
 
+    /**
+    * Iterates through all inputs of the run function and stores the id of each input
+    * in m_input_ids. The index of the id corresponds to position of the input
+    * in parameters of the run function.
+    * <p>
+    * Note: This function should only be called once.
+    * </p>
+    */
     void initialize_input_ids()
     {
         get_input_ids(m_input_ids);
@@ -227,6 +254,14 @@ protected:
         (void)ids;
     }
 
+    /**
+     * Iterates through all outputs of the run function and stores the id of each output
+     * in m_output_ids. The index of the id corresponds to position of the output
+     * in the return value of the run function.
+     * <p>
+     * Note: This function should only be called once.
+     * </p>
+     */
     void initialize_output_ids()
     {
         get_output_ids(m_output_ids);

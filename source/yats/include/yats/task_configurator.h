@@ -1,11 +1,10 @@
 #pragma once
 
-#include <map>
 #include <memory>
 
+#include <yats/identifier.h>
 #include <yats/lambda_task.h>
 #include <yats/task_container.h>
-#include <yats/identifier.h>
 #include <yats/util.h>
 
 namespace yats

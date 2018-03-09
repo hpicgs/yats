@@ -105,7 +105,7 @@ public:
         // NODE_NAME [label = "NODE_NAME|{{<KEY1>INPUT1|<KEY2>INPUT2...}|{<KEY3>OUTPUT1|<KEY4>OUTPUT2...}}"];
         for (size_t i = 0; i < helpers.size(); ++i)
         {
-            file << '\t' << "n" << i << "[label = \"" << "n" << i << "|{";
+            file << '\t' << "n" << i << "[label = \"" << helpers[i]->get_task_name() << "|{";
             file << '{' << inputs_to_string(*helpers[i]) << "}|";
             file << '{' << outputs_to_string(*helpers[i]) << '}';
             file << "}\"]" << std::endl;

@@ -4,6 +4,7 @@
 #include <memory>
 #include <set>
 
+#include <yats/class_name.h>
 #include <yats/input_connector.h>
 #include <yats/output_connector.h>
 #include <yats/task_helper.h>
@@ -40,6 +41,8 @@ public:
 
     virtual uint64_t get_input_id(size_t index) const = 0;
     virtual uint64_t get_output_id(size_t index) const = 0;
+
+    virtual std::string get_task_name() const = 0;
 
     const auto& inputs()
     {
@@ -140,6 +143,11 @@ public:
     uint64_t get_output_id(size_t index) const override
     {
         return m_output_ids[index];
+    }
+
+    std::string get_task_name() const override
+    {
+        return class_name::get<Task>();
     }
 
 protected:

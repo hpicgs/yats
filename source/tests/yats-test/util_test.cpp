@@ -140,3 +140,19 @@ TEST(util_test, has_unique_ids_test)
 
     EXPECT_TRUE(yes_empty);
 }
+
+TEST(util_test, get_class_name_test)
+{
+    struct some_struct
+    {
+    };
+
+    class some_class
+    {
+    };
+
+    EXPECT_EQ(get_class_name<some_struct>(), "some_struct");
+    EXPECT_EQ(get_class_name<some_class>(), "some_class");
+    EXPECT_EQ(get_class_name<int>(), "int");
+}
+

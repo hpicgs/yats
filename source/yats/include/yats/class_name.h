@@ -6,20 +6,47 @@
 
 namespace yats
 {
-class msvc_class_name_parser
+
+class class_name
 {
 public:
     template <typename T>
-    static std::string get_class_name()
+    static std::string get()
     {
-        std::string name(__FUNCSIG__);
-        const auto start = name.find("get_class_name<");
-        const auto end = name.find_last_of('>');
-
-        return get_class_name(name, start + 15, end - 1);
+#ifdef _MSC_VER
+        return get_class_name_msvc<T>();
+#elif __GNUC__
+        return get_class_name_gcc<T>();
+#else
+        static_assert(false, "unsupported compiler.");
+#endif
     }
 
 protected:
+#ifdef __GNUC__
+    template <typename T>
+    static std::string get_class_name_gcc(std::string name)
+    {
+        std::string name(__PRETTY_FUNCTION__);
+        const auto start = name.find("with T = ");
+        const auto end = name.find(';', start);
+        auto substr = name.substr(start + 9, end - start - 9);
+        return get_class_name(substr, 0, substr.length() - 1);
+    }
+#elif _MSC_VER
+    template <typename T>
+    static std::string get_class_name_msvc()
+    {
+        // start_token must match the function name + <
+        const std::string start_token = "get_class_name_msvc<";
+        std::string name(__FUNCSIG__);
+        const auto start = name.find(start_token);
+        const auto end = name.find_last_of('>');
+
+        return get_class_name(name, start + start_token.length(), end - 1);
+    }
+#endif
+
     static std::string get_class_name(const std::string& str, size_t start, size_t end)
     {
         const auto left = str.find_first_of('<', start);
@@ -42,6 +69,12 @@ protected:
         for (size_t i = 0; i < words.size(); i++)
         {
             words[i] = trim_left(words[i], true);
+#ifdef __GNUC__
+            if (words[i][0] == ' ')
+            {
+                words[i] = words[i].substr(1, words[i].length() - 1);
+            }
+#endif
         }
 
         return join(words, ",");
@@ -92,18 +125,4 @@ protected:
         return str;
     }
 };
-
-template <typename T>
-std::string get_class_name()
-{
-#ifdef _MSC_VER
-    return msvc_class_name_parser::get_class_name<T>();
-
-
-
-#elif __GNUC__
-#else
-    static_assert(false, "unsupported compiler.");
-#endif
-}
 }

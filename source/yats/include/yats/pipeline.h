@@ -15,189 +15,6 @@
 namespace yats
 {
 
-class io_iterator
-{
-public:
-    explicit io_iterator(const std::vector<std::unique_ptr<abstract_task_configurator>>* tasks)
-        : m_helper_index(std::numeric_limits<size_t>::max()), m_tasks(tasks), m_iterator_changed(false)
-    {
-        // required to gain access to the input and output connectors
-        for (const auto& configurator : *m_tasks)
-        {
-            m_helpers.emplace_back(configurator->construct_connection_helper());
-        }
-
-        // collects all outputs and stores the index of the helper to the
-        // corresponding output.
-        for (size_t i = 0; i < m_tasks->size(); ++i)
-        {
-            auto outputs = m_helpers[i]->outputs();
-            for (const auto output : outputs)
-            {
-                m_output_owners.emplace(output.first, i);
-            }
-        }
-    }
-
-    /**
-     * Advances the iterator to the next input if possible.
-     * @return true, if the iterator could be advanced. false otherwise.
-     */
-    bool next()
-    {
-        if (advance_to_next_input())
-        {
-            return true;
-        }
-
-        while (advance_to_next_helper())
-        {
-            if (advance_to_next_input())
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * Returns a pointer to the current input_connector.
-     */
-    const abstract_input_connector* input() const
-    {
-        return m_input_iterator->first;
-    }
-
-    /**
-     * Returns the index of the current input in the run function
-     */
-    size_t index_of_input() const
-    {
-        return m_input_iterator->second;
-    }
-
-    /**
-     * Returns the index of the helper associated to the source for the current input
-     * Returns std::numeric_limits<size_t>::max() if there is no source to the input.
-     */
-    size_t source_helper_index() const
-    {
-        if (source() != nullptr)
-        {
-            return get_helper_index_to_output(source());
-        }
-        return std::numeric_limits<size_t>::max();
-    }
-
-    /**
-     * Returns a pointer to the output_connector which is the source for the current input.
-     * This can be a nullptr.
-     */
-    const abstract_output_connector* source() const
-    {
-        return input()->output();
-    }
-
-    /**
-     * Returns the currently selected helper
-     */
-    abstract_connection_helper* get_helper() const
-    {
-        return m_helpers[helper_index()].get();
-    }
-
-    /**
-     * Returns a pointer to the helper with {@code index}
-     * @param index Index of helper to return
-     */
-    abstract_connection_helper* get_helper(size_t index) const
-    {
-        return m_helpers[index].get();
-    }
-
-    /**
-     * Moves helpers to the caller
-     */
-    std::vector<std::unique_ptr<abstract_connection_helper>> take_helpers()
-    {
-        return std::move(m_helpers);
-    }
-
-    /**
-     * Returns the index of the current helper
-     */
-    size_t helper_index() const
-    {
-        return m_helper_index;
-    }
-
-    /**
-     * Returns the index of the helper associated to {@code output},
-     */
-    size_t get_helper_index_to_output(const abstract_output_connector* output) const
-    {
-        return m_output_owners.at(output);
-    }
-
-    /**
-     * Returns the numer of helpers.
-     */
-    size_t helper_count() const
-    {
-        return m_helpers.size();
-    }
-
-protected:
-    size_t m_helper_index;
-    const std::vector<std::unique_ptr<abstract_task_configurator>>* m_tasks;
-    std::map<const abstract_input_connector*, size_t>::iterator m_input_iterator;
-    std::map<const abstract_input_connector*, size_t> m_inputs;
-    std::vector<std::unique_ptr<abstract_connection_helper>> m_helpers;
-    std::map<const abstract_output_connector*, size_t> m_output_owners;
-    bool m_iterator_changed;
-
-    /**
-     * Advances to the next helper.
-     * @return Returns true if the iterator could be advanced. Returns false otherwise.
-     */
-    bool advance_to_next_helper()
-    {
-        ++m_helper_index;
-        if (m_helper_index >= m_helpers.size())
-        {
-            return false;
-        }
-        m_inputs = m_helpers[m_helper_index]->inputs();
-        m_input_iterator = m_inputs.begin();
-        m_iterator_changed = true;
-        return true;
-    }
-
-    /**
-     * Advances to the next input in the current helper.
-     * @return returns true, if another input could be selected. Returns false otherwise.
-     */
-    bool advance_to_next_input()
-    {
-        if (m_helper_index >= m_helpers.size())
-        {
-            return false;
-        }
-
-        if (m_iterator_changed)
-        {
-            m_iterator_changed = false;
-        }
-        else
-        {
-            ++m_input_iterator;
-        }
-        
-        return m_input_iterator != m_inputs.end();
-    }
-};
-
 class pipeline
 {
 public:
@@ -235,17 +52,25 @@ public:
      */
     std::vector<std::unique_ptr<abstract_task_container>> build() const
     {
-        io_iterator iter(&m_tasks);
-        
-        while(iter.next())
+        auto helpers = get_helpers();
+        auto output_owners = get_output_owners(helpers);
+
+        for (size_t i = 0; i < helpers.size(); ++i)
         {
-            auto helper = iter.get_helper(iter.source_helper_index());
-            helper->bind(iter.source(), iter.get_helper()->target(iter.input()));
-            helper->add_following(iter.helper_index());
+            auto inputs = helpers[i]->inputs();
+            for (const auto input : inputs)
+            {
+                auto source_location = input.first->output();
+                const auto source_task_id = output_owners.at(source_location);
+
+                // connect output to input
+                helpers[source_task_id]->bind(source_location, helpers[i]->target(input.first));
+                // tasks connected to an output are successors 
+                helpers[source_task_id]->add_following(i);
+            }
         }
 
         std::vector<std::unique_ptr<abstract_task_container>> tasks;
-        auto helpers = iter.take_helpers();
         for (size_t i = 0; i < m_tasks.size(); ++i)
         {
             tasks.push_back(m_tasks[i]->construct_task_container(std::move(helpers[i])));
@@ -260,73 +85,73 @@ public:
      */
     void save_to_file(const std::string& filename) const
     {
-        io_iterator iter(&m_tasks);
-
         std::ofstream file;
         file.exceptions(std::ifstream::failbit | std::ifstream::badbit);
         file.open(filename, std::ios_base::trunc);
-        
-        // writes first part of the body for the DOT file. 
+        std::string input_ids;
+        std::string output_ids;
+
         file << "digraph structs {" << std::endl;
         file << '\t' << "rankdir = LR;" << std::endl << std::endl;
         file << '\t' << "node [shape = record];" << std::endl;
 
-        // Creates a vertex for each task including the task's inputs and outputs.
-        // The tasks are named n0, n1, ... according to their helper index. They are labeled with their class name.
-        // Key for input values are i1, i2, .... Keys for out values are o1, o2, ... .
+        auto helpers = get_helpers();
+        auto output_owners = get_output_owners(helpers);
+
+        // Alle Knoten mit Inputs und Outputs erstellen
         // NODE_NAME [label = "NODE_NAME|{{<KEY1>INPUT1|<KEY2>INPUT2...}|{<KEY3>OUTPUT1|<KEY4>OUTPUT2...}}"];
-        for (size_t i = 0; i < iter.helper_count(); ++i)
+        for (size_t i = 0; i < helpers.size(); ++i)
         {
             file << '\t' << "n" << i << "[label = \"" << "n" << i << "|{";
-            file << '{' << inputs_to_string(*iter.get_helper(i)) << "}|";
-            file << '{' << outputs_to_string(*iter.get_helper(i)) << '}';
+            file << '{' << inputs_to_string(*helpers[i]) << "}|";
+            file << '{' << outputs_to_string(*helpers[i]) << '}';
             file << "}\"]" << std::endl;
         }
 
         file << std::endl;
 
-        // We need to keep track of outputs which are not connected.
         std::set<const abstract_output_connector*> unused_outputs;
         for (size_t i = 0; i < m_tasks.size(); ++i)
         {
-            auto outputs = iter.get_helper(i)->outputs();
+            auto outputs = helpers[i]->outputs();
             for (const auto output : outputs)
             {
                 unused_outputs.insert(output.first);
             }
         }
-        
-        // Counter to name either inputs not fed by an output or outputs not connected by an
-        // input.
+
         auto id_counter = 0;
 
-        while (iter.next())
+        for (size_t i = 0; i < helpers.size(); ++i)
         {
-            // Input is not connected to an output
-            if (iter.source() == nullptr)
+            auto inputs = helpers[i]->inputs();
+            for (const auto input : inputs)
             {
-                file << '\t' << "node [shape = point]; ";
-                file << 'u' << id_counter << ';' << std::endl;
-                file << '\t' << 'u' << id_counter << "->" << 'n' << iter.helper_index() << ':' << "<i" << iter.index_of_input() << '>' << std::endl;
-                ++id_counter;
-            } // normal case. Adds edge from the output connected to the current input.
-            else
-            {
-                file << '\t' << 'n' << iter.source_helper_index() << ':' << "<o";
-                file << iter.get_helper(iter.source_helper_index())->get_output_index(iter.source());
-                file << "> -> " << 'n' << iter.helper_index() << ':' << "<i" << iter.index_of_input() << '>' << std::endl;
-                unused_outputs.erase(iter.source());
+                auto source_location = input.first->output();
+
+                // Input is not connected to an output
+                if (source_location == nullptr)
+                {
+                    file << '\t' << "node [shape = point]; ";
+                    file << 'u' << id_counter << ';' << std::endl;
+                    file << '\t' << 'u' << id_counter << "->" << 'n' << i << ':' << "<i" << input.second << '>' << std::endl;
+                    ++id_counter;
+                }
+                else
+                {
+                    const auto source_task_id = output_owners.at(source_location);
+                    file << '\t' << 'n' << source_task_id << ':' << "<o" << helpers[source_task_id]->get_output_index(source_location) << "> -> " << 'n' << i << ':' << "<i" << input.second << '>' << std::endl;
+                    unused_outputs.erase(source_location);
+                }
             }
         }
 
-        // Adds outputs which are not connected to an input.
         for (const auto& output : unused_outputs)
         {
-            const auto helper_index = iter.get_helper_index_to_output(output);
+            const auto helper_index = output_owners.at(output);
             file << '\t' << "node [shape = point]; ";
             file << 'u' << id_counter << ';' << std::endl;
-            file << '\t' << 'n' << helper_index << ':' << "<o" << iter.get_helper(helper_index)->get_output_index(output);
-            file << '>' << "->" << 'u' << id_counter << std::endl;
+            file << '\t' << 'n' << helper_index << ':' << "<o" << helpers[helper_index]->get_output_index(output) << '>' << "->" << 'u' << id_counter << std::endl;
             ++id_counter;
         }
 
@@ -391,5 +216,33 @@ public:
 
 protected:
     std::vector<std::unique_ptr<abstract_task_configurator>> m_tasks;
+
+    std::vector<std::unique_ptr<abstract_connection_helper>> get_helpers() const
+    {
+        // required to gain access to the input and output connectors
+        std::vector<std::unique_ptr<abstract_connection_helper>> helpers;
+        for (const auto& configurator : m_tasks)
+        {
+            helpers.emplace_back(configurator->construct_connection_helper());
+        }
+
+        return helpers;
+    }
+
+    std::map<const abstract_output_connector*, size_t> get_output_owners(const std::vector<std::unique_ptr<abstract_connection_helper>>& helpers) const
+    {
+        // Map output to helper index
+        // outputs are unique
+        std::map<const abstract_output_connector*, size_t> output_owners;
+        for (size_t i = 0; i < m_tasks.size(); ++i)
+        {
+            auto outputs = helpers[i]->outputs();
+            for (const auto output : outputs)
+            {
+                output_owners.emplace(output.first, i);
+            }
+        }
+        return output_owners;
+    }
 };
 }

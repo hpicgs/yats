@@ -91,6 +91,7 @@ public:
         std::string input_ids;
         std::string output_ids;
 
+        // writes first part of the body for the DOT file. 
         file << "digraph structs {" << std::endl;
         file << '\t' << "rankdir = LR;" << std::endl << std::endl;
         file << '\t' << "node [shape = record];" << std::endl;
@@ -98,7 +99,9 @@ public:
         auto helpers = get_helpers();
         auto output_owners = get_output_owners(helpers);
 
-        // Alle Knoten mit Inputs und Outputs erstellen
+        // Creates a vertex for each task including the task's inputs and outputs.
+        // The tasks are named n0, n1, ... according to their helper index. They are labeled with their class name.
+        // Key for input values are i1, i2, .... Keys for out values are o1, o2, ... .
         // NODE_NAME [label = "NODE_NAME|{{<KEY1>INPUT1|<KEY2>INPUT2...}|{<KEY3>OUTPUT1|<KEY4>OUTPUT2...}}"];
         for (size_t i = 0; i < helpers.size(); ++i)
         {
@@ -110,6 +113,7 @@ public:
 
         file << std::endl;
 
+        // We need to keep track of outputs which are not connected.
         std::set<const abstract_output_connector*> unused_outputs;
         for (size_t i = 0; i < m_tasks.size(); ++i)
         {
@@ -120,6 +124,8 @@ public:
             }
         }
 
+        // Counter to name either inputs not fed by an output or outputs not connected by an
+        // input.
         auto id_counter = 0;
 
         for (size_t i = 0; i < helpers.size(); ++i)
@@ -136,7 +142,7 @@ public:
                     file << 'u' << id_counter << ';' << std::endl;
                     file << '\t' << 'u' << id_counter << "->" << 'n' << i << ':' << "<i" << input.second << '>' << std::endl;
                     ++id_counter;
-                }
+                } // normal case. Adds edge from the output connected to the current input.
                 else
                 {
                     const auto source_task_id = output_owners.at(source_location);
@@ -146,6 +152,7 @@ public:
             }
         }
 
+        // Adds outputs which are not connected to an input.
         for (const auto& output : unused_outputs)
         {
             const auto helper_index = output_owners.at(output);
@@ -217,6 +224,11 @@ public:
 protected:
     std::vector<std::unique_ptr<abstract_task_configurator>> m_tasks;
 
+    /**
+     * Creates a connection helper for each task. This is required to gain access
+     * to the input and output connectors of each task.
+     * @return Vector of connection helpers 
+     */
     std::vector<std::unique_ptr<abstract_connection_helper>> get_helpers() const
     {
         // required to gain access to the input and output connectors
@@ -229,6 +241,11 @@ protected:
         return helpers;
     }
 
+    /**
+     * Maps every output in {@code helpers} to the corresponding helper index in {@code helpers}.
+     * @param helpers Vector of helpers
+     * @return A map, which contains the output_connector as key and the index of the helper in {@code helpers} as value.
+     */
     std::map<const abstract_output_connector*, size_t> get_output_owners(const std::vector<std::unique_ptr<abstract_connection_helper>>& helpers) const
     {
         // Map output to helper index

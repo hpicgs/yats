@@ -15,6 +15,8 @@ public:
     {
 #ifdef _MSC_VER
         return get_class_name_msvc<T>();
+#elif __clang__
+        return get_class_name_clang<T>();
 #elif __GNUC__
         return get_class_name_gcc<T>();
 #else
@@ -23,14 +25,26 @@ public:
     }
 
 protected:
-#ifdef __GNUC__
+#ifdef __clang__
+    template <typename T>
+    static std::string get_class_name_clang()
+    {
+        std::string name(__PRETTY_FUNCTION__);
+        const std::string start_token("[T = ");
+        const auto start = name.find(start_token);
+        const auto end = name.find(']', start);
+        auto substr = name.substr(start + start_token.length(), end - start - start_token.length());
+        return get_class_name(substr, 0, substr.length() - 1);
+    }
+#elif __GNUC__
     template <typename T>
     static std::string get_class_name_gcc()
     {
         std::string name(__PRETTY_FUNCTION__);
-        const auto start = name.find("with T = ");
+        const std::string start_token("[with T = ");
+        const auto start = name.find(start_token);
         const auto end = name.find(';', start);
-        auto substr = name.substr(start + 9, end - start - 9);
+        auto substr = name.substr(start + start_token.length(), end - start - start_token.length());
         return get_class_name(substr, 0, substr.length() - 1);
     }
 #elif _MSC_VER
@@ -38,7 +52,7 @@ protected:
     static std::string get_class_name_msvc()
     {
         // start_token must match the function name + <
-        const std::string start_token = "get_class_name_msvc<";
+        const std::string start_token("get_class_name_msvc<");
         std::string name(__FUNCSIG__);
         const auto start = name.find(start_token);
         const auto end = name.find_last_of('>');

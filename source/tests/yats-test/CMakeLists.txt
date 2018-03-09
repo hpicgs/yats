@@ -19,6 +19,7 @@ message(STATUS "Test ${target}")
 # 
 
 set(sources
+    class_name_test.cpp
     connection_test.cpp
     custom_constructor_test.cpp
     identifier_test.cpp

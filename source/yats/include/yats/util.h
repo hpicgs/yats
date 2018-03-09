@@ -1,8 +1,6 @@
 #pragma once
 
 #include <memory>
-#include <string>
-#include <typeinfo>
 
 namespace yats
 {
@@ -178,27 +176,5 @@ constexpr T make_from_tuple(Tuple&& t)
 {
     return detail::make_from_tuple_impl<T>(std::forward<Tuple>(t), std::make_index_sequence<std::tuple_size<std::remove_reference_t<Tuple>>::value>{});
 }
-
-template <typename T>
-std::string get_class_name()
-{
-/*#ifdef _MSC_VER
-    return __FUNCDNAME__;
-#elif __GNUC__
-#else
-    static_assert(false, "unsupported compiler.");
-#endif*/
-    
-    std::string name = typeid(T).name();
-    
-    auto i = name.find_last_of("::");
-
-    if (i != std::string::npos)
-    {
-        name = name.substr(i + 1);
-    }
-
-    return  name;
-}
-}
+};
 

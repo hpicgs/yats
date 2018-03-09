@@ -215,6 +215,8 @@ protected:
     template <size_t Index = 0>
     std::enable_if_t<Index == helper::input_count> get_input_ids(std::vector<uint64_t>& ids)
     {
+        // Prevent a warning about unused parameter.
+        (void)ids;
     }
 
     void initialize_output_ids()
@@ -232,6 +234,8 @@ protected:
     template <size_t Index = 0>
     std::enable_if_t<Index == helper::output_count> get_output_ids(std::vector<uint64_t>& ids)
     {
+        // Prevent a warning about unused parameter.
+        (void)ids;
     }
 
     input_queue_ptr m_input;

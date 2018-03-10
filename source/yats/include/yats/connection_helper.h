@@ -39,20 +39,20 @@ public:
     virtual void bind(const abstract_output_connector* connector, void* callback) = 0;
     virtual void* target(const abstract_input_connector* connector) = 0;
 
-    virtual uint64_t get_input_id(size_t index) const = 0;
-    virtual uint64_t get_output_id(size_t index) const = 0;
+    virtual uint64_t input_id(size_t index) = 0;
+    virtual uint64_t output_id(size_t index) = 0;
 
     /**
      * Returns the name of the task associated with the helper.
      */
-    virtual std::string get_task_name() const = 0;
+    virtual std::string task_name() const = 0;
 
-    const auto& inputs()
+    const auto& inputs() const
     {
         return m_in;
     }
 
-    const auto& outputs()
+    const auto& outputs() const
     {
         return m_out;
     }
@@ -61,7 +61,7 @@ public:
      * Returns the index of {@code output_connector} in the returned tuple
      * of the run function.
      */
-    size_t get_output_index(const abstract_output_connector* output_connector)
+    size_t output_index(const abstract_output_connector* output_connector) const
     {
         return m_out.at(output_connector);
     }
@@ -108,8 +108,6 @@ public:
         , m_output(std::move(listeners))
         , m_callbacks(generate_callbacks(m_input, std::make_index_sequence<helper::input_count>()))
     {
-        initialize_input_ids();
-        initialize_output_ids();
     }
 
     void bind(const abstract_output_connector* connector, void* callback) override
@@ -145,8 +143,13 @@ public:
      * @param index Index of input connector in run functions which id is to be returned.
      * @return Id;
      */
-    uint64_t get_input_id(size_t index) const override
+    uint64_t input_id(size_t index) override
     {
+        if (m_input_ids.empty())
+        {
+            initialize_input_ids();
+        }
+        
         return m_input_ids[index];
     }
 
@@ -156,15 +159,19 @@ public:
     * @param index Index of output connector in the return value of the run function.
     * @return Id;
     */
-    uint64_t get_output_id(size_t index) const override
+    uint64_t output_id(size_t index) override
     {
+        if (m_output_ids.empty())
+        {
+            initialize_output_ids();
+        }
         return m_output_ids[index];
     }
 
     /**
     * Returns the name of the task associated with the helper.
     */
-    std::string get_task_name() const override
+    std::string task_name() const override
     {
         return class_name::get<Task>();
     }
@@ -237,21 +244,19 @@ protected:
     */
     void initialize_input_ids()
     {
-        get_input_ids(m_input_ids);
+        parse_input_ids(m_input_ids);
     }
 
     template <size_t Index = 0>
-    std::enable_if_t<Index < helper::input_count> get_input_ids(std::vector<uint64_t>& ids)
+    std::enable_if_t<Index < helper::input_count> parse_input_ids(std::vector<uint64_t>& ids)
     {
         ids.push_back(std::tuple_element_t<Index, input_tuple>::id);
-        get_input_ids<Index + 1>(ids);
+        parse_input_ids<Index + 1>(ids);
     }
 
     template <size_t Index = 0>
-    std::enable_if_t<Index == helper::input_count> get_input_ids(std::vector<uint64_t>& ids)
+    std::enable_if_t<Index == helper::input_count> parse_input_ids(std::vector<uint64_t>&)
     {
-        // Prevent a warning about unused parameter.
-        (void)ids;
     }
 
     /**
@@ -264,21 +269,19 @@ protected:
      */
     void initialize_output_ids()
     {
-        get_output_ids(m_output_ids);
+        parse_output_ids(m_output_ids);
     }
 
     template <size_t Index = 0>
-    std::enable_if_t<Index < helper::output_count> get_output_ids(std::vector<uint64_t>& ids)
+    std::enable_if_t<Index < helper::output_count> parse_output_ids(std::vector<uint64_t>& ids)
     {
         ids.push_back(std::tuple_element_t<Index, output_tuple>::id);
-        get_output_ids<Index + 1>(ids);
+        parse_output_ids<Index + 1>(ids);
     }
 
     template <size_t Index = 0>
-    std::enable_if_t<Index == helper::output_count> get_output_ids(std::vector<uint64_t>& ids)
+    std::enable_if_t<Index == helper::output_count> parse_output_ids(std::vector<uint64_t>&)
     {
-        // Prevent a warning about unused parameter.
-        (void)ids;
     }
 
     input_queue_ptr m_input;

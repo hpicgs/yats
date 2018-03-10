@@ -88,21 +88,19 @@ TEST(pipeline_test, save_to_file)
 {
     pipeline p;
 
-    // Liste mir alle inputs und outputs zu einem Task.
-
     struct add_task
     {
-        output_bundle<slot<int, "sum"_id>> run(slot<int, "summand_a"_id> a, slot<int, "summand_b"_id> b)
+        slot<int, "sum"_id> run(slot<int, "summand_a"_id> a, slot<int, "summand_b"_id> b)
         {
-            return std::make_tuple(a + b);
+            return a + b;
         }
     };
 
     struct multiply_task
     {
-        output_bundle<slot<int, "product"_id>> run(slot<int, "factor_a"_id> a, slot<int, "factor_b"_id> b)
+        slot<int, "product"_id> run(slot<int, "factor_a"_id> a, slot<int, "factor_b"_id> b)
         {
-            return std::make_tuple(a * b);
+            return a * b;
         }
     };
 

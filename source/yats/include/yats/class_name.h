@@ -7,7 +7,7 @@
 namespace yats
 {
 /**
- * Static class to determine the class names of classes.
+ * Static class to determine the class name of class at runtime.
  */
 class class_name
 {
@@ -21,56 +21,57 @@ public:
     template <typename T>
     static std::string get()
     {
-#ifdef _MSC_VER
-        return get_class_name_msvc<T>();
-#elif __clang__
-        return get_class_name_clang<T>();
-#elif __GNUC__
-        return get_class_name_gcc<T>();
-#else
-        static_assert(false, "unsupported compiler.");
-#endif
+        return name<T>();
     }
 
 protected:
 #ifdef __clang__
     template <typename T>
-    static std::string get_class_name_clang()
+    static std::string name()
     {
-        std::string name(__PRETTY_FUNCTION__);
         // example return value:
         // std::string get() [T = some_struct]
+        std::string name(__PRETTY_FUNCTION__);
+        
         const std::string start_token("[T = ");
         const auto start = name.find(start_token);
         const auto end = name.find(']', start);
         auto substr = name.substr(start + start_token.length(), end - start - start_token.length());
-        return get_class_name(substr, 0, substr.length() - 1);
+        return parse_class_name(substr, 0, substr.length() - 1);
     }
 #elif __GNUC__
     template <typename T>
-    static std::string get_class_name_gcc()
+    static std::string name()
     {
-        std::string name(__PRETTY_FUNCTION__);
         // example return value:
         // std::__cxx11::string get() [with T = main()::some_struct; std::__cxx11::string = std::__cxx11::basic_string<char>]
+        std::string name(__PRETTY_FUNCTION__);
+        
         const std::string start_token("[with T = ");
         const auto start = name.find(start_token);
         const auto end = name.find(';', start);
         auto substr = name.substr(start + start_token.length(), end - start - start_token.length());
-        return get_class_name(substr, 0, substr.length() - 1);
+        return parse_class_name(substr, 0, substr.length() - 1);
     }
 #elif _MSC_VER
     template <typename T>
-    static std::string get_class_name_msvc()
+    static std::string name()
     {
-        // start_token must match the function name + "<"
-        const std::string start_token("get_class_name_msvc<");
-        std::string name(__FUNCSIG__);
         // example return value:
         // class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > __cdecl yats::get_class_name<struct util_test_get_class_name_test_Test::TestBody::some_struct>(void)
+        std::string name(__FUNCSIG__);
+
+        // start_token must match the function name + "<"
+        const std::string start_token("name<");
         const auto start = name.find(start_token);
         const auto end = name.find_last_of('>');
-        return get_class_name(name, start + start_token.length(), end - 1);
+        return parse_class_name(name, start + start_token.length(), end - 1);
+    }
+#else
+    template <typename T>
+    static std::string name()
+    {
+        static_assert(false, "unsupported compiler.");
     }
 #endif
 
@@ -81,7 +82,7 @@ protected:
      * @param end Upper bound of {@code str} to look at.
      * @return Class name parsed from {@code str}
      */
-    static std::string get_class_name(const std::string& str, size_t start, size_t end)
+    static std::string parse_class_name(const std::string& str, size_t start, size_t end)
     {
         const auto left = str.find_first_of('<', start);
         const auto right = str.find_last_of('>', end);
@@ -96,7 +97,7 @@ protected:
         if (left < right)
         {
             // Extract types in class_name<TYPE1,TYPE2,...>
-            return class_name + '<' + get_class_name(str, left + 1, right - 1) + '>';
+            return class_name + '<' + parse_class_name(str, left + 1, right - 1) + '>';
         }
 
         // Isolate types in TYPE1, TYPE2,...
@@ -125,7 +126,7 @@ protected:
      * @param ignore_space If false, everything before the last space (including the space) will be trimmed.
      * @return Trimmed string
      */
-    static std::string trim_left(const std::string& str, const bool ignore_space)
+    static std::string trim_left(const std::string& str, bool ignore_space)
     {
         auto start = str.find_last_of("::");
         if (start == std::string::npos && !ignore_space)

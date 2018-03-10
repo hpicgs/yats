@@ -91,10 +91,12 @@ public:
         std::string input_ids;
         std::string output_ids;
 
+        constexpr auto line_break = '\n';
+
         // writes first part of the body for the DOT file. 
-        file << "digraph structs {" << std::endl;
-        file << '\t' << "rankdir = LR;" << std::endl << std::endl;
-        file << '\t' << "node [shape = record];" << std::endl;
+        file << "digraph structs {" << line_break;
+        file << '\t' << "rankdir = LR;" << line_break << line_break;
+        file << '\t' << "node [shape = record];" << line_break;
 
         auto helpers = get_helpers();
         auto output_owners = get_output_owners(helpers);
@@ -105,13 +107,13 @@ public:
         // NODE_NAME [label = "NODE_NAME|{{<KEY1>INPUT1|<KEY2>INPUT2...}|{<KEY3>OUTPUT1|<KEY4>OUTPUT2...}}"];
         for (size_t i = 0; i < helpers.size(); ++i)
         {
-            file << '\t' << "n" << i << "[label = \"" << helpers[i]->get_task_name() << "|{";
+            file << '\t' << "n" << i << "[label = \"" << helpers[i]->task_name() << "|{";
             file << '{' << inputs_to_string(*helpers[i]) << "}|";
             file << '{' << outputs_to_string(*helpers[i]) << '}';
-            file << "}\"]" << std::endl;
+            file << "}\"]" << line_break;
         }
 
-        file << std::endl;
+        file << line_break;
 
         // We need to keep track of outputs which are not connected.
         std::set<const abstract_output_connector*> unused_outputs;
@@ -139,14 +141,14 @@ public:
                 if (source_location == nullptr)
                 {
                     file << '\t' << "node [shape = point]; ";
-                    file << 'u' << id_counter << ';' << std::endl;
-                    file << '\t' << 'u' << id_counter << "->" << 'n' << i << ':' << "<i" << input.second << '>' << std::endl;
+                    file << 'u' << id_counter << ';' << line_break;
+                    file << '\t' << 'u' << id_counter << "->" << 'n' << i << ':' << "<i" << input.second << '>' << line_break;
                     ++id_counter;
                 } // normal case. Adds edge from the output connected to the current input.
                 else
                 {
                     const auto source_task_id = output_owners.at(source_location);
-                    file << '\t' << 'n' << source_task_id << ':' << "<o" << helpers[source_task_id]->get_output_index(source_location) << "> -> " << 'n' << i << ':' << "<i" << input.second << '>' << std::endl;
+                    file << '\t' << 'n' << source_task_id << ':' << "<o" << helpers[source_task_id]->output_index(source_location) << "> -> " << 'n' << i << ':' << "<i" << input.second << '>' << line_break;
                     unused_outputs.erase(source_location);
                 }
             }
@@ -157,70 +159,15 @@ public:
         {
             const auto helper_index = output_owners.at(output);
             file << '\t' << "node [shape = point]; ";
-            file << 'u' << id_counter << ';' << std::endl;
-            file << '\t' << 'n' << helper_index << ':' << "<o" << helpers[helper_index]->get_output_index(output) << '>' << "->" << 'u' << id_counter << std::endl;
+            file << 'u' << id_counter << ';' << line_break;
+            file << '\t' << 'n' << helper_index << ':' << "<o" << helpers[helper_index]->output_index(output) << '>' << "->" << 'u' << id_counter << line_break;
             ++id_counter;
         }
 
-        file << '}' << std::endl;
+        file << '}' << line_break;
 
         file.close();
     }
-
-    /**
-     * Creates a string of all inputs in {@code helper} of the format <KEY1>INPUT1|<KEY2>INPUT2...
-     * Keys are of the format <i0>, <i1>, etc.
-     * The order of the inputs depends on their placement in the underlying map in {@code helper}.
-     * @param helper Helper whose inputs are to by converted to a string.
-     * @return A string containing all inputs according to the format described above
-     */
-    static std::string inputs_to_string(abstract_connection_helper& helper)
-    {
-        std::stringstream input_id_stream;
-
-        for (const auto& input : helper.inputs())
-        {
-            const auto index = input.second;
-            input_id_stream << "<i" << index << ">" << yats::identifier::id_to_string(helper.get_input_id(index)) << "|";
-        }
-    
-        auto tmp = input_id_stream.str();
-
-        if (!tmp.empty())
-        {
-            tmp.pop_back();
-        }
-
-        return tmp;
-    }
-
-    /**
-    * Creates a string of all outputs in {@code helper} of the format <KEY1>OUTPUT1|<KEY2>OUTPUT2...
-    * Keys are of the format <o0>, <o1>, etc.
-    * The order of the inputs depends on their placement in the underlying map in {@code helper}.
-    * @param helper Helper whose outputs are to by converted to a string.
-    * @return A string containing all outputs according to the format described above
-    */
-    static std::string outputs_to_string(abstract_connection_helper& helper)
-    {
-        std::stringstream output_id_stream;
-
-        for (const auto& output : helper.outputs())
-        {
-            const auto index = output.second;
-            output_id_stream << "<o" << index << ">" << yats::identifier::id_to_string(helper.get_output_id(index)) << "|";
-        }
-
-        auto tmp = output_id_stream.str();
-
-        if (!tmp.empty())
-        {
-            tmp.pop_back();
-        }
-
-        return tmp;
-    }
-
 protected:
     std::vector<std::unique_ptr<abstract_task_configurator>> m_tasks;
 
@@ -260,6 +207,60 @@ protected:
             }
         }
         return output_owners;
+    }
+
+    /**
+    * Creates a string of all inputs in {@code helper} of the format <KEY1>INPUT1|<KEY2>INPUT2...
+    * Keys are of the format <i0>, <i1>, etc.
+    * The order of the inputs depends on their placement in the underlying map in {@code helper}.
+    * @param helper Helper whose inputs are to by converted to a string.
+    * @return A string containing all inputs according to the format described above
+    */
+    static std::string inputs_to_string(abstract_connection_helper& helper)
+    {
+        std::stringstream input_id_stream;
+
+        for (const auto& input : helper.inputs())
+        {
+            const auto index = input.second;
+            input_id_stream << "<i" << index << ">" << yats::identifier::id_to_string(helper.input_id(index)) << "|";
+        }
+
+        auto tmp = input_id_stream.str();
+
+        if (!tmp.empty())
+        {
+            tmp.pop_back();
+        }
+
+        return tmp;
+    }
+
+    /**
+    * Creates a string of all outputs in {@code helper} of the format <KEY1>OUTPUT1|<KEY2>OUTPUT2...
+    * Keys are of the format <o0>, <o1>, etc.
+    * The order of the inputs depends on their placement in the underlying map in {@code helper}.
+    * @param helper Helper whose outputs are to by converted to a string.
+    * @return A string containing all outputs according to the format described above
+    */
+    static std::string outputs_to_string(abstract_connection_helper& helper)
+    {
+        std::stringstream output_id_stream;
+
+        for (const auto& output : helper.outputs())
+        {
+            const auto index = output.second;
+            output_id_stream << "<o" << index << ">" << yats::identifier::id_to_string(helper.output_id(index)) << "|";
+        }
+
+        auto tmp = output_id_stream.str();
+
+        if (!tmp.empty())
+        {
+            tmp.pop_back();
+        }
+
+        return tmp;
     }
 };
 }

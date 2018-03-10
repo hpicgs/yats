@@ -140,6 +140,3 @@ TEST(util_test, has_unique_ids_test)
 
     EXPECT_TRUE(yes_empty);
 }
-
-
-

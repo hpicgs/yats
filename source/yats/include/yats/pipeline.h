@@ -97,6 +97,7 @@ protected:
             { thread_group::main_thread_name(), thread_group::main_thread_number() }
         };
 
+        // Needs to be 2 since 0 and 1 are used by "main" and "any"
         size_t next_constraint = 2;
         for (const auto& task : m_tasks)
         {

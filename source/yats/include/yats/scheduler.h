@@ -94,11 +94,11 @@ protected:
     bool initial_schedule()
     {
         bool active = false;
-        for (size_t i = 0; i < m_tasks.size(); ++i)
+        for (size_t index = 0; index < m_tasks.size(); ++index)
         {
-            if (m_tasks[i]->can_run())
+            if (m_tasks[index]->can_run())
             {
-                schedule(i);
+                schedule(index);
                 active = true;
             }
         }

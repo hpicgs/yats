@@ -39,6 +39,9 @@ public:
             --condition->m_notify_count[m_condition->m_thread_identifier];
         }
 
+        thread_guard(const thread_guard&) = delete;
+        thread_guard(thread_guard&&) = default;
+
         ~thread_guard()
         {
             m_condition->notify(m_condition->m_thread_identifier);
@@ -47,6 +50,9 @@ public:
                 m_condition->check_finish();
             }
         }
+
+        thread_guard& operator=(const thread_guard&) = delete;
+        thread_guard& operator=(thread_guard&&) = default;
 
         operator bool() const
         {

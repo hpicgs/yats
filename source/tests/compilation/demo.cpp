@@ -1,5 +1,4 @@
 #include <iostream>
-#include <yats/pipeline.h>
 
 int main()
 {

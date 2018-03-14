@@ -1,6 +1,9 @@
 #pragma once
 
+#include <condition_variable>
 #include <memory>
+#include <mutex>
+#include <numeric>
 
 namespace yats
 {
@@ -17,6 +20,19 @@ struct has_run
 
 template <typename T>
 constexpr bool has_run_v = has_run<T>::value;
+
+template <typename T>
+struct has_options
+{
+    template <typename U>
+    static char test_function(decltype(&U::options));
+    template <typename U>
+    static int test_function(...);
+    static constexpr bool value = sizeof(test_function<T>(0)) == sizeof(char);
+};
+
+template <typename T>
+constexpr bool has_options_v = has_options<T>::value;
 
 template <typename T>
 struct is_unique_ptr

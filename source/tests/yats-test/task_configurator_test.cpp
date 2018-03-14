@@ -3,17 +3,19 @@
 #include <yats/slot.h>
 #include <yats/task_configurator.h>
 
+using namespace yats;
+
 TEST(task_configurator_test, return_parameters)
 {
     struct Task
     {
-        yats::output_bundle<yats::slot<int, 0>> run(yats::slot<int, 0> input)
+        output_bundle<slot<int, 0>> run(slot<int, 0> input)
         {
             return std::make_tuple(static_cast<int>(input));
         }
     };
 
-    yats::task_configurator<Task> configurator;
+    task_configurator<Task> configurator;
 
     configurator.input<0>();
     configurator.output<0>();
@@ -23,13 +25,13 @@ TEST(task_configurator_test, return_one_element_not_in_tuple)
 {
     struct Task
     {
-        yats::slot<int, 71> run(yats::slot<int, 14> input)
+        slot<int, 71> run(slot<int, 14> input)
         {
             return input + 1;
         }
     };
 
-    yats::task_configurator<Task> configurator;
+    task_configurator<Task> configurator;
 
     configurator.input<14>();
     configurator.output<71>();
@@ -39,13 +41,13 @@ TEST(task_configurator_test, multiple_returns_multiple_parameters)
 {
     struct Task
     {
-        yats::output_bundle<yats::slot<int, 0>, yats::slot<int, 1>> run(yats::slot<int, 0> input0, yats::slot<int, 1> input1)
+        output_bundle<slot<int, 0>, slot<int, 1>> run(slot<int, 0> input0, slot<int, 1> input1)
         {
             return std::make_tuple(input0 + input1, input0 - input1);
         }
     };
 
-    yats::task_configurator<Task> configurator;
+    task_configurator<Task> configurator;
 
     configurator.input<0>();
     configurator.output<0>();
@@ -57,29 +59,86 @@ TEST(task_configurator_test, get_input_output_by_id)
 {
     struct Task
     {
-        yats::output_bundle<yats::slot<int, 123>> run(yats::slot<int, 321> input)
+        output_bundle<slot<int, 123>> run(slot<int, 321> input)
         {
             return std::make_tuple(input + 1);
         }
     };
 
-    yats::task_configurator<Task> configurator;
+    task_configurator<Task> configurator;
     configurator.input<321>();
     configurator.output<123>();
 }
 
 TEST(task_configurator_test, get_input_output_by_name)
 {
-    using namespace yats;
     struct Task
     {
-        yats::output_bundle<yats::slot<int, "output"_id>> run(yats::slot<int, "input"_id> input)
+        output_bundle<slot<int, "output"_id>> run(slot<int, "input"_id> input)
         {
             return std::make_tuple(input + 1);
         }
     };
 
-    yats::task_configurator<Task> configurator;
+    task_configurator<Task> configurator;
     configurator.input<"input"_id>();
     configurator.output<"output"_id>();
+}
+
+TEST(task_configurator_test, thread_constraints_default)
+{
+    struct Task
+    {
+        void run()
+        {
+        }
+    };
+
+    task_configurator<Task> configurator;
+    auto constraints = configurator.thread_constraints();
+
+    EXPECT_EQ(constraints.names().count(thread_group::name_for(thread_group::ANY)), 1);
+    EXPECT_EQ(constraints.names().size(), 1);
+}
+
+TEST(task_configurator_test, thread_constraints_non_static_function)
+{
+    struct Task
+    {
+        thread_group thread_constraints()
+        {
+            return thread_group::main_thread();
+        }
+
+        void run()
+        {
+        }
+    };
+
+    task_configurator<Task> configurator;
+    auto constraints = configurator.thread_constraints();
+
+    EXPECT_EQ(constraints.names().count(thread_group::name_for(thread_group::ANY)), 1);
+    EXPECT_EQ(constraints.names().size(), 1);
+}
+
+TEST(task_configurator_test, thread_constraints_static_function)
+{
+    struct Task
+    {
+        static thread_group thread_constraints()
+        {
+            return thread_group::main_thread();
+        }
+
+        void run()
+        {
+        }
+    };
+
+    task_configurator<Task> configurator;
+    auto constraints = configurator.thread_constraints();
+
+    EXPECT_EQ(constraints.names().count(thread_group::name_for(thread_group::MAIN)), 1);
+    EXPECT_EQ(constraints.names().size(), 1);
 }

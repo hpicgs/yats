@@ -20,9 +20,11 @@ message(STATUS "Test ${target}")
 
 set(sources
     connection_test.cpp
+    constraints_test.cpp
     custom_constructor_test.cpp
     identifier_test.cpp
     main.cpp
+    options_test.cpp
     pipeline_test.cpp
     queue_test.cpp
     scheduler_test.cpp

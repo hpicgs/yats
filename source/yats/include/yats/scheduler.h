@@ -42,10 +42,7 @@ public:
 
     void run()
     {
-        if (!initial_schedule())
-        {
-            return;
-        }
+        initial_schedule();
 
         while (auto guard = m_condition.wait_main(thread_group::MAIN))
         {
@@ -92,19 +89,15 @@ protected:
         }
     }
 
-    bool initial_schedule()
+    void initial_schedule()
     {
-        bool active = false;
         for (size_t index = 0; index < m_tasks.size(); ++index)
         {
             if (m_tasks[index]->can_run())
             {
                 schedule(index);
-                active = true;
             }
         }
-
-        return active;
     }
 
     static size_t number_of_constraints(const std::vector<std::unique_ptr<abstract_task_container>>& tasks)

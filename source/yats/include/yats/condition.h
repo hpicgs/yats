@@ -82,6 +82,11 @@ public:
     {
         std::unique_lock<std::mutex> guard(m_mutex);
 
+        if (has_finished())
+        {
+            return thread_guard(this, false, guard);
+        }
+
         // Wait on the resource condition.
         while (m_notify_count[constraint] == 0 && m_is_active)
         {

@@ -13,8 +13,8 @@ namespace yats
 class scheduler
 {
 public:
-    explicit scheduler(const pipeline& pipeline, size_t number_of_threads = std::max(std::thread::hardware_concurrency(), 1u))
-        : m_tasks(pipeline.build())
+    explicit scheduler(pipeline pipeline, size_t number_of_threads = std::max(std::thread::hardware_concurrency(), 1u))
+        : m_tasks(std::move(pipeline).build())
         , m_tasks_to_process(number_of_constraints(m_tasks))
         , m_condition(number_of_threads, number_of_constraints(m_tasks))
         , m_thread_pool(m_condition)

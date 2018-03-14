@@ -41,7 +41,7 @@ public:
         return static_cast<task_configurator<Task, Parameters...>*>(m_tasks.back().get());
     }
 
-    std::vector<std::unique_ptr<abstract_task_container>> build() const
+    std::vector<std::unique_ptr<abstract_task_container>> build() const &&
     {
         std::vector<std::unique_ptr<abstract_connection_helper>> helpers;
         for (const auto& configurator : m_tasks)

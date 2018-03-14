@@ -42,7 +42,7 @@ TEST(scheduler_test, run_twice)
     auto task = pipeline.add([]() -> yats::slot<int, 0> { return 1; });
     task->add_listener<0>([&output](int value) {output += value; });
 
-    yats::scheduler scheduler(pipeline);
+    yats::scheduler scheduler(std::move(pipeline));
     EXPECT_EQ(output, 0);
     scheduler.run();
     EXPECT_EQ(output, 1);

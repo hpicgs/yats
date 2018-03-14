@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 
+#include <yats/constraint_helper.h>
 #include <yats/lambda_task.h>
 #include <yats/task_configurator.h>
 #include <yats/util.h>
@@ -42,8 +43,6 @@ public:
 
     std::vector<std::unique_ptr<abstract_task_container>> build() const
     {
-        auto constraint_map = convert_constraints();
-
         std::vector<std::unique_ptr<abstract_connection_helper>> helpers;
         for (const auto& configurator : m_tasks)
         {
@@ -74,6 +73,7 @@ public:
         }
 
         std::vector<std::unique_ptr<abstract_task_container>> tasks;
+        auto constraint_map = thread_group_helper::map_thread_groups(m_tasks);
         for (size_t i = 0; i < m_tasks.size(); ++i)
         {
             tasks.push_back(m_tasks[i]->construct_task_container(std::move(helpers[i])));
@@ -90,30 +90,6 @@ public:
     }
 
 protected:
-    std::map<std::string, size_t> convert_constraints() const
-    {
-        std::map<std::string, size_t> constraint_map{
-            { thread_group::any_thread_name(), thread_group::any_thread_number() },
-            { thread_group::main_thread_name(), thread_group::main_thread_number() }
-        };
-
-        // Needs to be 2 since 0 and 1 are used by "main" and "any"
-        size_t next_constraint = 2;
-        for (const auto& task : m_tasks)
-        {
-            for (const auto& constraint_name : task->thread_constraints().names())
-            {
-                auto success = constraint_map.emplace(constraint_name, next_constraint);
-                if (success.second)
-                {
-                    ++next_constraint;
-                }
-            }
-        }
-
-        return constraint_map;
-    }
-
     std::vector<std::unique_ptr<abstract_task_configurator>> m_tasks;
 };
 }

@@ -9,14 +9,14 @@ TEST(constraints_test, remove_any_thread)
     auto constraint = thread_group::any_thread();
 
     {
-        bool contains_any = constraint.names().count(thread_group::any_thread_name()) == 1;
+        bool contains_any = constraint.names().count(thread_group::name_for(thread_group::ANY)) == 1;
         EXPECT_TRUE(contains_any);
     }
 
     constraint |= thread_group::main_thread();
 
     {
-        bool contains_any = constraint.names().count(thread_group::any_thread_name()) == 1;
+        bool contains_any = constraint.names().count(thread_group::name_for(thread_group::ANY)) == 1;
         EXPECT_FALSE(contains_any);
     }
 

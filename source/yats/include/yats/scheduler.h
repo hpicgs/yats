@@ -22,12 +22,13 @@ public:
         for (size_t i = 0; i < number_of_threads; ++i)
         {
             m_thread_pool.execute([this]() mutable {
-                auto current_task = get(thread_group::any_thread_number());
+                auto current_task = get(thread_group::ANY);
                 m_tasks[current_task]->run();
 
                 // This can be removed after the change of control flow.
                 schedule_following(current_task);
-            }, thread_group::any_thread_number());
+            },
+                                  thread_group::ANY);
         }
     }
 
@@ -46,9 +47,9 @@ public:
             return;
         }
 
-        while (auto guard = m_condition.wait_main(thread_group::main_thread_number()))
+        while (auto guard = m_condition.wait_main(thread_group::MAIN))
         {
-            auto current_task = get(thread_group::main_thread_number());
+            auto current_task = get(thread_group::MAIN);
             m_tasks[current_task]->run();
 
             // This can be removed after the change of control flow.
@@ -113,10 +114,8 @@ protected:
         {
             max_constraint = std::max(max_constraint, *std::max_element(task->constraints().cbegin(), task->constraints().cend()));
         }
-		// We have to add 2 because we have 2 constraints, which exist even though they are not chosen
-		// 1. any thread
-		// 2. main thread
-        return max_constraint + 2;
+        // We have to add the number of constraints which exist even though they are not chosen
+        return max_constraint + thread_group::COUNT;
     }
 
     std::vector<std::unique_ptr<abstract_task_container>> m_tasks;

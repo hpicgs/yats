@@ -102,10 +102,10 @@ public:
     void check_finish()
     {
         std::unique_lock<std::mutex> guard(m_mutex);
-        if (has_finished() && m_notify_count[thread_group::main_thread_number()] == 0)
+        if (has_finished() && m_notify_count[thread_group::MAIN] == 0)
         {
-            ++m_notify_count[thread_group::main_thread_number()];
-            m_task_added[thread_group::main_thread_number()].notify_one();
+            ++m_notify_count[thread_group::MAIN];
+            m_task_added[thread_group::MAIN].notify_one();
         }
     }
 

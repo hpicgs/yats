@@ -97,7 +97,7 @@ TEST(task_configurator_test, thread_constraints_default)
     task_configurator<Task> configurator;
     auto constraints = configurator.thread_constraints();
 
-    EXPECT_EQ(constraints.names().count(thread_group::any_thread_name()), 1);
+    EXPECT_EQ(constraints.names().count(thread_group::name_for(thread_group::ANY)), 1);
     EXPECT_EQ(constraints.names().size(), 1);
 }
 
@@ -118,7 +118,7 @@ TEST(task_configurator_test, thread_constraints_non_static_function)
     task_configurator<Task> configurator;
     auto constraints = configurator.thread_constraints();
 
-    EXPECT_EQ(constraints.names().count(thread_group::any_thread_name()), 1);
+    EXPECT_EQ(constraints.names().count(thread_group::name_for(thread_group::ANY)), 1);
     EXPECT_EQ(constraints.names().size(), 1);
 }
 
@@ -139,6 +139,6 @@ TEST(task_configurator_test, thread_constraints_static_function)
     task_configurator<Task> configurator;
     auto constraints = configurator.thread_constraints();
 
-    EXPECT_EQ(constraints.names().count(thread_group::main_thread_name()), 1);
+    EXPECT_EQ(constraints.names().count(thread_group::name_for(thread_group::MAIN)), 1);
     EXPECT_EQ(constraints.names().size(), 1);
 }

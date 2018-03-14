@@ -11,7 +11,7 @@ class thread_group_helper;
 class thread_group
 {
 public:
-    explicit thread_group(const std::string& name)
+    explicit thread_group(const std::string& name = name_for(ANY))
         : m_names{ name }
     {
     }

@@ -36,7 +36,7 @@ TEST(scheduler_test, multithreaded_timing_test)
 
 TEST(scheduler_test, run_twice)
 {
-    yats::pipeline pipeline;
+    pipeline pipeline;
 
     int output = 0;
     auto task = pipeline.add([]() -> yats::slot<int, 0> { return 1; });

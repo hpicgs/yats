@@ -140,7 +140,7 @@ protected:
     template <typename LocalTask = Task>
     static std::enable_if_t<!has_thread_constraints_v<LocalTask>, thread_group> default_thread_constraints()
     {
-        return thread_group::any_thread();
+        return thread_group();
     }
 
     template <typename T = Task>

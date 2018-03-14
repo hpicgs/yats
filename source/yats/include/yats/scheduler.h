@@ -25,7 +25,6 @@ public:
                 auto current_task = get(thread_group::ANY);
                 m_tasks[current_task]->run();
 
-                // This can be removed after the change of control flow.
                 schedule_following(current_task);
             },
                                   thread_group::ANY);
@@ -49,7 +48,6 @@ public:
             auto current_task = get(thread_group::MAIN);
             m_tasks[current_task]->run();
 
-            // This can be removed after the change of control flow.
             schedule_following(current_task);
         }
     }

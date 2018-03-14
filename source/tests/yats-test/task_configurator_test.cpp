@@ -72,7 +72,6 @@ TEST(task_configurator_test, get_input_output_by_id)
 
 TEST(task_configurator_test, get_input_output_by_name)
 {
-    using namespace yats;
     struct Task
     {
         output_bundle<slot<int, "output"_id>> run(slot<int, "input"_id> input)
@@ -84,4 +83,62 @@ TEST(task_configurator_test, get_input_output_by_name)
     task_configurator<Task> configurator;
     configurator.input<"input"_id>();
     configurator.output<"output"_id>();
+}
+
+TEST(task_configurator_test, thread_constraints_default)
+{
+    struct Task
+    {
+        void run()
+        {
+        }
+    };
+
+    task_configurator<Task> configurator;
+    auto constraints = configurator.thread_constraints();
+
+    EXPECT_EQ(constraints.names().count(thread_group::name_for(thread_group::ANY)), 1);
+    EXPECT_EQ(constraints.names().size(), 1);
+}
+
+TEST(task_configurator_test, thread_constraints_non_static_function)
+{
+    struct Task
+    {
+        thread_group thread_constraints()
+        {
+            return thread_group::main_thread();
+        }
+
+        void run()
+        {
+        }
+    };
+
+    task_configurator<Task> configurator;
+    auto constraints = configurator.thread_constraints();
+
+    EXPECT_EQ(constraints.names().count(thread_group::name_for(thread_group::ANY)), 1);
+    EXPECT_EQ(constraints.names().size(), 1);
+}
+
+TEST(task_configurator_test, thread_constraints_static_function)
+{
+    struct Task
+    {
+        static thread_group thread_constraints()
+        {
+            return thread_group::main_thread();
+        }
+
+        void run()
+        {
+        }
+    };
+
+    task_configurator<Task> configurator;
+    auto constraints = configurator.thread_constraints();
+
+    EXPECT_EQ(constraints.names().count(thread_group::name_for(thread_group::MAIN)), 1);
+    EXPECT_EQ(constraints.names().size(), 1);
 }

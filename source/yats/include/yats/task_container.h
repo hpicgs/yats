@@ -130,7 +130,7 @@ protected:
     template <typename SlotType, typename ValueType = typename SlotType::value_type>
     static std::enable_if_t<!std::is_copy_constructible<ValueType>::value, ValueType> copy_value(const SlotType&)
     {
-        throw std::runtime_error("If this gets thrown, the library is broken.");
+        throw std::runtime_error("Tried to copy a type that is not copy constructible. This implies an implementation error in yats.");
     }
 
     /**

@@ -1,7 +1,7 @@
 #include <gmock/gmock.h>
 
-#include <yats/slot.h>
 #include <yats/scheduler.h>
+#include <yats/slot.h>
 
 using namespace yats;
 

@@ -106,12 +106,7 @@ protected:
     template <typename IdTuple, typename Return, typename Parameter>
     Return& find(Parameter& tuple, uint64_t id)
     {
-        auto connector = get<IdTuple, Return>(tuple, id);
-        if (connector)
-        {
-            return *connector;
-        }
-        throw std::runtime_error("Id not found.");
+        return *get<IdTuple, Return>(tuple, id);
     }
 
     template <typename IdTuple, typename Return, size_t Index = 0, typename Parameter = int>
@@ -128,7 +123,7 @@ protected:
     template <typename IdTuple, typename Return, size_t Index = 0, typename Parameter = int>
     std::enable_if_t<Index == std::tuple_size<IdTuple>::value, Return*> get(Parameter&, uint64_t)
     {
-        return nullptr;
+        throw std::runtime_error("Id not found. This implies an implementation error in yats.");
     }
 
     template <typename LocalTask = Task>

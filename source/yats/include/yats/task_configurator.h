@@ -2,6 +2,7 @@
 
 #include <memory>
 
+#include <yats/constraint.h>
 #include <yats/identifier.h>
 #include <yats/lambda_task.h>
 #include <yats/task_container.h>
@@ -14,8 +15,11 @@ namespace yats
 class abstract_task_configurator
 {
 public:
-    abstract_task_configurator() = default;
-    
+    abstract_task_configurator(const thread_group& thread_constraint)
+        : m_thread_constraint(thread_constraint)
+    {
+    }
+
     virtual ~abstract_task_configurator() = default;
 
     abstract_task_configurator(const abstract_task_configurator& other) = delete;
@@ -26,6 +30,19 @@ public:
 
     virtual std::unique_ptr<abstract_task_container> construct_task_container(std::unique_ptr<abstract_connection_helper> helper) = 0;
     virtual std::unique_ptr<abstract_connection_helper> construct_connection_helper() const = 0;
+
+    void add_thread_constraint(const thread_group& group)
+    {
+        m_thread_constraint |= group;
+    }
+
+    const thread_group& thread_constraints() const
+    {
+        return m_thread_constraint;
+    }
+
+protected:
+    thread_group m_thread_constraint;
 };
 
 template <typename Task, typename... Parameters>
@@ -42,11 +59,12 @@ class task_configurator : public abstract_task_configurator
 
 public:
     task_configurator(Parameters&&... parameters)
-        : m_options(std::make_unique<option_storage<Task>>(construct_options_map()))
+        : abstract_task_configurator(default_thread_constraints())
+        , m_options(std::make_unique<option_storage<Task>>(construct_options_map()))
         , m_construction_parameters(std::forward<Parameters>(parameters)...)
     {
     }
-    
+
     /**
      * Get input with {@code Id}.
      */
@@ -117,6 +135,18 @@ protected:
     std::enable_if_t<Index == std::tuple_size<IdTuple>::value, Return*> get(Parameter&, uint64_t)
     {
         return nullptr;
+    }
+
+    template <typename LocalTask = Task>
+    static std::enable_if_t<has_thread_constraints_v<LocalTask>, thread_group> default_thread_constraints()
+    {
+        return LocalTask::thread_constraints();
+    }
+
+    template <typename LocalTask = Task>
+    static std::enable_if_t<!has_thread_constraints_v<LocalTask>, thread_group> default_thread_constraints()
+    {
+        return thread_group();
     }
 
     template <typename T = Task>

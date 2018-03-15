@@ -83,7 +83,7 @@ TEST(scheduler_test, catch_chained_task_exception)
     pipeline pipeline;
 
     struct task {
-      yats::slot<int, 0> run()
+      slot<int, 0> run()
       {
           throw std::runtime_error("failed foo");
           return 1;
@@ -111,7 +111,7 @@ TEST(scheduler_test, catch_last_task_exception)
     pipeline pipeline;
 
     struct task {
-      yats::slot<int, 0> run()
+      slot<int, 0> run()
       {
           return 1;
       }
@@ -138,7 +138,7 @@ TEST(scheduler_test, catch_last_task_main_thread_exception)
     pipeline pipeline;
 
     struct task {
-      yats::slot<int, 0> run()
+      slot<int, 0> run()
       {
           return 1;
       }
@@ -170,7 +170,7 @@ TEST(scheduler_test, catch_last_task_any_thread_exception)
     pipeline pipeline;
 
     struct task {
-      yats::slot<int, 0> run()
+      slot<int, 0> run()
       {
           return 1;
       }
@@ -207,7 +207,7 @@ TEST(scheduler_test, catch_last_task_main_thread_after_any_thread_exception)
           return thread_group::any_thread();
       }
 
-      yats::slot<int, 0> run()
+      slot<int, 0> run()
       {
           std::this_thread::sleep_for(std::chrono::milliseconds(100));
           throw std::runtime_error("failed foo");

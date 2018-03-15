@@ -19,9 +19,11 @@ set(headers
     ${include_path}/condition.h
     ${include_path}/connection_helper.h
     ${include_path}/constraint.h
+    ${include_path}/constraint_helper.h
     ${include_path}/identifier.h
     ${include_path}/input_connector.h
     ${include_path}/lambda_task.h
+    ${include_path}/options.h
     ${include_path}/output_connector.h
     ${include_path}/pipeline.h
     ${include_path}/scheduler.h

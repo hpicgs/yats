@@ -6,44 +6,24 @@
 namespace yats
 {
 
+class thread_group_helper;
+
 class thread_group
 {
 public:
-    explicit thread_group(const std::string& name)
+    explicit thread_group(const std::string& name = name_for(ANY))
         : m_names{ name }
     {
     }
 
     static thread_group main_thread()
     {
-        return thread_group(main_thread_name());
-    }
-
-    static const std::string& main_thread_name()
-    {
-        const static std::string name = "main";
-        return name;
-    }
-
-    static size_t main_thread_number()
-    {
-        return 1;
+        return thread_group(name_for(MAIN));
     }
 
     static thread_group any_thread()
     {
-        return thread_group(any_thread_name());
-    }
-
-    static const std::string& any_thread_name()
-    {
-        const static std::string name = "";
-        return name;
-    }
-
-    static size_t any_thread_number()
-    {
-        return 0;
+        return thread_group(name_for(ANY));
     }
 
     const std::set<std::string>& names() const
@@ -56,7 +36,7 @@ public:
         m_names.insert(other.m_names.cbegin(), other.m_names.cend());
 
         // As soon as we have a thread constraint we no longer want the any thread constraint
-        m_names.erase(any_thread_name());
+        m_names.erase(name_for(ANY));
 
         return *this;
     }
@@ -65,6 +45,33 @@ public:
     {
         lhs |= rhs;
         return lhs;
+    }
+
+    // COUNT is the number of given_groups we currently have
+    enum given_groups : size_t
+    {
+        ANY,
+        MAIN,
+        COUNT
+    };
+
+    static std::string name_for(given_groups group)
+    {
+        switch (group)
+        {
+        case ANY:
+        {
+            return "";
+        }
+        case MAIN:
+        {
+            return "main";
+        }
+        default:
+        {
+            throw std::logic_error("The implementation of yats is broken.");
+        }
+        }
     }
 
 protected:

@@ -36,13 +36,13 @@ TEST(scheduler_test, multithreaded_timing_test)
 
 TEST(scheduler_test, run_twice)
 {
-    yats::pipeline pipeline;
+    pipeline pipeline;
 
     int output = 0;
     auto task = pipeline.add([]() -> yats::slot<int, 0> { return 1; });
     task->add_listener<0>([&output](int value) {output += value; });
 
-    yats::scheduler scheduler(pipeline);
+    yats::scheduler scheduler(std::move(pipeline));
     EXPECT_EQ(output, 0);
     scheduler.run();
     EXPECT_EQ(output, 1);
@@ -74,7 +74,7 @@ TEST(scheduler_test, catch_task_exception)
 
     pipeline.add<task>();
 
-    scheduler scheduler(pipeline);
+    scheduler scheduler(std::move(pipeline));
     EXPECT_THROW(scheduler.run(), std::runtime_error);
 }
 
@@ -102,7 +102,7 @@ TEST(scheduler_test, catch_chained_task_exception)
 
     first_task->output<0>() >> second_task->input<0>();
 
-    scheduler scheduler(pipeline);
+    scheduler scheduler(std::move(pipeline));
     EXPECT_THROW(scheduler.run(), std::runtime_error);
 }
 
@@ -129,7 +129,7 @@ TEST(scheduler_test, catch_last_task_exception)
 
     first_task->output<0>() >> second_task->input<0>();
 
-    scheduler scheduler(pipeline);
+    scheduler scheduler(std::move(pipeline));
     EXPECT_THROW(scheduler.run(), std::runtime_error);
 }
 
@@ -161,7 +161,7 @@ TEST(scheduler_test, catch_last_task_main_thread_exception)
 
     first_task->output<0>() >> second_task->input<0>();
 
-    scheduler scheduler(pipeline);
+    scheduler scheduler(std::move(pipeline));
     EXPECT_THROW(scheduler.run(), std::runtime_error);
 }
 
@@ -193,7 +193,7 @@ TEST(scheduler_test, catch_last_task_any_thread_exception)
 
     first_task->output<0>() >> second_task->input<0>();
 
-    scheduler scheduler(pipeline);
+    scheduler scheduler(std::move(pipeline));
     EXPECT_THROW(scheduler.run(), std::runtime_error);
 }
 
@@ -232,6 +232,6 @@ TEST(scheduler_test, catch_last_task_main_thread_after_any_thread_exception)
 
     first_task->output<0>() >> second_task->input<0>();
 
-    scheduler scheduler(pipeline);
+    scheduler scheduler(std::move(pipeline));
     EXPECT_THROW(scheduler.run(), std::runtime_error);
 }

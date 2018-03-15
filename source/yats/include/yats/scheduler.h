@@ -13,8 +13,8 @@ namespace yats
 class scheduler
 {
 public:
-    explicit scheduler(const pipeline& pipeline, size_t number_of_threads = std::max(std::thread::hardware_concurrency(), 1u))
-        : m_tasks(pipeline.build())
+    explicit scheduler(pipeline pipeline, size_t number_of_threads = std::max(std::thread::hardware_concurrency(), 1u))
+        : m_tasks(std::move(pipeline).build())
         , m_tasks_to_process(number_of_constraints(m_tasks))
         , m_condition(number_of_threads, number_of_constraints(m_tasks))
         , m_thread_pool(m_condition)
@@ -22,7 +22,7 @@ public:
         for (size_t i = 0; i < number_of_threads; ++i)
         {
             m_thread_pool.execute([this]() mutable {
-                auto current_task = get(thread_group::any_thread_number());
+                auto current_task = get(thread_group::ANY);
                 auto& task = m_tasks[current_task];
 
                 task->run();
@@ -33,9 +33,9 @@ public:
                     return;
                 }
 
-                // This can be removed after the change of control flow.
                 schedule_following(current_task);
-            }, thread_group::any_thread_number());
+            },
+            thread_group::ANY);
         }
     }
 
@@ -49,14 +49,11 @@ public:
 
     void run()
     {
-        if (!initial_schedule())
-        {
-            return;
-        }
+        initial_schedule();
 
-        while (auto guard = m_condition.wait_main(thread_group::main_thread_number()))
+        while (auto guard = m_condition.wait_main(thread_group::MAIN))
         {
-            auto current_task = get(thread_group::main_thread_number());
+            auto current_task = get(thread_group::MAIN);
             auto& task = m_tasks[current_task];
 
             task->run();
@@ -67,7 +64,6 @@ public:
                 assert_no_task_failed();
             }
 
-            // This can be removed after the change of control flow.
             schedule_following(current_task);
         }
 
@@ -109,19 +105,15 @@ protected:
         }
     }
 
-    bool initial_schedule()
+    void initial_schedule()
     {
-        bool active = false;
-        for (size_t i = 0; i < m_tasks.size(); ++i)
+        for (size_t index = 0; index < m_tasks.size(); ++index)
         {
-            if (m_tasks[i]->can_run())
+            if (m_tasks[index]->can_run())
             {
-                schedule(i);
-                active = true;
+                schedule(index);
             }
         }
-
-        return active;
     }
 
     static size_t number_of_constraints(const std::vector<std::unique_ptr<abstract_task_container>>& tasks)
@@ -131,10 +123,8 @@ protected:
         {
             max_constraint = std::max(max_constraint, *std::max_element(task->constraints().cbegin(), task->constraints().cend()));
         }
-		// We have to add 2 because we have 2 constraints, which exist even though they are not chosen
-		// 1. any thread
-		// 2. main thread
-        return max_constraint + 2;
+        // We have to add the number of constraints which exist even though they are not chosen
+        return max_constraint + thread_group::COUNT;
     }
 
     void assert_no_task_failed()

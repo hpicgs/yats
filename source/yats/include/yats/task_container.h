@@ -91,12 +91,12 @@ public:
 
     void run() override
     {
-		try
-		{
-	    	m_options->make_updates_visible(&m_task);
+        try
+        {
+            m_options->make_updates_visible(&m_task);
             invoke(std::make_index_sequence<helper::input_count>());
-      	} catch (const std::exception&) 
-		{
+        } catch (const std::exception&)
+        {
             m_error = std::current_exception();
             return;
         }

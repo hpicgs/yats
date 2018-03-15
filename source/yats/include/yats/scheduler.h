@@ -26,8 +26,7 @@ public:
                 m_tasks[current_task]->run();
 
                 schedule_following(current_task);
-            },
-                                  thread_group::ANY);
+            }, thread_group::ANY);
         }
     }
 

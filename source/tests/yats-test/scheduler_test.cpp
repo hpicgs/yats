@@ -78,7 +78,7 @@ TEST(scheduler_test, schedule_correctly_use_main_thread)
         {
         }
 
-        thread_group thread_constraints()
+        static thread_group thread_constraints()
         {
             return thread_group::main_thread();
         }

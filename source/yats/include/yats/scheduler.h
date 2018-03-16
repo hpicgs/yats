@@ -23,13 +23,9 @@ public:
         {
             m_thread_pool.execute([this]() mutable {
                 auto current_task = get(thread_group::ANY);
-                auto& task = m_tasks[current_task];
 
-                task->run();
-
-                if (task->failed())
-                {
-                    m_task_error = task->get_error();
+                // Don't continue if this task failed to complete
+                if (!run_task(current_task)) {
                     return;
                 }
 
@@ -54,16 +50,8 @@ public:
         while (auto guard = m_condition.wait_main(thread_group::MAIN))
         {
             auto current_task = get(thread_group::MAIN);
-            auto& task = m_tasks[current_task];
-
-            task->run();
-
-            if (task->failed())
-            {
-                m_task_error = task->get_error();
-                assert_no_task_failed();
-            }
-
+            run_task(current_task);
+            assert_no_task_failed();
             schedule_following(current_task);
         }
 
@@ -125,6 +113,21 @@ protected:
         }
         // We have to add the number of constraints which exist even though they are not chosen
         return max_constraint + thread_group::COUNT;
+    }
+
+    bool run_task(const size_t task_id)
+    {
+        auto& task = m_tasks[task_id];
+
+        task->run();
+
+        if (task->failed())
+        {
+            m_task_error = task->get_error();
+            return false;
+        }
+
+        return true;
     }
 
     void assert_no_task_failed()

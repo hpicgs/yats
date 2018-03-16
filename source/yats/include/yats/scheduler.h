@@ -88,6 +88,7 @@ protected:
 
     void initial_schedule()
     {
+        std::unique_lock<std::mutex> guard(m_mutex);
         for (size_t index = 0; index < m_tasks.size(); ++index)
         {
             if (m_tasks[index]->can_run())

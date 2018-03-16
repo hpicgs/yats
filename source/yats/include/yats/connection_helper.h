@@ -116,7 +116,7 @@ public:
 
 protected:
     template <size_t... index>
-    static input_callbacks generate_callbacks(input_queue_ptr& queue, std::integer_sequence<size_t, index...>)
+    static input_callbacks generate_callbacks(input_queue_ptr& queue, std::index_sequence<index...>)
     {
         // Prevent a warning about unused parameter when handling a run function with no parameters.
         (void) queue;

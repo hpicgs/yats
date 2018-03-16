@@ -87,7 +87,7 @@ TEST(scheduler_test, catch_chained_task_exception)
     {
         slot<int, 0> run()
         {
-        	  throw std::runtime_error("failed foo");
+            throw std::runtime_error("failed foo");
             return 1;
         }
     };
@@ -96,7 +96,7 @@ TEST(scheduler_test, catch_chained_task_exception)
     {
         void run(yats::slot<int, 0> input)
         {
-        	  std::cout << *input + 1 << std::endl;
+            std::cout << *input + 1 << std::endl;
         }
     };
 

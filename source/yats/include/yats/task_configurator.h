@@ -132,26 +132,28 @@ protected:
     }
 
     template <typename LocalTask = Task>
-    static std::enable_if_t<has_thread_constraints_v<LocalTask>, thread_group> default_thread_constraints()
+    static std::enable_if_t<has_static_thread_constraints_v<LocalTask>, thread_group> default_thread_constraints()
     {
         return LocalTask::thread_constraints();
     }
 
     template <typename LocalTask = Task>
-    static std::enable_if_t<!has_thread_constraints_v<LocalTask>, thread_group> default_thread_constraints()
+    static std::enable_if_t<!has_static_thread_constraints_v<LocalTask>, thread_group> default_thread_constraints()
     {
+        static_assert(!has_thread_constraints_v<LocalTask>, "Task has to either define a static thread_constraints method which returns a thread_group or no thread_constraints method at all.");
         return thread_group();
     }
 
     template <typename T = Task>
-    static std::enable_if_t<has_options_v<T>, options_map<T>> construct_options_map()
+    static std::enable_if_t<has_static_options_v<T>, options_map<T>> construct_options_map()
     {
         return Task::options();
     }
 
     template <typename T = Task>
-    static std::enable_if_t<!has_options_v<T>, options_map<T>> construct_options_map()
+    static std::enable_if_t<!has_static_options_v<T>, options_map<T>> construct_options_map()
     {
+        static_assert(!has_options_v<T>, "Task has to either define a static options method which returns an options_map or no options method at all.");
         return options_map<Task>();
     }
 

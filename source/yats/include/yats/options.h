@@ -99,4 +99,31 @@ protected:
 
 template <typename Task>
 using options_ptr = std::unique_ptr<option_storage<Task>>;
+
+template <typename T>
+struct has_static_options
+{
+    template <typename U>
+    static auto test_function(int) -> decltype(U::options());
+    template <typename U>
+    static std::false_type test_function(...);
+
+    static constexpr bool value = std::is_same<decltype(test_function<T>(0)), options_map<T>>::value;
+};
+
+template <typename T>
+static constexpr bool has_static_options_v = has_static_options<T>::value;
+
+template <typename T>
+struct has_options
+{
+    template <typename U>
+    static char test_function(decltype(&U::options));
+    template <typename U>
+    static int test_function(...);
+    static constexpr bool value = sizeof(test_function<T>(0)) == sizeof(char);
+};
+
+template <typename T>
+static constexpr bool has_options_v = has_options<T>::value;
 }

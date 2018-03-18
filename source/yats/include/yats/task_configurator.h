@@ -69,14 +69,14 @@ public:
     auto& input()
     {
         constexpr auto index = get_index_by_id_v<Id, input_tuple>;
-        return find<input_tuple, std::tuple_element_t<index, input_connectors>>(m_inputs, Id);
+        return std::get<index>(m_inputs);
     }
 
     template <uint64_t Id>
     auto& output()
     {
         constexpr auto index = get_index_by_id_v<Id, output_tuple>;
-        return find<output_tuple, std::tuple_element_t<index, output_connectors>>(m_outputs, Id);
+        return std::get<index>(m_outputs);
     }
 
     template <uint64_t Id, typename Callable>
@@ -103,34 +103,6 @@ public:
     }
 
 protected:
-    template <typename IdTuple, typename Return, typename Parameter>
-    Return& find(Parameter& tuple, uint64_t id)
-    {
-        auto connector = get<IdTuple, Return>(tuple, id);
-        if (connector)
-        {
-            return *connector;
-        }
-        throw std::runtime_error("Id not found.");
-    }
-
-    template <typename IdTuple, typename Return, size_t Index = 0, typename Parameter = int>
-    std::enable_if_t<(Index < std::tuple_size<IdTuple>::value), Return*> get(Parameter& tuple, uint64_t id)
-    {
-        auto elem = &std::get<Index>(tuple);
-        if (id == std::tuple_element_t<Index, IdTuple>::id)
-        {
-            return elem;
-        }
-        return get<IdTuple, Return, Index + 1>(tuple, id);
-    }
-
-    template <typename IdTuple, typename Return, size_t Index = 0, typename Parameter = int>
-    std::enable_if_t<Index == std::tuple_size<IdTuple>::value, Return*> get(Parameter&, uint64_t)
-    {
-        return nullptr;
-    }
-
     template <typename LocalTask = Task>
     static std::enable_if_t<has_thread_constraints_v<LocalTask>, thread_group> default_thread_constraints()
     {

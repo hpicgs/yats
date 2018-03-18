@@ -60,4 +60,3 @@ TEST(scheduler_test, throw_on_creation)
 
     EXPECT_THROW(yats::scheduler scheduler(std::move(pipeline)), std::runtime_error);
 }
-

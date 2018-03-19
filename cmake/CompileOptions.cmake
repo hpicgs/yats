@@ -103,7 +103,6 @@ if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU" OR "${CMAKE_CXX_COMPILER_ID}" MATCH
         -Wswitch-default
         -Wuninitialized
         -Wmissing-field-initializers
-        -fsanitize=thread
         
         $<$<CXX_COMPILER_ID:GNU>:
             -Wmaybe-uninitialized
@@ -122,6 +121,8 @@ if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU" OR "${CMAKE_CXX_COMPILER_ID}" MATCH
         $<$<PLATFORM_ID:Darwin>:
             -pthread
         >
+        
+        -fsanitize=thread
     )
 endif ()
 
@@ -130,7 +131,7 @@ endif ()
 # Linker options
 # 
 
-set(DEFAULT_LINKER_OPTIONS)
+set(DEFAULT_LINKER_OPTIONS -fsanitize=thread)
 
 # Use pthreads on mingw and linux
 if("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU" OR "${CMAKE_SYSTEM_NAME}" MATCHES "Linux")

@@ -88,7 +88,6 @@ TEST(scheduler_test, catch_chained_task_exception)
         slot<int, 0> run()
         {
             throw std::runtime_error("failed foo");
-            return 1;
         }
     };
 
@@ -168,7 +167,7 @@ TEST(scheduler_test, catch_last_task_main_thread_exception)
 
     first_task->output<0>() >> second_task->input<0>();
 
-    scheduler scheduler(std::move(pipeline));
+    scheduler scheduler(std::move(pipeline), 2);
     EXPECT_THROW(scheduler.run(), std::runtime_error);
 }
 
@@ -221,7 +220,6 @@ TEST(scheduler_test, catch_last_task_main_thread_after_any_thread_exception)
         {
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
             throw std::runtime_error("failed foo");
-            return 1;
         }
     };
 

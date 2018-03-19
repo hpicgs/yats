@@ -112,7 +112,7 @@ protected:
             max_constraint = std::max(max_constraint, *std::max_element(task->constraints().cbegin(), task->constraints().cend()));
         }
         // We have to add the number of constraints which exist even though they are not chosen
-        return max_constraint + thread_group::COUNT;
+        return std::max(2ull, max_constraint);
     }
 
     bool run_task(const size_t task_id)

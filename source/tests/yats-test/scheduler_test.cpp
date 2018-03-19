@@ -97,6 +97,7 @@ TEST(scheduler_test, schedule_correctly_use_main_thread)
 
     std::thread::id any_id;
     pipeline.add([&any_id]() {
+        std::cout << "any thread" << std::endl;
         any_id = std::this_thread::get_id();
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     });

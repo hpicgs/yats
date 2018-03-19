@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <cassert>
 #include <mutex>
 #include <vector>
@@ -28,10 +29,15 @@ public:
         {
             m_thread_pool.execute([this]() mutable {
                 auto current_task = get(thread_group::ANY);
-                m_tasks[current_task]->run();
+
+                // Don't continue if this task failed to complete
+                if (!run_task(current_task)) {
+                    return;
+                }
 
                 schedule_following(current_task);
-            }, thread_group::ANY);
+            },
+            thread_group::ANY);
         }
     }
 
@@ -50,10 +56,12 @@ public:
         while (auto guard = m_condition.wait_main())
         {
             auto current_task = get(thread_group::MAIN);
-            m_tasks[current_task]->run();
-
+            run_task(current_task);
+            assert_no_task_failed();
             schedule_following(current_task);
         }
+
+        assert_no_task_failed();
     }
 
 protected:
@@ -70,7 +78,7 @@ protected:
         const auto& constraints = m_tasks[index]->constraints();
 
         // If there are multiple threads we choose the one with the smallest current workload
-        // TODO: theres probably a better method to check which thread to take
+        // TODO: there's probably a better method to check which thread to take
         auto constraint_it = std::min_element(constraints.cbegin(), constraints.cend(), [this](size_t lhs, size_t rhs) {
             return m_tasks_to_process[lhs].size() < m_tasks_to_process[rhs].size();
         });
@@ -111,9 +119,39 @@ protected:
             max_constraint = std::max(max_constraint, *std::max_element(task->constraints().cbegin(), task->constraints().cend()));
         }
         // We have to add the number of constraints which exist even though they are not chosen
-        return max_constraint + thread_group::COUNT;
+        return std::max<size_t>(2, max_constraint);
     }
 
+    bool run_task(const size_t task_id)
+    {
+        auto& task = m_tasks[task_id];
+
+        task->run();
+
+        if (task->failed())
+        {
+            m_task_error = task->get_error();
+            return false;
+        }
+
+        return true;
+    }
+
+    void assert_no_task_failed()
+    {
+        // If a task failed, we want to catch this in the main thread and throw an error for the user.
+        if (m_task_error) {
+            try
+            {
+                m_condition.terminate();
+                std::rethrow_exception(m_task_error);
+            } catch (const std::exception& exception)
+            {
+                throw std::runtime_error(std::string("Error in task:\n\t") + exception.what());
+            }
+        }
+    }
+  
     void task_received_input(abstract_task_container* task)
     {
         (void)task;
@@ -129,5 +167,7 @@ protected:
 
     condition m_condition;
     thread_pool m_thread_pool;
+
+    std::exception_ptr m_task_error;
 };
 }

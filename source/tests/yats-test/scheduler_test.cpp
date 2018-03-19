@@ -67,9 +67,9 @@ TEST(scheduler_test, catch_task_exception)
 
     struct task
     {
-    	  void run()
+        void run()
         {
-        	  throw std::runtime_error("failed foo");
+            throw std::runtime_error("failed foo");
         }
     };
 

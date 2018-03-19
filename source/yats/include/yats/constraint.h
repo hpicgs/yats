@@ -70,7 +70,7 @@ public:
         }
         default:
         {
-            throw std::logic_error("The implementation of yats is broken.");
+            throw std::runtime_error("Invalid enumeration value used. This implies an implementation error in yats.");
         }
         }
     }

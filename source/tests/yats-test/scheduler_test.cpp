@@ -14,8 +14,7 @@ TEST(scheduler_test, multithreaded_timing_test)
 {
     pipeline pipeline;
 
-    auto function = []()
-    {
+    auto function = []() {
         std::this_thread::sleep_for(std::chrono::milliseconds(200));
     };
 
@@ -40,9 +39,9 @@ TEST(scheduler_test, run_twice)
 
     int output = 0;
     auto task = pipeline.add([]() -> yats::slot<int, 0> { return 1; });
-    task->add_listener<0>([&output](int value) {output += value; });
+    task->add_listener<0>([&output](int value) { output += value; });
 
-    yats::scheduler scheduler(std::move(pipeline));
+    scheduler scheduler(std::move(pipeline));
     EXPECT_EQ(output, 0);
     scheduler.run();
     EXPECT_EQ(output, 1);
@@ -50,7 +49,7 @@ TEST(scheduler_test, run_twice)
     EXPECT_EQ(output, 2);
 }
 
-TEST(scheduler_test, throw_on_creation)
+TEST(scheduler_test, throw_on_creation_no_copy)
 {
     pipeline pipeline;
 
@@ -58,9 +57,67 @@ TEST(scheduler_test, throw_on_creation)
     source->add_listener<0>([](std::unique_ptr<int>) {});
     source->add_listener<0>([](std::unique_ptr<int>) {});
 
-    EXPECT_THROW(yats::scheduler scheduler(std::move(pipeline)), std::runtime_error);
+    EXPECT_THROW(scheduler scheduler(std::move(pipeline)), std::runtime_error);
 }
 
+TEST(scheduler_test, throw_on_creation_unconnected_input)
+{
+    pipeline pipeline;
+
+    pipeline.add([](slot<int, 0>) {});
+
+    EXPECT_ANY_THROW(scheduler scheduler(std::move(pipeline)));
+}
+
+TEST(scheduler_test, schedule_correctly_use_main_thread)
+{
+    struct main_task
+    {
+        main_task(std::thread::id* id)
+            : m_id(id)
+        {
+        }
+
+        static thread_group thread_constraints()
+        {
+            return thread_group::main_thread();
+        }
+
+        void run()
+        {
+            std::cout << "main thread" << std::endl;
+            *m_id = std::this_thread::get_id();
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        }
+
+        std::thread::id* m_id;
+    };
+
+    pipeline pipeline;
+
+    std::thread::id any_id;
+    pipeline.add([&any_id]() {
+        std::cout << "any thread" << std::endl;
+        any_id = std::this_thread::get_id();
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    });
+
+    std::thread::id main_id;
+    pipeline.add<main_task>(&main_id);
+
+    scheduler scheduler(std::move(pipeline), 1);
+    scheduler.run();
+
+    EXPECT_NE(any_id, main_id);
+}
+
+TEST(scheduler_test, throw_on_creation_zero_threads)
+{
+    pipeline pipeline;
+    pipeline.add([]() {});
+
+    EXPECT_ANY_THROW(scheduler(std::move(pipeline), 0));
+}
 TEST(scheduler_test, catch_task_exception)
 {
     pipeline pipeline;

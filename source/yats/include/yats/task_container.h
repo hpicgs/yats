@@ -117,19 +117,19 @@ public:
 
 protected:
     template <size_t... Index, typename T = output_type>
-    std::enable_if_t<is_tuple_v<T>> invoke(std::integer_sequence<size_t, Index...>)
+    std::enable_if_t<is_tuple_v<T>> invoke(std::index_sequence<Index...>)
     {
         write(m_task.run(get<Index>()...));
     }
 
     template <size_t... index, typename T = output_type>
-    std::enable_if_t<!std::is_same<T, void>::value && !is_tuple_v<T>> invoke(std::integer_sequence<size_t, index...>)
+    std::enable_if_t<!std::is_same<T, void>::value && !is_tuple_v<T>> invoke(std::index_sequence<index...>)
     {
         write(std::make_tuple(m_task.run(get<index>()...)));
     }
 
     template <size_t... Index, typename T = output_type>
-    std::enable_if_t<std::is_same<T, void>::value> invoke(std::integer_sequence<size_t, Index...>)
+    std::enable_if_t<std::is_same<T, void>::value> invoke(std::index_sequence<Index...>)
     {
         m_task.run(get<Index>()...);
     }
@@ -153,7 +153,7 @@ protected:
     template <typename SlotType, typename ValueType = typename SlotType::value_type>
     static std::enable_if_t<!std::is_copy_constructible<ValueType>::value, ValueType> copy_value(const SlotType&)
     {
-        throw std::runtime_error("If this gets thrown, the library is broken.");
+        throw std::runtime_error("Tried to copy a type that is not copy constructible. This implies an implementation error in yats.");
     }
 
     /**
@@ -186,8 +186,8 @@ protected:
     {
     }
 
-    template <size_t... Index, size_t InputCount = helper::input_count>
-    bool can_run_impl(std::integer_sequence<size_t, Index...>) const
+    template <size_t... Index>
+    bool can_run_impl(std::index_sequence<Index...>) const
     {
         std::array<bool, sizeof...(Index)> has_inputs{ { check_input<Index>()... } };
         return std::all_of(has_inputs.cbegin(), has_inputs.cend(), [](bool input) { return input; });
@@ -200,7 +200,7 @@ protected:
     }
 
     template <size_t... Index>
-    bool check_copyable(std::integer_sequence<size_t, Index...>) const
+    bool check_copyable(std::index_sequence<Index...>) const
     {
         std::array<bool, sizeof...(Index)> copyable{ { check_copyable_impl<Index>()... } };
         return std::all_of(copyable.cbegin(), copyable.cend(), [](bool input) { return input; });

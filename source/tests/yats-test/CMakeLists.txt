@@ -32,7 +32,6 @@ set(sources
     task_configurator_test.cpp
     task_container_test.cpp
     util_test.cpp
-    yats_test.cpp
 )
 
 set(includes

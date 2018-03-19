@@ -152,7 +152,7 @@ TEST(scheduler_test, catch_last_task_main_thread_exception)
 
     struct task2
     {
-        thread_group thread_constraints()
+        static thread_group thread_constraints()
         {
             return thread_group::main_thread();
         }
@@ -186,7 +186,7 @@ TEST(scheduler_test, catch_last_task_any_thread_exception)
 
     struct task2
     {
-        thread_group thread_constraints()
+        static thread_group thread_constraints()
         {
             return thread_group::any_thread();
         }
@@ -212,7 +212,7 @@ TEST(scheduler_test, catch_last_task_main_thread_after_any_thread_exception)
 
     struct task
     {
-        thread_group thread_constraints()
+        static thread_group thread_constraints()
         {
             return thread_group::any_thread();
         }
@@ -227,7 +227,7 @@ TEST(scheduler_test, catch_last_task_main_thread_after_any_thread_exception)
 
     struct task2
     {
-        thread_group thread_constraints()
+        static thread_group thread_constraints()
         {
             return thread_group::main_thread();
         }

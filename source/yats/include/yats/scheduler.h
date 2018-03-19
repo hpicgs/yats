@@ -19,6 +19,11 @@ public:
         , m_condition(number_of_threads, number_of_constraints(m_tasks))
         , m_thread_pool(m_condition)
     {
+        if (number_of_threads == 0)
+        {
+            throw std::runtime_error("Cannot run scheduler on 0 concurrent tasks!");
+        }
+
         for (size_t i = 0; i < number_of_threads; ++i)
         {
             m_thread_pool.execute([this]() mutable {

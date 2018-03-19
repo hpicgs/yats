@@ -14,7 +14,7 @@ class scheduler
 {
 public:
     explicit scheduler(pipeline pipeline, size_t number_of_threads = std::max(std::thread::hardware_concurrency(), 1u))
-        : m_tasks(std::move(pipeline).build())
+        : m_tasks(std::move(pipeline).build([this](abstract_task_container* task) { task_received_input(task); }))
         , m_tasks_to_process(number_of_constraints(m_tasks))
         , m_condition(number_of_threads, number_of_constraints(m_tasks))
         , m_thread_pool(m_condition)
@@ -107,6 +107,14 @@ protected:
         }
         // We have to add the number of constraints which exist even though they are not chosen
         return max_constraint + thread_group::COUNT;
+    }
+
+    void task_received_input(abstract_task_container* task)
+    {
+        (void)task;
+        // TODO: the scheduler should check if this can run and schedule it
+        // it is not implemented yet, because the current scheduler can not do this easily
+        // and we change the scheduler right now anyway
     }
 
     std::vector<std::unique_ptr<abstract_task_container>> m_tasks;

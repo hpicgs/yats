@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <set>
 
 #include <yats/constraint.h>
 #include <yats/identifier.h>
@@ -11,7 +12,6 @@
 namespace yats
 {
 
-/**/
 class abstract_task_configurator
 {
 public:
@@ -28,8 +28,13 @@ public:
     abstract_task_configurator& operator=(const abstract_task_configurator& other) = delete;
     abstract_task_configurator& operator=(abstract_task_configurator&& other) = delete;
 
-    virtual std::unique_ptr<abstract_task_container> construct_task_container(std::unique_ptr<abstract_connection_helper> helper) = 0;
+    virtual std::unique_ptr<abstract_task_container> construct_task_container(std::unique_ptr<abstract_connection_helper> helper, const std::function<void(abstract_task_container*)>& external_callback) = 0;
     virtual std::unique_ptr<abstract_connection_helper> construct_connection_helper() const = 0;
+
+    bool is_external(const abstract_input_connector* connector) const
+    {
+        return m_externals.find(connector) != m_externals.cend();
+    }
 
     void add_thread_constraint(const thread_group& group)
     {
@@ -42,6 +47,12 @@ public:
     }
 
 protected:
+    void mark_as_external(const abstract_input_connector* connector)
+    {
+        m_externals.insert(connector);
+    }
+
+    std::set<const abstract_input_connector*> m_externals;
     thread_group m_thread_constraint;
 };
 
@@ -53,6 +64,8 @@ class task_configurator : public abstract_task_configurator
     using helper = decltype(make_helper(&Task::run));
     using input_connectors = typename helper::input_connectors;
     using input_tuple = typename helper::input_tuple;
+    using input_writers = typename helper::input_writers;
+    using input_writers_ptr = typename helper::input_writers_ptr;
     using output_callbacks = typename helper::output_callbacks;
     using output_connectors = typename helper::output_connectors;
     using output_tuple = typename helper::output_tuple;
@@ -60,6 +73,7 @@ class task_configurator : public abstract_task_configurator
 public:
     task_configurator(Parameters&&... parameters)
         : abstract_task_configurator(default_thread_constraints())
+        , m_writers(std::make_unique<input_writers>())
         , m_options(std::make_unique<option_storage<Task>>(construct_options_map()))
         , m_construction_parameters(std::forward<Parameters>(parameters)...)
     {
@@ -79,6 +93,14 @@ public:
         return std::get<index>(m_outputs);
     }
 
+    template <uint64_t Id>
+    const auto& mark_as_external()
+    {
+        abstract_task_configurator::mark_as_external(&input<Id>());
+        constexpr auto index = get_index_by_id_v<Id, input_tuple>;
+        return std::get<index>(*m_writers).external_function;
+    }
+
     template <uint64_t Id, typename Callable>
     void add_listener(Callable callable)
     {
@@ -87,9 +109,9 @@ public:
         std::get<index>(m_listeners).push_back(typename type::function_type(std::move(callable)));
     }
 
-    std::unique_ptr<abstract_task_container> construct_task_container(std::unique_ptr<abstract_connection_helper> helper) override
+    std::unique_ptr<abstract_task_container> construct_task_container(std::unique_ptr<abstract_connection_helper> helper, const std::function<void(abstract_task_container*)>& external_callback) override
     {
-        return std::make_unique<task_container<Task, std::remove_reference_t<Parameters>...>>(static_cast<connection_helper<Task>*>(helper.get()), std::move(m_options), std::move(m_construction_parameters));
+        return std::make_unique<task_container<Task, std::remove_reference_t<Parameters>...>>(static_cast<connection_helper<Task>*>(helper.get()), std::move(m_options), std::move(m_writers), external_callback, std::move(m_construction_parameters));
     }
 
     std::unique_ptr<abstract_connection_helper> construct_connection_helper() const override
@@ -131,6 +153,7 @@ protected:
 
     input_connectors m_inputs;
     output_connectors m_outputs;
+    input_writers_ptr m_writers;
     output_callbacks m_listeners;
     options_ptr<Task> m_options;
     std::tuple<std::remove_reference_t<Parameters>...> m_construction_parameters;

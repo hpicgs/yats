@@ -131,7 +131,7 @@ endif ()
 # Linker options
 # 
 
-set(DEFAULT_LINKER_OPTIONS -fsanitize=thread)
+set(DEFAULT_LINKER_OPTIONS ${DEFAULT_LINKER_OPTIONS} -fsanitize=thread)
 
 # Use pthreads on mingw and linux
 if("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU" OR "${CMAKE_SYSTEM_NAME}" MATCHES "Linux")

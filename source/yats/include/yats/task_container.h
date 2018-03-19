@@ -49,9 +49,20 @@ public:
         m_constraints = constraints;
     }
 
+    bool failed() const
+    {
+    	return m_error != nullptr;
+    }
+
+    std::exception_ptr get_error() const
+    {
+    	return m_error;
+    }
+
 protected:
     const std::vector<size_t> m_following_nodes;
     std::vector<size_t> m_constraints;
+    std::exception_ptr m_error;
 };
 
 template <typename Task, typename... Parameters>
@@ -85,8 +96,15 @@ public:
 
     void run() override
     {
-        m_options->make_updates_visible(&m_task);
-        invoke(std::make_index_sequence<helper::input_count>());
+        try
+        {
+            m_options->make_updates_visible(&m_task);
+            invoke(std::make_index_sequence<helper::input_count>());
+        } catch (const std::exception&)
+        {
+            m_error = std::current_exception();
+            return;
+        }
     }
 
     /**

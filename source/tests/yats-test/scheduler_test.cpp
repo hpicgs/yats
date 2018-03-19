@@ -60,3 +60,187 @@ TEST(scheduler_test, throw_on_creation)
 
     EXPECT_THROW(yats::scheduler scheduler(std::move(pipeline)), std::runtime_error);
 }
+
+TEST(scheduler_test, catch_task_exception)
+{
+    pipeline pipeline;
+
+    struct task
+    {
+        void run()
+        {
+            throw std::runtime_error("failed foo");
+        }
+    };
+
+    pipeline.add<task>();
+
+    scheduler scheduler(std::move(pipeline));
+    EXPECT_THROW(scheduler.run(), std::runtime_error);
+}
+
+TEST(scheduler_test, catch_chained_task_exception)
+{
+    pipeline pipeline;
+
+    struct task
+    {
+        slot<int, 0> run()
+        {
+            throw std::runtime_error("failed foo");
+        }
+    };
+
+    struct task2
+    {
+        void run(yats::slot<int, 0> input)
+        {
+            std::cout << *input + 1 << std::endl;
+        }
+    };
+
+    auto first_task = pipeline.add<task>();
+    auto second_task = pipeline.add<task2>();
+
+    first_task->output<0>() >> second_task->input<0>();
+
+    scheduler scheduler(std::move(pipeline));
+    EXPECT_THROW(scheduler.run(), std::runtime_error);
+}
+
+TEST(scheduler_test, catch_last_task_exception)
+{
+    pipeline pipeline;
+
+    struct task
+    {
+        slot<int, 0> run()
+        {
+            return 1;
+        }
+    };
+
+    struct task2
+    {
+        void run(yats::slot<int, 0>)
+        {
+            throw std::runtime_error("failed foo");
+        }
+    };
+
+    auto first_task = pipeline.add<task>();
+    auto second_task = pipeline.add<task2>();
+
+    first_task->output<0>() >> second_task->input<0>();
+
+    scheduler scheduler(std::move(pipeline));
+    EXPECT_THROW(scheduler.run(), std::runtime_error);
+}
+
+TEST(scheduler_test, catch_last_task_main_thread_exception)
+{
+    pipeline pipeline;
+
+    struct task
+    {
+        slot<int, 0> run()
+        {
+            return 1;
+        }
+    };
+
+    struct task2
+    {
+        static thread_group thread_constraints()
+        {
+            return thread_group::main_thread();
+        }
+
+        void run(yats::slot<int, 0>)
+        {
+            throw std::runtime_error("failed foo");
+        }
+    };
+
+    auto first_task = pipeline.add<task>();
+    auto second_task = pipeline.add<task2>();
+
+    first_task->output<0>() >> second_task->input<0>();
+
+    scheduler scheduler(std::move(pipeline), 2);
+    EXPECT_THROW(scheduler.run(), std::runtime_error);
+}
+
+TEST(scheduler_test, catch_last_task_any_thread_exception)
+{
+    pipeline pipeline;
+
+    struct task
+    {
+        slot<int, 0> run()
+        {
+            return 1;
+        }
+    };
+
+    struct task2
+    {
+        static thread_group thread_constraints()
+        {
+            return thread_group::any_thread();
+        }
+
+        void run(yats::slot<int, 0>)
+        {
+            throw std::runtime_error("failed foo");
+        }
+    };
+
+    auto first_task = pipeline.add<task>();
+    auto second_task = pipeline.add<task2>();
+
+    first_task->output<0>() >> second_task->input<0>();
+
+    scheduler scheduler(std::move(pipeline));
+    EXPECT_THROW(scheduler.run(), std::runtime_error);
+}
+
+TEST(scheduler_test, catch_last_task_main_thread_after_any_thread_exception)
+{
+    pipeline pipeline;
+
+    struct task
+    {
+        static thread_group thread_constraints()
+        {
+            return thread_group::any_thread();
+        }
+
+        slot<int, 0> run()
+        {
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            throw std::runtime_error("failed foo");
+        }
+    };
+
+    struct task2
+    {
+        static thread_group thread_constraints()
+        {
+            return thread_group::main_thread();
+        }
+
+        void run(yats::slot<int, 0> input)
+        {
+            std::cout << *input + 1 << std::endl;
+        }
+    };
+
+    auto first_task = pipeline.add<task>();
+    auto second_task = pipeline.add<task2>();
+
+    first_task->output<0>() >> second_task->input<0>();
+
+    scheduler scheduler(std::move(pipeline));
+    EXPECT_THROW(scheduler.run(), std::runtime_error);
+}

@@ -47,7 +47,7 @@ public:
     {
         initial_schedule();
 
-        while (auto guard = m_condition.wait_main(thread_group::MAIN))
+        while (auto guard = m_condition.wait_main())
         {
             auto current_task = get(thread_group::MAIN);
             m_tasks[current_task]->run();
@@ -122,12 +122,12 @@ protected:
         // and we change the scheduler right now anyway
     }
 
+    std::mutex m_mutex;
+
     std::vector<std::unique_ptr<abstract_task_container>> m_tasks;
     std::vector<std::queue<size_t>> m_tasks_to_process;
 
     condition m_condition;
     thread_pool m_thread_pool;
-
-    std::mutex m_mutex;
 };
 }

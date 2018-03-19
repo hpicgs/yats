@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <cassert>
 #include <mutex>
 #include <vector>
@@ -112,7 +113,7 @@ protected:
             max_constraint = std::max(max_constraint, *std::max_element(task->constraints().cbegin(), task->constraints().cend()));
         }
         // We have to add the number of constraints which exist even though they are not chosen
-        return std::max(2ull, max_constraint);
+        return std::max<size_t>(2, max_constraint);
     }
 
     bool run_task(const size_t task_id)
@@ -136,6 +137,7 @@ protected:
         if (m_task_error) {
             try
             {
+                m_condition.terminate();
                 std::rethrow_exception(m_task_error);
             } catch (const std::exception& exception)
             {

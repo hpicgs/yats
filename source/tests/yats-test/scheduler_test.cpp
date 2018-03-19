@@ -110,6 +110,13 @@ TEST(scheduler_test, schedule_correctly_use_main_thread)
     EXPECT_NE(any_id, main_id);
 }
 
+TEST(scheduler_test, throw_on_creation_zero_threads)
+{
+    pipeline pipeline;
+    pipeline.add([]() {});
+
+    EXPECT_ANY_THROW(scheduler(std::move(pipeline), 0));
+}
 TEST(scheduler_test, catch_task_exception)
 {
     pipeline pipeline;

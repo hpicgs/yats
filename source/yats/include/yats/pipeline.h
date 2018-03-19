@@ -41,7 +41,7 @@ public:
         return static_cast<task_configurator<Task, Parameters...>*>(m_tasks.back().get());
     }
 
-    std::vector<std::unique_ptr<abstract_task_container>> build() const&&
+    std::vector<std::unique_ptr<abstract_task_container>> build(const std::function<void(abstract_task_container*)>& external_callback) const &&
     {
         std::vector<std::unique_ptr<abstract_connection_helper>> helpers;
         for (const auto& configurator : m_tasks)
@@ -64,6 +64,10 @@ public:
             auto inputs = helpers[i]->inputs();
             for (auto input : inputs)
             {
+                if (m_tasks[i]->is_external(input.first))
+                {
+                    continue;
+                }
                 auto source_location = input.first->output();
                 auto source_task_id = output_owner.at(source_location);
 
@@ -76,7 +80,7 @@ public:
         auto constraint_map = thread_group_helper::map_thread_groups(m_tasks);
         for (size_t i = 0; i < m_tasks.size(); ++i)
         {
-            tasks.push_back(m_tasks[i]->construct_task_container(std::move(helpers[i])));
+            tasks.push_back(m_tasks[i]->construct_task_container(std::move(helpers[i]), external_callback));
 
             std::vector<size_t> constraints;
             for (const auto& constraint_name : m_tasks[i]->thread_constraints().names())

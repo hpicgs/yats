@@ -19,7 +19,6 @@ TEST(constraints_test, remove_any_thread)
         bool contains_any = constraint.names().count(thread_group::name_for(thread_group::ANY)) == 1;
         EXPECT_FALSE(contains_any);
     }
-
 }
 
 TEST(constraints_test, no_duplicate_threads)
@@ -30,5 +29,4 @@ TEST(constraints_test, no_duplicate_threads)
     bool contains_two = constraint.names().count("two") == 1;
     EXPECT_TRUE(contains_one);
     EXPECT_TRUE(contains_two);
-
 }

@@ -5,8 +5,6 @@
 #include <yats/scheduler.h>
 #include <yats/slot.h>
 
-
-
 using namespace yats;
 
 TEST(custom_constructor_test, reference_as_argument)

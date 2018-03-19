@@ -20,6 +20,11 @@ public:
         , m_condition(number_of_threads, number_of_constraints(m_tasks))
         , m_thread_pool(m_condition)
     {
+        if (number_of_threads == 0)
+        {
+            throw std::runtime_error("Cannot run scheduler on 0 concurrent tasks!");
+        }
+
         for (size_t i = 0; i < number_of_threads; ++i)
         {
             m_thread_pool.execute([this]() mutable {
@@ -48,7 +53,7 @@ public:
     {
         initial_schedule();
 
-        while (auto guard = m_condition.wait_main(thread_group::MAIN))
+        while (auto guard = m_condition.wait_main())
         {
             auto current_task = get(thread_group::MAIN);
             run_task(current_task);
@@ -96,6 +101,7 @@ protected:
 
     void initial_schedule()
     {
+        std::unique_lock<std::mutex> guard(m_mutex);
         for (size_t index = 0; index < m_tasks.size(); ++index)
         {
             if (m_tasks[index]->can_run())
@@ -154,13 +160,13 @@ protected:
         // and we change the scheduler right now anyway
     }
 
+    std::mutex m_mutex;
+
     std::vector<std::unique_ptr<abstract_task_container>> m_tasks;
     std::vector<std::queue<size_t>> m_tasks_to_process;
 
     condition m_condition;
     thread_pool m_thread_pool;
-
-    std::mutex m_mutex;
 
     std::exception_ptr m_task_error;
 };

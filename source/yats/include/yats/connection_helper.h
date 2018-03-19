@@ -116,7 +116,7 @@ public:
 
 protected:
     template <size_t... index>
-    static input_callbacks generate_callbacks(input_queue_ptr& queue, std::integer_sequence<size_t, index...>)
+    static input_callbacks generate_callbacks(input_queue_ptr& queue, std::index_sequence<index...>)
     {
         // Prevent a warning about unused parameter when handling a run function with no parameters.
         (void) queue;
@@ -127,8 +127,7 @@ protected:
     static typename std::tuple_element_t<index, input_callbacks> generate_callback(input_queue_ptr& queue)
     {
         using parameter_type = typename std::tuple_element_t<index, input_queue>::value_type;
-        return [&current = std::get<index>(*queue)](parameter_type input) mutable
-        {
+        return [&current = std::get<index>(*queue)](parameter_type input) mutable {
             current.push(std::move(input));
         };
     }
@@ -151,7 +150,7 @@ protected:
     template <size_t index = 0>
     std::enable_if_t<index == helper::output_count> add(size_t, void*)
     {
-        throw std::runtime_error("Output Parameter locationId not found.");
+        throw std::runtime_error("Output Parameter locationId not found. It is not allowed to connect task from different pipelines.");
     }
 
     template <size_t index = 0>
@@ -170,7 +169,7 @@ protected:
     template <size_t index = 0>
     std::enable_if_t<index == helper::input_count, void*> get(size_t)
     {
-        throw std::runtime_error("Input Parameter locationId not found.");
+        throw std::runtime_error("Input parameter locationId not found. This implies an implementation error in yats.");
     }
 
     input_queue_ptr m_input;

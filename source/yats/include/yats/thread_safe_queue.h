@@ -38,6 +38,15 @@ public:
     bool empty()
     {
         lock guard(m_mutex);
+        if (m_queue.empty())
+        {
+            m_num_reserved = 0;
+            return true;
+        }
+        if (m_queue.size() <= m_num_reserved)
+        {
+            return true;
+        }
         ++m_num_reserved;
         return m_queue.size() <= m_num_reserved - 1;
     }

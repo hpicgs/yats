@@ -86,6 +86,7 @@ public:
 
         assert_no_task_failed();
         m_is_running = false;
+        m_external_callbacks.clear();
     }
 
     bool is_running() const

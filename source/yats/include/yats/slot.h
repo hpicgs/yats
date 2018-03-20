@@ -50,13 +50,13 @@ public:
 
     template <uint64_t OtherID>
     slot(const slot<T, OtherID>& other)
-        : m_value(*other)
+        : m_value(other.m_value)
     {
     }
 
     template <uint64_t OtherID>
     slot(slot<T, OtherID>&& other)
-        : m_value(std::move(*other))
+        : m_value(std::move(other.m_value))
     {
     }
 

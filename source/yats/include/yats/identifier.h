@@ -123,7 +123,7 @@ private:
     /* The alphabet only holds 32 characters. Supported characters are
      * [A-Z], ' ', '*', '/', '&', '#' and '_'.
      * special_character_begin marks the first special caharcter after 'Z'
-     */   
+     */
     static const size_t special_character_begin = 26;
 
     /**

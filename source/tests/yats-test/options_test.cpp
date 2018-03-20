@@ -24,6 +24,25 @@ private:
     int val = 5;
 };
 
+TEST(options_test, has_options_test)
+{
+    struct static_options
+    {
+        static float options(float, int, char)
+        {
+            return 0.f;
+        }
+    };
+
+    struct no_options
+    {
+        int i;
+    };
+
+    EXPECT_TRUE(has_options_v<static_options>);
+    EXPECT_FALSE(has_options_v<no_options>);
+}
+
 TEST(options_test, construct_with_options)
 {
     // The task_configurator constructs the options object

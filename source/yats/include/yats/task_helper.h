@@ -4,6 +4,7 @@
 #include <memory>
 #include <vector>
 
+#include <yats/slot.h>
 #include <yats/thread_safe_queue.h>
 
 namespace yats
@@ -15,11 +16,23 @@ class output_connector;
 template <typename T, uint64_t Id>
 class slot;
 
+template <typename Parameter>
+struct writer
+{
+    writer()
+        : external_function([this](Parameter parameter) { internal_function(std::move(parameter)); })
+    {
+    }
+
+    std::function<void(Parameter)> internal_function;
+    std::function<void(Parameter)> external_function;
+};
+
 template <typename T>
 struct output_wrapper;
 
 template <typename... ParameterTypes>
-struct output_wrapper<std::tuple<ParameterTypes...>>
+struct output_wrapper<output_bundle<ParameterTypes...>>
 {
     template <typename CompoundType>
     static std::vector<std::function<void(typename CompoundType::value_type)>> transform_callback();
@@ -66,8 +79,14 @@ struct task_helper
     template <typename CompoundType>
     static input_connector<typename CompoundType::value_type> transform_connector();
 
+    template <typename CompoundType>
+    static writer<typename CompoundType::value_type> transform_writer();
+
     using input_queue = std::tuple<decltype(transform_queue<ParameterTypes>())...>;
     using input_queue_ptr = std::unique_ptr<input_queue>;
+
+    using input_writers = std::tuple<decltype(transform_writer<ParameterTypes>())...>;
+    using input_writers_ptr = std::unique_ptr<input_writers>;
 
     using output_type = Return;
 

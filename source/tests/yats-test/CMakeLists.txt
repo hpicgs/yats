@@ -20,6 +20,7 @@ message(STATUS "Test ${target}")
 
 set(sources
     connection_test.cpp
+    constraints_test.cpp
     custom_constructor_test.cpp
     identifier_test.cpp
     main.cpp
@@ -31,7 +32,6 @@ set(sources
     task_configurator_test.cpp
     task_container_test.cpp
     util_test.cpp
-    yats_test.cpp
 )
 
 set(includes

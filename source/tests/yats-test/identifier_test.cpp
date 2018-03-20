@@ -63,5 +63,5 @@ TEST(identifier_test, is_invertible_too_long)
 
 TEST(identifier_test, is_invertible_special_characters)
 {
-    EXPECT_EQ(identifier::id_to_string(id("ACPP WS17/18")), "ACPP WS__/__");
+    EXPECT_EQ(identifier::id_to_string(id("*&# WS17/18")), "*&# WS__/__");
 }

@@ -86,7 +86,6 @@ public:
 
         assert_no_task_failed();
         m_is_running = false;
-        m_external_callbacks.clear();
     }
 
     bool is_running() const
@@ -135,6 +134,7 @@ protected:
         {
             external_callback();
         }
+        m_external_callbacks.clear();
 
         std::unique_lock<std::mutex> guard(m_mutex);
         for (size_t index = 0; index < m_tasks.size(); ++index)

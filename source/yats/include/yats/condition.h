@@ -14,12 +14,13 @@ namespace yats
 class condition
 {
 public:
-    condition(size_t number_of_threads, size_t number_of_constraints)
+    condition(size_t number_of_threads, size_t number_of_constraints, const std::atomic_bool& externals_finished)
         : m_number_of_threads(number_of_threads)
         , m_thread_identifier(number_of_constraints)
         , m_is_active(true)
         , m_task_added(number_of_constraints + 1)
         , m_notify_count(number_of_constraints + 1, 0)
+        , m_externals_finished(externals_finished)
     {
         m_notify_count[m_thread_identifier] = m_number_of_threads;
     }
@@ -135,7 +136,7 @@ public:
     bool has_finished()
     {
         auto count = std::accumulate(m_notify_count.cbegin(), m_notify_count.cend(), 0ull);
-        return count == m_number_of_threads && m_notify_count[m_thread_identifier] == m_number_of_threads;
+        return count == m_number_of_threads && m_notify_count[m_thread_identifier] == m_number_of_threads && m_externals_finished;
     }
 
     const size_t m_number_of_threads;
@@ -145,5 +146,7 @@ public:
     std::vector<std::condition_variable> m_task_added;
     std::vector<size_t> m_notify_count;
     std::mutex m_mutex;
+
+    const std::atomic_bool& m_externals_finished;
 };
 }

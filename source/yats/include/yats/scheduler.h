@@ -1,6 +1,7 @@
 #pragma once
 
 #include <algorithm>
+#include <atomic>
 #include <cassert>
 #include <mutex>
 #include <vector>
@@ -15,9 +16,11 @@ class scheduler
 {
 public:
     explicit scheduler(pipeline pipeline, size_t number_of_threads = std::max(std::thread::hardware_concurrency(), 1u))
-        : m_tasks(std::move(pipeline).build([this](abstract_task_container* task) { task_received_input(task); }))
+        : m_is_running(false)
+        , m_externals_finished(false)
+        , m_tasks(std::move(pipeline).build([this](abstract_task_container* task, size_t index, bool finished) { task_received_input(task, index, finished); }))
         , m_tasks_to_process(number_of_constraints(m_tasks))
-        , m_condition(number_of_threads, number_of_constraints(m_tasks))
+        , m_condition(number_of_threads, number_of_constraints(m_tasks), m_externals_finished)
         , m_thread_pool(m_condition)
     {
         if (number_of_threads == 0)
@@ -30,7 +33,8 @@ public:
             const auto current_task = get(constraint);
 
             // Don't continue if this task failed to complete
-            if (!run_task(current_task)) {
+            if (!run_task(current_task))
+            {
                 return;
             }
 
@@ -49,6 +53,13 @@ public:
         {
             m_thread_pool.execute([run_task_lambda, constraint]() mutable { run_task_lambda(constraint); }, constraint);
         }
+
+        for (const auto& task : m_tasks)
+        {
+            m_initial_external_status.push_back(task->receives_external_input());
+            m_initial_external_status.back().flip();
+        }
+        m_externals_finished = externals_finished(m_initial_external_status);
     }
 
     scheduler(const scheduler& other) = delete;
@@ -61,6 +72,8 @@ public:
 
     void run()
     {
+        m_is_running = true;
+        m_current_external_status = m_initial_external_status;
         initial_schedule();
 
         while (auto guard = m_condition.wait_main())
@@ -72,6 +85,12 @@ public:
         }
 
         assert_no_task_failed();
+        m_is_running = false;
+    }
+
+    bool is_running() const
+    {
+        return m_is_running;
     }
 
 protected:
@@ -111,6 +130,11 @@ protected:
 
     void initial_schedule()
     {
+        for (const auto& external_callback : m_external_callbacks)
+        {
+            external_callback();
+        }
+
         std::unique_lock<std::mutex> guard(m_mutex);
         for (size_t index = 0; index < m_tasks.size(); ++index)
         {
@@ -139,24 +163,63 @@ protected:
     void assert_no_task_failed()
     {
         // If a task failed, we want to catch this in the main thread and throw an error for the user.
-        if (m_task_error) {
+        if (m_task_error)
+        {
             try
             {
                 m_condition.terminate();
                 std::rethrow_exception(m_task_error);
             } catch (const std::exception& exception)
             {
+                m_is_running = false;
                 throw std::runtime_error(std::string("Error in task:\n\t") + exception.what());
             }
         }
     }
   
-    void task_received_input(abstract_task_container* task)
+    void task_received_input(abstract_task_container* task, size_t index, bool finished)
     {
-        (void)task;
-        // TODO: the scheduler should check if this can run and schedule it
-        // it is not implemented yet, because the current scheduler can not do this easily
-        // and we change the scheduler right now anyway
+        if (!m_is_running)
+        {
+            m_external_callbacks.push_back([this, task, index, finished]()
+            {
+                task_received_input(task, index, finished);
+            });
+            return;
+        }
+
+        const auto index_of_task_it = std::find_if(m_tasks.cbegin(), m_tasks.cend(), [to_find = task](const std::unique_ptr<abstract_task_container>& task)
+        {
+            return to_find == task.get();
+        });
+        const size_t index_of_task = std::distance(m_tasks.cbegin(), index_of_task_it);
+        
+        std::unique_lock<std::mutex> guard(m_mutex);
+        if (m_current_external_status[index_of_task][index])
+        {
+            return;
+        }
+
+        if (finished)
+        {
+            m_current_external_status[index_of_task][index] = finished;
+        }
+        m_externals_finished = externals_finished(m_current_external_status);
+
+        // TODO: If the pipeline finished and is only waiting for this one external input
+        // and can_run still returns false, then the pipeline will (or at least should) hang forever
+        if (m_tasks[index_of_task]->can_run())
+        {
+            schedule(index_of_task);
+        }
+    }
+
+    static bool externals_finished(const std::vector<std::vector<bool>>& externals)
+    {
+        return std::all_of(externals.cbegin(), externals.cend(), [](const std::vector<bool>& inner)
+        {
+            return std::all_of(inner.cbegin(), inner.cend(), [](bool finished) { return finished; });
+        });
     }
 
     static size_t number_of_constraints(const std::vector<std::unique_ptr<abstract_task_container>>& tasks)
@@ -173,6 +236,9 @@ protected:
         return std::max<size_t>(thread_group::COUNT, max_constraint + 1);
     }
 
+    std::atomic_bool m_is_running;
+    std::atomic_bool m_externals_finished;
+
     std::mutex m_mutex;
 
     std::vector<std::unique_ptr<abstract_task_container>> m_tasks;
@@ -182,5 +248,9 @@ protected:
     thread_pool m_thread_pool;
 
     std::exception_ptr m_task_error;
+
+    std::vector<std::vector<bool>> m_initial_external_status;
+    std::vector<std::vector<bool>> m_current_external_status;
+    std::vector<std::function<void()>> m_external_callbacks;
 };
 }

@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <tuple>
 #include <type_traits>
+#include <utility>
 
 namespace yats
 {
@@ -13,7 +14,7 @@ class output_bundle
 public:
     template <typename... Params>
     output_bundle(Params&&... params)
-        : m_return_values(std::forward(params)...)
+        : m_return_values(std::forward<Params>(params)...)
     {
     }
 

@@ -80,12 +80,12 @@ TEST(slot_test, perfect_forwarding_test)
     []() -> output_bundle<slot<std::unique_ptr<int>, 0>>
     {
         std::unique_ptr<int> pointer;
-        return pointer;
+        return std::move(pointer);
     }();
 
     []() -> output_bundle<slot<std::unique_ptr<int>, 0>>
     {
         slot<std::unique_ptr<int>, 0> pointer(nullptr);
-        return pointer;
+        return std::move(pointer);
     }();
 }

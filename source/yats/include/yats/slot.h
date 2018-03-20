@@ -12,8 +12,8 @@ class output_bundle
 {
 public:
     template <typename... Params>
-    output_bundle(Params... params)
-        : m_return_values(std::move(params)...)
+    output_bundle(Params&&... params)
+        : m_return_values(std::forward(params)...)
     {
     }
 

@@ -30,7 +30,7 @@ TEST(scheduler_test, multithreaded_timing_test)
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
 
     EXPECT_GE(duration, 100);
-    EXPECT_LE(duration, 500);
+    EXPECT_LE(duration, 550);
 }
 
 TEST(scheduler_test, run_twice)

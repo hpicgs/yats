@@ -25,19 +25,29 @@ public:
             throw std::runtime_error("Cannot run scheduler on 0 concurrent tasks!");
         }
 
+        auto run_task_lambda = [this](size_t constraint) mutable
+        {
+            const auto current_task = get(constraint);
+
+            // Don't continue if this task failed to complete
+            if (!run_task(current_task)) {
+                return;
+            }
+
+            schedule_following(current_task);
+        };
+
+        // We need number_of_threads threads for the any constraint
         for (size_t i = 0; i < number_of_threads; ++i)
         {
-            m_thread_pool.execute([this]() mutable {
-                auto current_task = get(thread_group::ANY);
+            m_thread_pool.execute([run_task_lambda]() mutable { run_task_lambda(thread_group::ANY); }, thread_group::ANY);
+        }
 
-                // Don't continue if this task failed to complete
-                if (!run_task(current_task)) {
-                    return;
-                }
-
-                schedule_following(current_task);
-            },
-            thread_group::ANY);
+        // We need a thread for each user defined constraint
+        const auto constraints_count = number_of_constraints(m_tasks);
+        for (size_t constraint = thread_group::COUNT; constraint < constraints_count; ++constraint)
+        {
+            m_thread_pool.execute([run_task_lambda, constraint]() mutable { run_task_lambda(constraint); }, constraint);
         }
     }
 
@@ -55,7 +65,7 @@ public:
 
         while (auto guard = m_condition.wait_main())
         {
-            auto current_task = get(thread_group::MAIN);
+            const auto current_task = get(thread_group::MAIN);
             run_task(current_task);
             assert_no_task_failed();
             schedule_following(current_task);
@@ -68,7 +78,7 @@ protected:
     size_t get(size_t constraint)
     {
         std::unique_lock<std::mutex> guard(m_mutex);
-        auto current_task = m_tasks_to_process[constraint].front();
+        const auto current_task = m_tasks_to_process[constraint].front();
         m_tasks_to_process[constraint].pop();
         return current_task;
     }
@@ -90,7 +100,7 @@ protected:
     void schedule_following(size_t index)
     {
         std::unique_lock<std::mutex> guard(m_mutex);
-        for (auto next_task : m_tasks[index]->following_nodes())
+        for (const auto next_task : m_tasks[index]->following_nodes())
         {
             if (m_tasks[next_task]->can_run())
             {
@@ -109,17 +119,6 @@ protected:
                 schedule(index);
             }
         }
-    }
-
-    static size_t number_of_constraints(const std::vector<std::unique_ptr<abstract_task_container>>& tasks)
-    {
-        size_t max_constraint = 0;
-        for (const auto& task : tasks)
-        {
-            max_constraint = std::max(max_constraint, *std::max_element(task->constraints().cbegin(), task->constraints().cend()));
-        }
-        // We have to add the number of constraints which exist even though they are not chosen
-        return std::max<size_t>(2, max_constraint);
     }
 
     bool run_task(const size_t task_id)
@@ -158,6 +157,20 @@ protected:
         // TODO: the scheduler should check if this can run and schedule it
         // it is not implemented yet, because the current scheduler can not do this easily
         // and we change the scheduler right now anyway
+    }
+
+    static size_t number_of_constraints(const std::vector<std::unique_ptr<abstract_task_container>>& tasks)
+    {
+        size_t max_constraint = 0;
+        for (const auto& task : tasks)
+        {
+            max_constraint = std::max(max_constraint, *std::max_element(task->constraints().cbegin(), task->constraints().cend()));
+        }
+
+        // We have at least thread_group::COUNT constraints
+        // even if no task uses one of the predefined constraints
+        // If a task uses a user defined constraint we have to add 1 because constraints start at 0
+        return std::max<size_t>(thread_group::COUNT, max_constraint + 1);
     }
 
     std::mutex m_mutex;

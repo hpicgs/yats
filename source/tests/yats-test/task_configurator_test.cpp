@@ -11,7 +11,7 @@ TEST(task_configurator_test, return_parameters)
     {
         output_bundle<slot<int, 0>> run(slot<int, 0> input)
         {
-            return std::make_tuple(static_cast<int>(input));
+            return input;
         }
     };
 
@@ -43,7 +43,7 @@ TEST(task_configurator_test, multiple_returns_multiple_parameters)
     {
         output_bundle<slot<int, 0>, slot<int, 1>> run(slot<int, 0> input0, slot<int, 1> input1)
         {
-            return std::make_tuple(input0 + input1, input0 - input1);
+            return { input0 + input1, input0 - input1 };
         }
     };
 
@@ -61,7 +61,7 @@ TEST(task_configurator_test, get_input_output_by_id)
     {
         output_bundle<slot<int, 123>> run(slot<int, 321> input)
         {
-            return std::make_tuple(input + 1);
+            return input + 1;
         }
     };
 
@@ -76,7 +76,7 @@ TEST(task_configurator_test, get_input_output_by_name)
     {
         output_bundle<slot<int, "output"_id>> run(slot<int, "input"_id> input)
         {
-            return std::make_tuple(input + 1);
+            return input + 1;
         }
     };
 

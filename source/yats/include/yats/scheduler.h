@@ -27,7 +27,7 @@ public:
 
         auto run_task_lambda = [this](size_t constraint) mutable
         {
-            auto current_task = get(constraint);
+            const auto current_task = get(constraint);
 
             // Don't continue if this task failed to complete
             if (!run_task(current_task)) {
@@ -44,7 +44,7 @@ public:
         }
 
         // We need a thread for each user defined constraint
-        size_t constraints_count = number_of_constraints(m_tasks);
+        const auto constraints_count = number_of_constraints(m_tasks);
         for (size_t constraint = thread_group::COUNT; constraint < constraints_count; ++constraint)
         {
             m_thread_pool.execute([run_task_lambda, constraint]() mutable { run_task_lambda(constraint); }, constraint);
@@ -65,7 +65,7 @@ public:
 
         while (auto guard = m_condition.wait_main())
         {
-            auto current_task = get(thread_group::MAIN);
+            const auto current_task = get(thread_group::MAIN);
             run_task(current_task);
             assert_no_task_failed();
             schedule_following(current_task);
@@ -78,7 +78,7 @@ protected:
     size_t get(size_t constraint)
     {
         std::unique_lock<std::mutex> guard(m_mutex);
-        auto current_task = m_tasks_to_process[constraint].front();
+        const auto current_task = m_tasks_to_process[constraint].front();
         m_tasks_to_process[constraint].pop();
         return current_task;
     }
@@ -100,7 +100,7 @@ protected:
     void schedule_following(size_t index)
     {
         std::unique_lock<std::mutex> guard(m_mutex);
-        for (auto next_task : m_tasks[index]->following_nodes())
+        for (const auto next_task : m_tasks[index]->following_nodes())
         {
             if (m_tasks[next_task]->can_run())
             {
@@ -167,9 +167,9 @@ protected:
             max_constraint = std::max(max_constraint, *std::max_element(task->constraints().cbegin(), task->constraints().cend()));
         }
 
-        // We have atleast thread_group::COUNT constraints
+        // We have at least thread_group::COUNT constraints
         // even if no task uses one of the predefined constraints
-        // If a task uses a custom constraint we have to add 1 because constraints start at 0
+        // If a task uses a user defined constraint we have to add 1 because constraints start at 0
         return std::max<size_t>(thread_group::COUNT, max_constraint + 1);
     }
 

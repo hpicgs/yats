@@ -7,7 +7,7 @@ using namespace yats;
 
 TEST(scheduler_test, simple_create)
 {
-    EXPECT_NO_THROW(yats::scheduler{ yats::pipeline() });
+    EXPECT_NO_THROW(scheduler{ pipeline() });
 }
 
 TEST(scheduler_test, multithreaded_timing_test)

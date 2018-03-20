@@ -5,28 +5,28 @@
 
 using namespace yats;
 
-TEST(util_test, is_tuple_test)
+TEST(util_test, is_output_bundle)
 {
-    EXPECT_TRUE(is_tuple_v<std::tuple<>>);
-    EXPECT_TRUE(is_tuple_v<std::tuple<int>>);
-    auto val = is_tuple_v<std::tuple<int, float>>;
+    EXPECT_FALSE(is_output_bundle_v<std::tuple<>>);
+    EXPECT_FALSE(is_output_bundle_v<std::tuple<int>>);
+    auto val = is_output_bundle_v<output_bundle<int, float>>;
     EXPECT_TRUE(val);
 
-    EXPECT_FALSE(is_tuple_v<std::shared_ptr<int>>);
-    EXPECT_FALSE(is_tuple_v<std::unique_ptr<int>>);
-    EXPECT_FALSE(is_tuple_v<int>);
-    EXPECT_FALSE(is_tuple_v<int*>);
-    EXPECT_FALSE(is_tuple_v<int&>);
-    EXPECT_FALSE(is_tuple_v<const int&>);
-    EXPECT_FALSE(is_tuple_v<void>);
+    EXPECT_FALSE(is_output_bundle_v<std::shared_ptr<int>>);
+    EXPECT_FALSE(is_output_bundle_v<std::unique_ptr<int>>);
+    EXPECT_FALSE(is_output_bundle_v<int>);
+    EXPECT_FALSE(is_output_bundle_v<int*>);
+    EXPECT_FALSE(is_output_bundle_v<int&>);
+    EXPECT_FALSE(is_output_bundle_v<const int&>);
+    EXPECT_FALSE(is_output_bundle_v<void>);
 
     struct no_shared_ptr
     {
         char dummy;
     };
 
-    EXPECT_FALSE(is_tuple_v<no_shared_ptr>);
-    EXPECT_FALSE(is_tuple_v<no_shared_ptr*>);
+    EXPECT_FALSE(is_output_bundle_v<no_shared_ptr>);
+    EXPECT_FALSE(is_output_bundle_v<no_shared_ptr*>);
 }
 
 TEST(util_test, has_run_test)

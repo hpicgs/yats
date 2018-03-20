@@ -4,6 +4,7 @@
 #include <memory>
 #include <vector>
 
+#include <yats/slot.h>
 #include <yats/thread_safe_queue.h>
 
 namespace yats
@@ -31,7 +32,7 @@ template <typename T>
 struct output_wrapper;
 
 template <typename... ParameterTypes>
-struct output_wrapper<std::tuple<ParameterTypes...>>
+struct output_wrapper<output_bundle<ParameterTypes...>>
 {
     template <typename CompoundType>
     static std::vector<std::function<void(typename CompoundType::value_type)>> transform_callback();

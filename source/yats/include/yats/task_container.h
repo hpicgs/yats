@@ -117,13 +117,13 @@ public:
 
 protected:
     template <size_t... Index, typename T = output_type>
-    std::enable_if_t<is_tuple_v<T>> invoke(std::index_sequence<Index...>)
+    std::enable_if_t<is_output_bundle_v<T>> invoke(std::index_sequence<Index...>)
     {
-        write(m_task.run(get<Index>()...));
+        write(m_task.run(get<Index>()...).tuple());
     }
 
     template <size_t... index, typename T = output_type>
-    std::enable_if_t<!std::is_same<T, void>::value && !is_tuple_v<T>> invoke(std::index_sequence<index...>)
+    std::enable_if_t<!std::is_same<T, void>::value && !is_output_bundle_v<T>> invoke(std::index_sequence<index...>)
     {
         write(std::make_tuple(m_task.run(get<index>()...)));
     }

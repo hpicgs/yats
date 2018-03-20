@@ -19,6 +19,7 @@ public:
         lock guard(m_mutex);
         auto value = std::move(m_queue.front());
         m_queue.pop();
+        --m_num_reserved;
         return value;
     }
 
@@ -34,20 +35,18 @@ public:
         m_queue.push(value);
     }
 
-    size_t size()
-    {
-        lock guard(m_mutex);
-        return m_queue.size();
-    }
-
     bool empty()
     {
         lock guard(m_mutex);
-        return m_queue.empty();
+        ++m_num_reserved;
+        return m_queue.size() <= m_num_reserved - 1;
     }
 
 protected:
     std::queue<ValueType> m_queue;
     std::mutex m_mutex;
+    // TODO: Remove this dirty dirty hack
+    // This fixes the race condition which occurs when empty() is called twice before extract()
+    size_t m_num_reserved;
 };
 }

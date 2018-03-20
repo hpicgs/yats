@@ -202,7 +202,7 @@ protected:
     template <size_t Index>
     bool check_input() const
     {
-        return std::get<Index>(*m_input).size() > 0;
+        return !std::get<Index>(*m_input).empty();
     }
 
     template <size_t... Index>

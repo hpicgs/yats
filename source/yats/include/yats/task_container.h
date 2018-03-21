@@ -33,6 +33,7 @@ public:
 
     virtual void run() = 0;
     virtual bool can_run() const = 0;
+    virtual void reserve_run() = 0;
     virtual std::vector<bool> receives_external_input() const = 0;
 
     const std::vector<size_t>& following_nodes()
@@ -114,6 +115,11 @@ public:
     bool can_run() const override
     {
         return can_run_impl(std::make_index_sequence<helper::input_count>());
+    }
+
+    void reserve_run() override
+    {
+        reserve_input();
     }
 
     std::vector<bool> receives_external_input() const override
@@ -203,6 +209,18 @@ protected:
     bool check_input() const
     {
         return !std::get<Index>(*m_input).empty();
+    }
+
+    template <size_t Index = 0>
+    std::enable_if_t<(Index < helper::input_count)> reserve_input()
+    {
+        std::get<Index>(*m_input).reserve_one();
+        reserve_input<Index + 1>();
+    }
+
+    template <size_t Index = 0>
+    std::enable_if_t<Index == helper::input_count> reserve_input()
+    {
     }
 
     template <size_t... Index>

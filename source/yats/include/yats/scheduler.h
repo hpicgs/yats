@@ -104,6 +104,7 @@ protected:
 
     void schedule(size_t index)
     {
+        m_tasks[index]->reserve_run();
         const auto& constraints = m_tasks[index]->constraints();
 
         // If there are multiple threads we choose the one with the smallest current workload

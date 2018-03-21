@@ -38,24 +38,22 @@ public:
     bool empty()
     {
         lock guard(m_mutex);
-        if (m_queue.empty())
+        return m_queue.empty() || m_queue.size() == m_num_reserved;
+    }
+
+    void reserve_one()
+    {
+        lock guard(m_mutex);
+        if (m_num_reserved == m_queue.size())
         {
-            m_num_reserved = 0;
-            return true;
-        }
-        if (m_queue.size() <= m_num_reserved)
-        {
-            return true;
+            throw std::runtime_error("Trying to reserve more elements than the queue currently holds.");
         }
         ++m_num_reserved;
-        return m_queue.size() <= m_num_reserved - 1;
     }
 
 protected:
     std::queue<ValueType> m_queue;
     std::mutex m_mutex;
-    // TODO: Remove this dirty dirty hack
-    // This fixes the race condition which occurs when empty() is called twice before extract()
     size_t m_num_reserved;
 };
 }

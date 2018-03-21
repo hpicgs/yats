@@ -133,8 +133,8 @@ TEST(scheduler_test, various_constraints_run)
     auto main_task_config = pipeline.add<task>();
     auto other_task_config = pipeline.add<task>();
 
-    main_task_config->add_thread_constraint(thread_group::main_thread());
-    other_task_config->add_thread_constraint(thread_group("other"));
+    main_task_config->set_thread_constraint(thread_group::main_thread());
+    other_task_config->set_thread_constraint(thread_group("other"));
 
     int any_value = 0;
     int main_value = 0;

@@ -97,7 +97,8 @@ TEST(task_configurator_test, thread_constraints_default)
     task_configurator<Task> configurator;
     auto constraints = configurator.thread_constraints();
 
-    EXPECT_EQ(constraints.names().count(thread_group::name_for(thread_group::ANY)), 1);
+    EXPECT_EQ(constraints.names().count(thread_group::name_for(thread_group::ANY)), 0);
+    EXPECT_EQ(constraints.names().count(thread_group::name_for(thread_group::MAIN)), 0);
     EXPECT_EQ(constraints.names().size(), 1);
 }
 

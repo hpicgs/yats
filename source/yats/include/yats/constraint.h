@@ -1,5 +1,6 @@
 #pragma once
 
+#include <atomic>
 #include <set>
 #include <stdexcept>
 #include <string>
@@ -12,7 +13,7 @@ class thread_group_helper;
 class thread_group
 {
 public:
-    explicit thread_group(const std::string& name = name_for(ANY))
+    explicit thread_group(const std::string& name = anonymous_thread())
         : m_names{ name }
     {
     }
@@ -76,6 +77,14 @@ public:
     }
 
 protected:
+    static std::string anonymous_thread()
+    {
+        static std::atomic<uint64_t> id;
+        static const std::string anonymous_thread_prefix("__yats_anonymous_thread_");
+
+        return anonymous_thread_prefix + std::to_string(id.fetch_add(1));
+    }
+
     std::set<std::string> m_names;
 };
 

@@ -36,9 +36,9 @@ public:
         return m_externals.find(connector) != m_externals.cend();
     }
 
-    void add_thread_constraint(const thread_group& group)
+    void set_thread_constraint(const thread_group& group)
     {
-        m_thread_constraint |= group;
+        m_thread_constraint = group;
     }
 
     const thread_group& thread_constraints() const

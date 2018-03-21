@@ -30,7 +30,7 @@ TEST(scheduler_test, multithreaded_timing_test)
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
 
     EXPECT_GE(duration, 100);
-    EXPECT_LE(duration, 500);
+    EXPECT_LE(duration, 550);
 }
 
 TEST(scheduler_test, run_twice)
@@ -116,6 +116,40 @@ TEST(scheduler_test, throw_on_creation_zero_threads)
     pipeline.add([]() {});
 
     EXPECT_ANY_THROW(scheduler(std::move(pipeline), 0));
+}
+
+TEST(scheduler_test, various_constraints_run)
+{
+    struct task
+    {
+        slot<int, 0> run()
+        {
+            return 42;
+        }
+    };
+
+    pipeline pipeline;
+    auto any_task_config = pipeline.add<task>();
+    auto main_task_config = pipeline.add<task>();
+    auto other_task_config = pipeline.add<task>();
+
+    main_task_config->add_thread_constraint(thread_group::main_thread());
+    other_task_config->add_thread_constraint(thread_group("other"));
+
+    int any_value = 0;
+    int main_value = 0;
+    int other_value = 0;
+
+    any_task_config->add_listener<0>([&any_value](int value) { any_value = value; });
+    main_task_config->add_listener<0>([&main_value](int value) { main_value = value; });
+    other_task_config->add_listener<0>([&other_value](int value) { other_value = value; });
+
+    scheduler scheduler(std::move(pipeline));
+    scheduler.run();
+
+    EXPECT_EQ(any_value, 42);
+    EXPECT_EQ(main_value, 42);
+    EXPECT_EQ(other_value, 42);
 }
 
 TEST(scheduler_test, catch_task_exception)

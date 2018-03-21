@@ -5,6 +5,5 @@ if(NOT OPTION_BUILD_EXAMPLES)
 endif()
 
 # Example applications
-add_subdirectory(compilation)
-
 add_subdirectory(glraw)
+add_subdirectory(pipeline)

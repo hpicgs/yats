@@ -1,9 +1,12 @@
 #pragma once
 
 #include <memory>
+#include <vector>
 
-#include <QScopedPointer>
-#include <QLinkedList>
+#include <QByteArray>
+
+#include <glraw/AbstractConverter.h>
+#include <glraw/filter/AbstractFilter.h>
 
 #include <glraw/glraw_api.h>
 
@@ -11,20 +14,18 @@
 namespace glraw
 {
 
-class AbstractConverter;
-class AbstractFilter;
 class AssetInformation;
 class Canvas;
 
 class GLRAW_API MemoryProcessor
 {
 public:
-	MemoryProcessor(AbstractConverter * converter = nullptr);
-	virtual ~MemoryProcessor();
+	MemoryProcessor(std::unique_ptr<AbstractConverter> converter);
+	virtual ~MemoryProcessor() = default;
 
 	bool process(QByteArray & data, AssetInformation & info);
 
-	void appendFilter(AbstractFilter * filter);
+	void appendFilter(std::unique_ptr<AbstractFilter> filter);
 	void setConverter(AbstractConverter * converter);
 
 	void reset();
@@ -34,8 +35,8 @@ protected:
 	bool applyFilter(AssetInformation & info);
 	bool copyImageFromGL(QByteArray & data, AssetInformation & info);
 
-	QLinkedList<AbstractFilter*> m_filters;
-	QScopedPointer<AbstractConverter> m_converter;
+	std::vector<std::unique_ptr<AbstractFilter>> m_filters;
+	std::unique_ptr<AbstractConverter> m_converter;
 
 	std::unique_ptr<Canvas> & canvas();
 

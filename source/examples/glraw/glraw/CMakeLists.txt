@@ -24,8 +24,38 @@ message(STATUS "Example ${target}")
 # 
 
 set(sources
+    AbstractConverter.h
     AssetInformation.cpp
     AssetInformation.h
+	Canvas.cpp
+	Canvas.h
+	CompressionConverter.cpp
+	CompressionConverter.h
+	Converter.cpp
+	Converter.h
+	ConvertManager.cpp
+	ConvertManager.h
+	FileNameSuffix.cpp
+	FileNameSuffix.h
+	FileWriter.cpp
+	FileWriter.h
+	glraw_api.h
+	MemoryProcessor.cpp
+	MemoryProcessor.h
+	RawFile.cpp
+	RawFile.h
+	S3TCExtensions.h
+
+	filter/AbstractKernel.cpp
+	filter/AbstractKernel.h
+	filter/AbstractFilter.cpp
+	filter/AbstractFilter.h
+	filter/Filter.cpp
+	filter/Filter.h
+	filter/Filter.hpp
+
+	filter/BlockBlur.cpp
+	filter/BlockBlur.h
 )
 
 
@@ -33,7 +63,7 @@ set(sources
 # Create library
 # 
 
-add_library(${target} STATIC ${sources})
+add_library(${target} SHARED ${sources})
 
 
 # 
@@ -79,6 +109,7 @@ target_link_libraries(${target}
 target_compile_definitions(${target}
     PRIVATE
     ${DEFAULT_COMPILE_DEFINITIONS}
+	-DGLRAW_EXPORTS
 )
 
 

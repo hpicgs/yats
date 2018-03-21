@@ -76,6 +76,7 @@ target_link_libraries(${target}
     PRIVATE
     ${DEFAULT_LIBRARIES}
     yats-include
+	glraw
     Qt5::Core
     Qt5::Gui
     Qt5::OpenGL

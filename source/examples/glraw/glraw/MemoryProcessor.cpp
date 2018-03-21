@@ -16,19 +16,14 @@
 namespace glraw
 {
 
-MemoryProcessor::MemoryProcessor(AbstractConverter * converter)
-	: m_converter(converter)
+MemoryProcessor::MemoryProcessor(std::unique_ptr<AbstractConverter> converter)
+	: m_converter(std::move(converter))
 {
-}
-
-MemoryProcessor::~MemoryProcessor()
-{
-	reset();
 }
 
 bool MemoryProcessor::process(QByteArray & data, AssetInformation & info)
 {
-	assert(!m_converter.isNull());
+	assert(m_converter);
 	assert(info.propertyExists("width"));
 	assert(info.propertyExists("height"));
 
@@ -50,7 +45,7 @@ bool MemoryProcessor::process(QByteArray & data, AssetInformation & info)
 
 bool MemoryProcessor::applyFilter(AssetInformation & info)
 {
-	for(auto filter : m_filters)
+	for(auto& filter : m_filters)
 	{
 		if(!filter->process(canvas(), info))
 		{
@@ -72,17 +67,16 @@ void MemoryProcessor::setConverter(AbstractConverter * converter)
 	m_converter.reset(converter);
 }
 
-void MemoryProcessor::appendFilter(AbstractFilter * filter)
+void MemoryProcessor::appendFilter(std::unique_ptr<AbstractFilter> filter)
 {
-	assert(filter);
-	m_filters.append(filter);
+	m_filters.push_back(std::move(filter));
 }
 
 std::unique_ptr<Canvas> & MemoryProcessor::canvas()
 {
 	if(!m_canvas)
 	{
-		m_canvas = std::unique_ptr<Canvas>(new Canvas());
+		m_canvas = std::make_unique<Canvas>();
 	}
 
 	return m_canvas;
@@ -90,7 +84,7 @@ std::unique_ptr<Canvas> & MemoryProcessor::canvas()
 
 void MemoryProcessor::reset()
 {
-	qDeleteAll(m_filters);
+    m_filters.clear();
 }
 
 } // namespace glraw

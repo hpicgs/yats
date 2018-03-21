@@ -161,8 +161,6 @@ QByteArray Canvas::compressedImageFromTexture(GLenum compressedInternalFormat)
     
 void Canvas::updateTexture(GLuint tex)
 {
-	assert( tex );
-
 	if(tex == m_texture)
 	{
 		return;

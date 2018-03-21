@@ -10,7 +10,7 @@
 namespace glraw
 {
 
-typedef std::function<AbstractFilter * (const QVariantMap &)> FactoryFunction;
+typedef std::function<std::unique_ptr<AbstractFilter>(const QVariantMap &)> FactoryFunction;
 typedef std::map<std::string, std::pair<FactoryFunction, std::string>> LibraryInstance;
 
 class GLRAW_API Filter
@@ -18,7 +18,7 @@ class GLRAW_API Filter
 public:
 	Filter() = delete;
 
-	static AbstractFilter * CreateByName(const std::string & name, const QVariantMap& options)
+	static std::unique_ptr<AbstractFilter> CreateByName(const std::string & name, const QVariantMap& options)
 	{
 		auto it = Library().find(name);
 
@@ -34,10 +34,10 @@ public:
 	}
 
 	template<typename FilterType>
-	static AbstractFilter * Factory(const QVariantMap& options)
+	static std::unique_ptr<AbstractFilter> Factory(const QVariantMap& options)
 	{
 		static_assert(std::is_base_of<AbstractFilter, FilterType>::value, "Filters must inherit from AbstractFilter!");
-		return new FilterType(options);
+		return std::make_unique<FilterType>(options);
 	}
 
 	template<typename FilterType>

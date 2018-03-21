@@ -14,7 +14,7 @@ namespace glraw
 class GLRAW_API RawFile
 {
 public:
-    static uint16_t s_signature;
+    static const uint16_t s_signature = 0xC6F5;
 
     enum class PropertyType 
 	{

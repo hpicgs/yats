@@ -17,16 +17,14 @@
 namespace glraw
 {
 
-ConvertManager::ConvertManager(FileWriter * writer, AbstractConverter * converter)
-	: MemoryProcessor(converter)
-	, m_writer(writer)
+ConvertManager::ConvertManager(std::unique_ptr<FileWriter> writer, std::unique_ptr<AbstractConverter> converter)
+	: MemoryProcessor(std::move(converter))
+	, m_writer(std::move(writer))
 {
 }
    
 bool ConvertManager::process(const QString & sourcePath)
 {
-	assert(!m_writer.isNull());
-
 	if (!QFile::exists(sourcePath))
 	{
 		qDebug("Input file does not exist.");

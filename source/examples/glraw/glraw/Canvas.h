@@ -5,6 +5,8 @@
 #include <QWindow>
 #include <QOpenGLFunctions_3_2_Core>
 
+#include <glraw/AssetInformation.h>
+
 #include <glraw/glraw_api.h>
 
 class QImage;

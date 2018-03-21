@@ -50,7 +50,7 @@ bool AbstractFilter::process(std::unique_ptr<Canvas> & imageData, AssetInformati
 	return true;
 }
 
-void AbstractFilter::updateAssetInformation(AssetInformation & info)
+void AbstractFilter::updateAssetInformation(AssetInformation &)
 {
 }
 
@@ -119,7 +119,7 @@ bool AbstractFilter::createProgram(QOpenGLShaderProgram& program, const QString 
 	return program.bind();
 }
 
-void AbstractFilter::setUniforms(QOpenGLShaderProgram& program, unsigned int pass)
+void AbstractFilter::setUniforms(QOpenGLShaderProgram&, unsigned int)
 {
 }
 

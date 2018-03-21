@@ -41,10 +41,6 @@ std::string readString(std::ifstream & stream)
 namespace glraw
 {
 
-
-uint16_t RawFile::s_signature = 0xC6F5;
-
-
 RawFile::RawFile(const std::string & filePath, bool parseProperties)
 : m_filePath(filePath)
 , m_valid(false)

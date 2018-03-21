@@ -14,8 +14,7 @@ namespace glraw
 class GLRAW_API ConvertManager : public MemoryProcessor
 {
 public:
-    ConvertManager(FileWriter * writer = nullptr, AbstractConverter * converter = nullptr);
-    virtual ~ConvertManager() = default;
+    ConvertManager(std::unique_ptr<FileWriter> writer, std::unique_ptr<AbstractConverter> converter);
 
 	bool process(const QString & sourcePath);
     
@@ -25,7 +24,7 @@ protected:
     
 	static AssetInformation generateAssetInformation(const QImage & image);
 
-    QScopedPointer<FileWriter> m_writer;
+    std::unique_ptr<FileWriter> m_writer;
 };
 
 } // namespace glraw

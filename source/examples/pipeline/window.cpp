@@ -7,7 +7,7 @@ window::window()
     : m_context(new QOpenGLContext)
 {
     QSurfaceFormat format;
-    format.setVersion(4, 0);
+    format.setVersion(4, 3);
     format.setRenderableType(QSurfaceFormat::OpenGL);
 
     setSurfaceType(OpenGLSurface);

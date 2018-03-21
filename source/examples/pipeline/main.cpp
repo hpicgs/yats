@@ -1,13 +1,14 @@
-#include "Builder.h"
-
 #include <QApplication>
+#include <QSurfaceFormat>
+
+#include "window.h"
 
 int main(int argc, char * argv[])
 {
     QApplication app(argc, argv);
-    
-    Builder builder;
-    builder.process(app);
+
+    window prog;
+    prog.exec();
 
     return 0;
 }

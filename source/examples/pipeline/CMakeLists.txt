@@ -6,6 +6,9 @@
 find_package(Qt5OpenGL   5.8 REQUIRED)
 find_package(Qt5Core     5.8 REQUIRED)
 find_package(Qt5Gui      5.8 REQUIRED)
+find_package(glbinding REQUIRED)
+find_package(globjects REQUIRED)
+find_package(glm REQUIRED)
 
 
 # 
@@ -24,7 +27,10 @@ message(STATUS "Example ${target}")
 # 
 
 set(sources
+    gl.cpp
     main.cpp
+    window.cpp
+    window.h
 )
 
 
@@ -74,6 +80,9 @@ target_link_libraries(${target}
     Qt5::Core
     Qt5::Gui
     Qt5::OpenGL
+    glbinding::glbinding
+    globjects::globjects
+    glm
 )
 
 

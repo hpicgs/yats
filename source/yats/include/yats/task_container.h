@@ -53,12 +53,12 @@ public:
 
     bool failed() const
     {
-    	return m_error != nullptr;
+        return m_error != nullptr;
     }
 
     std::exception_ptr get_error() const
     {
-    	return m_error;
+        return m_error;
     }
 
 protected:

@@ -4,6 +4,8 @@
 #include <yats/scheduler.h>
 #include <yats/slot.h>
 
+#include <algorithm>
+
 using namespace yats;
 
 TEST(pipeline_test, add_lambda_task)
@@ -116,4 +118,60 @@ TEST(pipeline_test, external_input_by_move)
 
     scheduler.run();
     EXPECT_EQ(expected_value, 15);
+}
+
+template <typename T, class C>
+class some_templated_class
+{
+public:
+    void run()
+    {
+    }
+};
+
+TEST(pipeline_test, save_to_file)
+{
+    pipeline p;
+
+    struct add_task
+    {
+        slot<int, "sum"_id> run(slot<int, "summand_a"_id> a, slot<int, "summand_b"_id> b)
+        {
+            return a + b;
+        }
+    };
+
+    struct multiply_task
+    {
+        slot<int, "product"_id> run(slot<int, "factor_a"_id> a, slot<int, "factor_b"_id> b)
+        {
+            return a * b;
+        }
+    };
+
+    auto add_cfg = p.add<add_task>();
+    auto multiply_cfg = p.add<multiply_task>();
+    p.add<some_templated_class<int, int>>();
+
+    add_cfg->output<"sum"_id>() >> multiply_cfg->input<"factor_a"_id>();
+
+    p.save_to_file("graph.txt");
+
+    std::string b = "<Hallo>";
+    std::string str;
+    for (const auto& c : b)
+    {
+        switch(c)
+        {
+        case '<':
+            str.append("&lt;");
+            break;
+        case '>':
+            str.append("&gt;");
+            break;
+        default:
+            str.append(1, c);
+        }
+    }
+    std::cout << str << std::endl;
 }

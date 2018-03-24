@@ -71,7 +71,35 @@ protected:
     template <typename T>
     static std::string name()
     {
-        static_assert(false, "unsupported compiler.");
+        // Unit tests will fail.
+        const std::string typeid_name = typeid(T).name();
+        std::string name;
+
+        for (const auto& c : typeid_name)
+        {
+            switch (c)
+            {
+            case '<':
+                name.append("&lt;");
+                break;
+            case '>':
+                name.append("&gt;");
+                break;
+            case '&':
+                name.append("&amp;");
+                break;
+            case '"':
+                name.append("&quot;");
+                break;
+            case '\'':
+                name.append("&apos;");
+                break;
+            default:
+                name.append(1, c);
+            }
+        }
+
+        return name;
     }
 #endif
 
@@ -97,7 +125,7 @@ protected:
         if (left < right)
         {
             // Extract types in class_name<TYPE1,TYPE2,...>
-            return class_name + '<' + parse_class_name(str, left + 1, right - 1) + '>';
+            return class_name + "&lt;" + parse_class_name(str, left + 1, right - 1) + "&gt;";
         }
 
         // Isolate types in TYPE1, TYPE2,...

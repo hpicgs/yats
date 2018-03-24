@@ -3,12 +3,29 @@
 #include <cstdint>
 #include <tuple>
 #include <type_traits>
+#include <utility>
 
 namespace yats
 {
 
 template <typename... Args>
-using output_bundle = std::tuple<Args...>;
+class output_bundle
+{
+public:
+    template <typename... Params>
+    output_bundle(Params&&... params)
+        : m_return_values(std::forward<Params>(params)...)
+    {
+    }
+
+    std::tuple<Args...> tuple() &&
+    {
+        return std::move(m_return_values);
+    }
+
+protected:
+    std::tuple<Args...> m_return_values;
+};
 
 /// <summary>
 /// <para>Main class to represent an slot</para>
@@ -16,7 +33,6 @@ using output_bundle = std::tuple<Args...>;
 /// <para><c>Id</c> Unique identifier of slot</para>
 /// </summary>
 template <typename T, uint64_t Id>
-
 class slot
 {
 public:
@@ -29,6 +45,18 @@ public:
     /// <param name = "value">Initial value of slot</param>
     slot(value_type value)
         : m_value{ std::move(value) }
+    {
+    }
+
+    template <uint64_t OtherID>
+    slot(const slot<T, OtherID>& other)
+        : m_value(other.m_value)
+    {
+    }
+
+    template <uint64_t OtherID>
+    slot(slot<T, OtherID>&& other)
+        : m_value(std::move(other.m_value))
     {
     }
 

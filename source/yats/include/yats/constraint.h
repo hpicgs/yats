@@ -1,6 +1,7 @@
 #pragma once
 
 #include <set>
+#include <stdexcept>
 #include <string>
 
 namespace yats
@@ -69,7 +70,7 @@ public:
         }
         default:
         {
-            throw std::logic_error("The implementation of yats is broken.");
+            throw std::runtime_error("Invalid enumeration value used. This implies an implementation error in yats.");
         }
         }
     }
@@ -79,7 +80,7 @@ protected:
 };
 
 template <typename T>
-struct has_thread_constraints
+struct has_static_thread_constraints
 {
     template <typename U>
     static auto test_function(int) -> decltype(U::thread_constraints());
@@ -87,6 +88,19 @@ struct has_thread_constraints
     static std::false_type test_function(...);
 
     static constexpr bool value = std::is_same<decltype(test_function<T>(0)), yats::thread_group>::value;
+};
+
+template <typename T>
+static constexpr bool has_static_thread_constraints_v = has_static_thread_constraints<T>::value;
+
+template <typename T>
+struct has_thread_constraints
+{
+    template <typename U>
+    static char test_function(decltype(&U::thread_constraints));
+    template <typename U>
+    static int test_function(...);
+    static constexpr bool value = sizeof(test_function<T>(0)) == sizeof(char);
 };
 
 template <typename T>

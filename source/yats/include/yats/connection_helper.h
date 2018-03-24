@@ -178,7 +178,7 @@ public:
 
 protected:
     template <size_t... Index>
-    static input_callbacks generate_callbacks(input_queue_ptr& queue, std::integer_sequence<size_t, Index...>)
+    static input_callbacks generate_callbacks(input_queue_ptr& queue, std::index_sequence<Index...>)
     {
         // Prevent a warning about unused parameter when handling a run function with no parameters.
         (void) queue;
@@ -212,7 +212,7 @@ protected:
     template <size_t Index = 0>
     std::enable_if_t<Index == helper::output_count> add(size_t, void*)
     {
-        throw std::runtime_error("Output Parameter locationId not found.");
+        throw std::runtime_error("Output Parameter locationId not found. It is not allowed to connect task from different pipelines.");
     }
 
     template <size_t Index = 0>
@@ -231,7 +231,7 @@ protected:
     template <size_t Index = 0>
     std::enable_if_t<Index == helper::input_count, void*> get(size_t)
     {
-        throw std::runtime_error("Input Parameter locationId not found.");
+        throw std::runtime_error("Input parameter locationId not found. This implies an implementation error in yats.");
     }
 
     /**

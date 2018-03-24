@@ -78,7 +78,7 @@ public:
         return thread_guard(this, m_is_active, guard);
     }
 
-    thread_guard wait_main(size_t constraint)
+    thread_guard wait_main()
     {
         std::unique_lock<std::mutex> guard(m_mutex);
 
@@ -88,13 +88,17 @@ public:
         }
 
         // Wait on the resource condition.
-        while (m_notify_count[constraint] == 0 && m_is_active)
+        while (m_notify_count[thread_group::MAIN] == 0 && m_is_active)
         {
-            m_task_added[constraint].wait(guard);
+            m_task_added[thread_group::MAIN].wait(guard);
+            if (has_finished())
+            {
+                return thread_guard(this, false, guard);
+            }
         }
-        --m_notify_count[constraint];
+        --m_notify_count[thread_group::MAIN];
 
-        return thread_guard(this, !has_finished(), guard);
+        return thread_guard(this, m_is_active, guard);
     }
 
     void notify(size_t constraint)
@@ -107,9 +111,8 @@ public:
     void check_finish()
     {
         std::unique_lock<std::mutex> guard(m_mutex);
-        if (has_finished() && m_notify_count[thread_group::MAIN] == 0)
+        if (has_finished())
         {
-            ++m_notify_count[thread_group::MAIN];
             m_task_added[thread_group::MAIN].notify_one();
         }
     }

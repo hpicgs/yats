@@ -51,7 +51,7 @@ public:
      * Note: Following tasks are referenced by the position of the task in the returned vector
      * </p>
      */
-    std::vector<std::unique_ptr<abstract_task_container>> build() const &&
+    std::vector<std::unique_ptr<abstract_task_container>> build(const std::function<void(abstract_task_container*)>& external_callback) const &&
     {
         auto helpers = get_helpers();
         auto output_owners = get_output_owners(helpers);
@@ -61,6 +61,10 @@ public:
             auto inputs = helpers[i]->inputs();
             for (const auto input : inputs)
             {
+                if (m_tasks[i]->is_external(input.first))
+                {
+                    continue;
+                }
                 auto source_location = input.first->output();
                 const auto source_task_id = output_owners.at(source_location);
 
@@ -75,7 +79,7 @@ public:
         auto constraint_map = thread_group_helper::map_thread_groups(m_tasks);
         for (size_t i = 0; i < m_tasks.size(); ++i)
         {
-            tasks.push_back(m_tasks[i]->construct_task_container(std::move(helpers[i])));
+            tasks.push_back(m_tasks[i]->construct_task_container(std::move(helpers[i]), external_callback));
 
             std::vector<size_t> constraints;
             for (const auto& constraint_name : m_tasks[i]->thread_constraints().names())

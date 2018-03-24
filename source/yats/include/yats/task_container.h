@@ -49,24 +49,38 @@ public:
         m_constraints = constraints;
     }
 
+    bool failed() const
+    {
+    	return m_error != nullptr;
+    }
+
+    std::exception_ptr get_error() const
+    {
+    	return m_error;
+    }
+
 protected:
     const std::vector<size_t> m_following_nodes;
     std::vector<size_t> m_constraints;
+    std::exception_ptr m_error;
 };
 
 template <typename Task, typename... Parameters>
 class task_container : public abstract_task_container
 {
     using helper = decltype(make_helper(&Task::run));
+    using input_tuple = typename helper::input_tuple;
     using input_queue_ptr = typename helper::input_queue_ptr;
+    using input_writers_ptr = typename helper::input_writers_ptr;
     using output_callbacks = typename helper::output_callbacks;
     using output_tuple = typename helper::output_tuple;
     using output_type = typename helper::output_type;
 
 public:
-    task_container(connection_helper<Task>* connection, options_ptr<Task> options, std::tuple<Parameters...> parameter_tuple)
+    task_container(connection_helper<Task>* connection, options_ptr<Task> options, input_writers_ptr writers, const std::function<void(abstract_task_container*)>& external_callback, std::tuple<Parameters...> parameter_tuple)
         : abstract_task_container(connection->following_nodes())
         , m_input(connection->queue())
+        , m_writers(std::move(writers))
         , m_output(connection->callbacks())
         , m_options(std::move(options))
         , m_task(make_from_tuple<Task>(std::move(parameter_tuple)))
@@ -76,12 +90,21 @@ public:
         {
             throw std::runtime_error("A not copyable type cannot be used in multiple connections.");
         }
+
+        initialize_writers(external_callback);
     }
 
     void run() override
     {
-        m_options->make_updates_visible(&m_task);
-        invoke(std::make_index_sequence<helper::input_count>());
+        try
+        {
+            m_options->make_updates_visible(&m_task);
+            invoke(std::make_index_sequence<helper::input_count>());
+        } catch (const std::exception&)
+        {
+            m_error = std::current_exception();
+            return;
+        }
     }
 
     /**
@@ -94,19 +117,19 @@ public:
 
 protected:
     template <size_t... Index, typename T = output_type>
-    std::enable_if_t<is_tuple_v<T>> invoke(std::integer_sequence<size_t, Index...>)
+    std::enable_if_t<is_output_bundle_v<T>> invoke(std::index_sequence<Index...>)
     {
-        write(m_task.run(get<Index>()...));
+        write(m_task.run(get<Index>()...).tuple());
     }
 
     template <size_t... index, typename T = output_type>
-    std::enable_if_t<!std::is_same<T, void>::value && !is_tuple_v<T>> invoke(std::integer_sequence<size_t, index...>)
+    std::enable_if_t<!std::is_same<T, void>::value && !is_output_bundle_v<T>> invoke(std::index_sequence<index...>)
     {
         write(std::make_tuple(m_task.run(get<index>()...)));
     }
 
     template <size_t... Index, typename T = output_type>
-    std::enable_if_t<std::is_same<T, void>::value> invoke(std::integer_sequence<size_t, Index...>)
+    std::enable_if_t<std::is_same<T, void>::value> invoke(std::index_sequence<Index...>)
     {
         m_task.run(get<Index>()...);
     }
@@ -130,7 +153,7 @@ protected:
     template <typename SlotType, typename ValueType = typename SlotType::value_type>
     static std::enable_if_t<!std::is_copy_constructible<ValueType>::value, ValueType> copy_value(const SlotType&)
     {
-        throw std::runtime_error("If this gets thrown, the library is broken.");
+        throw std::runtime_error("Tried to copy a type that is not copy constructible. This implies an implementation error in yats.");
     }
 
     /**
@@ -163,8 +186,8 @@ protected:
     {
     }
 
-    template <size_t... Index, size_t InputCount = helper::input_count>
-    bool can_run_impl(std::integer_sequence<size_t, Index...>) const
+    template <size_t... Index>
+    bool can_run_impl(std::index_sequence<Index...>) const
     {
         std::array<bool, sizeof...(Index)> has_inputs{ { check_input<Index>()... } };
         return std::all_of(has_inputs.cbegin(), has_inputs.cend(), [](bool input) { return input; });
@@ -177,7 +200,7 @@ protected:
     }
 
     template <size_t... Index>
-    bool check_copyable(std::integer_sequence<size_t, Index...>) const
+    bool check_copyable(std::index_sequence<Index...>) const
     {
         std::array<bool, sizeof...(Index)> copyable{ { check_copyable_impl<Index>()... } };
         return std::all_of(copyable.cbegin(), copyable.cend(), [](bool input) { return input; });
@@ -189,7 +212,25 @@ protected:
         return std::is_copy_constructible<std::tuple_element_t<Index, output_tuple>>::value || std::get<Index>(m_output).size() < 2;
     }
 
+    template <size_t Index = 0>
+    std::enable_if_t<(Index < helper::input_count)> initialize_writers(const std::function<void(abstract_task_container*)>& external_callback)
+    {
+        using parameter_type = typename std::tuple_element_t<Index, input_tuple>::value_type;
+        std::get<Index>(*m_writers).internal_function = [this, external_callback](parameter_type parameter)
+        {
+            std::get<Index>(*m_input).push(std::move(parameter));
+            external_callback(this);
+        };
+        initialize_writers<Index + 1>(external_callback);
+    }
+
+    template <size_t Index = 0>
+    std::enable_if_t<Index == helper::input_count> initialize_writers(const std::function<void(abstract_task_container*)>&)
+    {
+    }
+
     input_queue_ptr m_input;
+    input_writers_ptr m_writers;
     output_callbacks m_output;
     options_ptr<Task> m_options;
     Task m_task;

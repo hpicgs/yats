@@ -1,8 +1,10 @@
 #include <gmock/gmock.h>
 
+#include <memory>
+
 #include <yats/slot.h>
 
-using yats::slot;
+using namespace yats;
 
 TEST(slot_test, integral_value)
 {
@@ -71,4 +73,19 @@ TEST(slot_test, pointer_cast)
     slot<std::string*, 0> integral(&v);
     std::string* test = integral;
     EXPECT_EQ(*test, "123");
+}
+
+TEST(slot_test, perfect_forwarding_test)
+{
+    []() -> output_bundle<slot<std::unique_ptr<int>, 0>>
+    {
+        std::unique_ptr<int> pointer;
+        return std::move(pointer);
+    }();
+
+    []() -> output_bundle<slot<std::unique_ptr<int>, 0>>
+    {
+        slot<std::unique_ptr<int>, 0> pointer(nullptr);
+        return std::move(pointer);
+    }();
 }

@@ -10,7 +10,7 @@ TEST(pipeline_test, add_lambda_task)
 {
     pipeline pipeline;
 
-    int test_int = 25;
+    auto test_int = 25;
     auto lambda_source = pipeline.add([]() -> slot<int, 1> { return 30; });
     auto lambda_target = pipeline.add([&test_int](slot<int, 1> value) mutable { test_int = value; });
 
@@ -28,7 +28,7 @@ TEST(pipeline_test, add_one_listener)
 
     auto lambda_source = pipeline.add([]() -> slot<int, 0> { return 30; });
 
-    int output = 0;
+    auto output = 0;
     lambda_source->add_listener<0>([&output](int value) { output = value; });
 
     scheduler scheduler(std::move(pipeline));
@@ -44,7 +44,7 @@ TEST(pipeline_test, add_listener_and_task)
     auto lambda_source = pipeline.add([]() -> slot<int, 0> { return 30; });
     auto lambda_target = pipeline.add([](slot<int, 0>) {});
 
-    int output = 0;
+    auto output = 0;
     lambda_source->add_listener<0>([&output](int value) { output = value; });
 
     lambda_source->output<0>() >> lambda_target->input<0>();
@@ -72,8 +72,8 @@ TEST(pipeline_test, add_multiple_listener)
 
     auto lambda_source = pipeline.add([]() -> slot<int, 0> { return 30; });
 
-    int output1 = 0;
-    int output2 = 0;
+    auto output1 = 0;
+    auto output2 = 0;
     lambda_source->add_listener<0>([&output1](int value) { output1 = value; });
     lambda_source->add_listener<0>([&output2](int value) { output2 = value; });
 
@@ -84,30 +84,36 @@ TEST(pipeline_test, add_multiple_listener)
     EXPECT_EQ(output2, 30);
 }
 
-TEST(pipeline_test, save_to_file)
+TEST(pipeline_test, use_external_input)
 {
-    pipeline p;
+    pipeline pipeline;
+    auto expected_value = 0;
 
-    struct add_task
-    {
-        slot<int, "sum"_id> run(slot<int, "summand_a"_id> a, slot<int, "summand_b"_id> b)
-        {
-            return a + b;
-        }
-    };
+    auto lambda_target = pipeline.add([&expected_value](slot<int, 0> input) { expected_value = input; });
+    auto writer = lambda_target->mark_as_external<0>();
 
-    struct multiply_task
-    {
-        slot<int, "product"_id> run(slot<int, "factor_a"_id> a, slot<int, "factor_b"_id> b)
-        {
-            return a * b;
-        }
-    };
+    scheduler scheduler(std::move(pipeline));
 
-    auto add_cfg = p.add<add_task>();
-    auto multiply_cfg = p.add<multiply_task>();
+    writer(15);
+    scheduler.run();
+    EXPECT_EQ(expected_value, 15);
 
-    add_cfg->output<"sum"_id>() >> multiply_cfg->input<"factor_a"_id>();
+    writer(30);
+    scheduler.run();
+    EXPECT_EQ(expected_value, 30);
+}
 
-    p.save_to_file("graph.txt");
+TEST(pipeline_test, external_input_by_move)
+{
+    pipeline pipeline;
+    auto expected_value = 0;
+
+    auto lambda_target = pipeline.add([&expected_value](slot<std::unique_ptr<int>, 0> input) { expected_value = **input; });
+    auto writer = lambda_target->mark_as_external<0>();
+
+    scheduler scheduler(std::move(pipeline));
+    writer(std::make_unique<int>(15));
+
+    scheduler.run();
+    EXPECT_EQ(expected_value, 15);
 }

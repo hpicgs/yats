@@ -5,8 +5,6 @@
 #include <yats/scheduler.h>
 #include <yats/slot.h>
 
-
-
 using namespace yats;
 
 TEST(custom_constructor_test, reference_as_argument)
@@ -20,7 +18,7 @@ TEST(custom_constructor_test, reference_as_argument)
 
         output_bundle<slot<int, 0>> run()
         {
-            return std::make_tuple(m_value);
+            return { m_value };
         }
 
     private:

@@ -1,3 +1,8 @@
+/**
+* Defines all substrates part of the citric acid cycle.
+* See: https://en.wikipedia.org/wiki/Citric_acid_cycle
+*/
+
 #pragma once
 
 class acetyl_co_a
@@ -24,7 +29,7 @@ class coenzyme_a
 {
 };
 
-class fumerate
+class fumarate
 {
 };
 

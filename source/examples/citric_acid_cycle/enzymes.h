@@ -1,3 +1,8 @@
+/**
+ * Defines all enzymes of the citric acid cycle.
+ * See: https://en.wikipedia.org/wiki/Citric_acid_cycle
+ */
+
 #pragma once
 
 #include <compounds.h>
@@ -59,7 +64,7 @@ public:
 class fumarase
 {
 public:
-    slot<malate, "Malate"_id> run(slot<fumerate, "Fumerate"_id>, slot<water, "Water"_id>)
+    slot<malate, "Malate"_id> run(slot<fumarate, "Fumarate"_id>, slot<water, "Water"_id>)
     {
         const malate malate;
         return malate;
@@ -106,12 +111,12 @@ public:
 class succinate_dehydrogenase
 {
 public:
-    output_bundle<slot<fumerate, "Fumerate"_id>, slot<ubiquinol, "Ubiquinol"_id>> run(slot<succinate, "Succinate"_id>,
+    output_bundle<slot<fumarate, "Fumarate"_id>, slot<ubiquinol, "Ubiquinol"_id>> run(slot<succinate, "Succinate"_id>,
         slot<ubiquinone, "Ubiquinone"_id>)
     {
-        const fumerate fumerate;
+        const fumarate fumarate;
         const ubiquinol qh2;
-        return { fumerate, qh2 };
+        return { fumarate, qh2 };
     }
 };
 

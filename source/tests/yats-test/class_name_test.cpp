@@ -4,12 +4,17 @@
 
 using namespace yats;
 
+class some_class
+{
+};
+
 TEST(class_name_test, untemplated_class_test)
 {
     EXPECT_EQ(class_name::get<int>(), "int");
     EXPECT_EQ(class_name::get<float>(), "float");
     EXPECT_EQ(class_name::get<char>(), "char");
-    EXPECT_EQ(class_name::get<const int>(), "const int");
+    EXPECT_EQ(class_name::get<const int>(), "int");
+    EXPECT_EQ(class_name::get<some_class>(), "some_class");
 }
 
 TEST(class_name_test, nested_class_test)
@@ -18,12 +23,12 @@ TEST(class_name_test, nested_class_test)
     {
     };
 
-    class some_class
+    class some_nested_class
     {
     };
 
     EXPECT_EQ(class_name::get<some_struct>(), "some_struct");
-    EXPECT_EQ(class_name::get<some_class>(), "some_class");
+    EXPECT_EQ(class_name::get<some_nested_class>(), "some_nested_class");
 }
 
 template <typename T, class C>

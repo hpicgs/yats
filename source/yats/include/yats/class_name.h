@@ -58,7 +58,7 @@ protected:
     static std::string name()
     {
         // example return value:
-        // class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > __cdecl yats::get_class_name<struct util_test_get_class_name_test_Test::TestBody::some_struct>(void)
+        // class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > __cdecl yats::class_name::name<class some_class>(void)
         std::string name(__FUNCSIG__);
 
         // start_token must match the function name + "<"
@@ -134,7 +134,7 @@ protected:
         // remove additional identifiers before a type name id1::id2::id3::TYPE1
         for (size_t i = 0; i < words.size(); i++)
         {
-            words[i] = trim_left(words[i], true);
+            words[i] = trim_left(words[i], false);
 #ifdef __GNUC__
             // GCC puts a space between type enumeration class_name<TYPE1, TYPE2, TYPE3, ...>
             if (words[i][0] == ' ')

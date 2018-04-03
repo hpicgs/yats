@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include <compounds.h>
+#include "compounds.h"
 
 #include <yats/identifier.h>
 #include <yats/slot.h>

@@ -72,7 +72,6 @@ target_link_libraries(${target}
     yats-include
     Qt5::Core
     Qt5::Gui
-    Qt5::OpenGL
 )
 
 

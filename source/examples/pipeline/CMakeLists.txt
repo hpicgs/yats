@@ -24,7 +24,6 @@ message(STATUS "Example ${target}")
 # 
 
 set(sources
-    example.cpp
     main.cpp
 )
 

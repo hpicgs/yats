@@ -8,18 +8,18 @@ install:
 - if [ "$CXX" = "g++" ]; then export CXX="g++-5" CC="gcc-5"; fi
 - if [ $TRAVIS_OS_NAME == linux ]; then sudo apt-get install -qq qt5-default; fi
 - if [ $TRAVIS_OS_NAME == osx ]; then brew update && brew install qt5 cppcheck; fi
-  - if [ $TRAVIS_OS_NAME = linux ]; then
-         QTDIR="/opt/qt56"
-      && PATH="$QTDIR/bin:$PATH"
-      && qt56-env.sh
-      ;
-    else
-         QTDIR="/usr/local/opt/qt5"
-      && PATH="$QTDIR/bin:$PATH"
-      && LDFLAGS=-L$QTDIR/lib
-      && CPPFLAGS=-I$QTDIR/include
-      ;
-    fi
+- if [ $TRAVIS_OS_NAME = linux" ]; then
+       QTDIR="/opt/qt56"
+    && PATH="$QTDIR/bin:$PATH"
+    && qt56-env.sh
+    ;
+  else
+       QTDIR="/usr/local/opt/qt5"
+    && PATH="$QTDIR/bin:$PATH"
+    && LDFLAGS=-L$QTDIR/lib
+    && CPPFLAGS=-I$QTDIR/include
+    ;
+  fi
 - echo ${PATH}
 - ${CXX} --version
 

@@ -3,7 +3,6 @@
 # External dependencies
 # 
 
-find_package(Qt5OpenGL   5.8 REQUIRED)
 find_package(Qt5Core     5.8 REQUIRED)
 find_package(Qt5Gui      5.8 REQUIRED)
 

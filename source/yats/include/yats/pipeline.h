@@ -120,7 +120,7 @@ public:
         // NODE_NAME [label = "NODE_NAME|{{<KEY1>INPUT1|<KEY2>INPUT2...}|{<KEY3>OUTPUT1|<KEY4>OUTPUT2...}}"];
         for (size_t i = 0; i < helpers.size(); ++i)
         {
-            file << '\t' << "n" << i << "[label = \"" << helpers[i]->task_name() << "|{";
+            file << '\t' << "n" << i << "[label = \"" << excape_xml_entities(helpers[i]->task_name()) << "|{";
             file << '{' << inputs_to_string(*helpers[i]) << "}|";
             file << '{' << outputs_to_string(*helpers[i]) << '}';
             file << "}\"]" << line_break;
@@ -274,6 +274,41 @@ protected:
         }
 
         return tmp;
+    }
+
+    /**
+     * Escapes all xml entities &lt;, &gt;, &amp;, &quot; and &apos; in <@code str>.
+     * @param str String with entities to be escaped.
+     * @return String, where the above named entities have been escaped
+     */
+    static std::string excape_xml_entities(const std::string& str)
+    {
+        std::string escaped_string;
+
+        for (const auto& c : str)
+        {
+            switch (c)
+            {
+            case '<':
+                escaped_string.append("&lt;");
+                break;
+            case '>':
+                escaped_string.append("&gt;");
+                break;
+            case '&':
+                escaped_string.append("&amp;");
+                break;
+            case '"':
+                escaped_string.append("&quot;");
+                break;
+            case '\'':
+                escaped_string.append("&apos;");
+                break;
+            default:
+                escaped_string.append(1, c);
+            }
+        }
+        return escaped_string;
     }
 };
 }

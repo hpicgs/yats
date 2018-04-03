@@ -39,5 +39,5 @@ class some_templated_class
 TEST(class_name_test, templated_nested_class_test)
 {
     using why = some_templated_class<char, int>;
-    EXPECT_EQ(class_name::get<why>(), "some_templated_class&lt;char,int&gt;");
+    EXPECT_EQ(class_name::get<why>(), "some_templated_class<char,int>");
 }

@@ -72,34 +72,7 @@ protected:
     static std::string name()
     {
         // Unit tests will fail.
-        const std::string typeid_name = typeid(T).name();
-        std::string name;
-
-        for (const auto& c : typeid_name)
-        {
-            switch (c)
-            {
-            case '<':
-                name.append("&lt;");
-                break;
-            case '>':
-                name.append("&gt;");
-                break;
-            case '&':
-                name.append("&amp;");
-                break;
-            case '"':
-                name.append("&quot;");
-                break;
-            case '\'':
-                name.append("&apos;");
-                break;
-            default:
-                name.append(1, c);
-            }
-        }
-
-        return name;
+        return typeid(T).name();;
     }
 #endif
 
@@ -119,13 +92,13 @@ protected:
         if (left < std::string::npos)
         {
             // read CLASS_NAME from CLASS_NAME<TYPE1, TYPE2,...>
-            class_name = trim_left(str.substr(start, left - start), false);
+            class_name = trim_left(str.substr(start, left - start));
         }
 
         if (left < right)
         {
             // Extract types in class_name<TYPE1,TYPE2,...>
-            return class_name + "&lt;" + parse_class_name(str, left + 1, right - 1) + "&gt;";
+            return class_name + "<" + parse_class_name(str, left + 1, right - 1) + ">";
         }
 
         // Isolate types in TYPE1, TYPE2,...
@@ -134,7 +107,7 @@ protected:
         // remove additional identifiers before a type name id1::id2::id3::TYPE1
         for (size_t i = 0; i < words.size(); i++)
         {
-            words[i] = trim_left(words[i], false);
+            words[i] = trim_left(words[i]);
 #ifdef __GNUC__
             // GCC puts a space between type enumeration class_name<TYPE1, TYPE2, TYPE3, ...>
             if (words[i][0] == ' ')
@@ -151,15 +124,27 @@ protected:
     /**
      * Removes everything before (including) the last "::" or " ".
      * @param str Reference to string to trim.
-     * @param ignore_space If false, everything before the last space (including the space) will be trimmed.
      * @return Trimmed string
      */
-    static std::string trim_left(const std::string& str, bool ignore_space)
+    static std::string trim_left(const std::string& str)
     {
+        if (str.empty())
+        {
+            return str;
+        }
+
         auto start = str.find_last_of("::");
-        if (start == std::string::npos && !ignore_space)
+        if (start == std::string::npos)
         {
             start = str.find_last_of(' ');
+            // deal with * and &
+            if (str[str.length() - 1] == '*' || str[str.length() - 1] == '&')
+            {
+                if (str.length() > 1 && str[str.length() - 2] == ' ')
+                {
+                    start = str.find_last_of(' ', str.length() - 3);
+                }
+            }
         }
 
         if (start != std::string::npos)
@@ -171,8 +156,8 @@ protected:
 
     /**
      * Splits {@code str} at every ",".
-     *  @param str String to split.
-     *  @return Vector of strings
+     * @param str String to split.
+     * @return Vector of strings
      */
     static std::vector<std::string> split(const std::string& str)
     {

@@ -8,8 +8,7 @@ install:
 - if [ "$CXX" = "g++" ]; then export CXX="g++-5" CC="gcc-5"; fi
 - if [ $TRAVIS_OS_NAME == osx ]; then brew update && brew install qt5 cppcheck; fi
 - if [ $TRAVIS_OS_NAME = linux ]; then
-       QTDIR="/opt/qt56"
-    && PATH="$QTDIR/bin:$PATH"
+       source /opt/qt59/bin/qt59-env.sh
     ;
   else
        QTDIR="/usr/local/opt/qt5"

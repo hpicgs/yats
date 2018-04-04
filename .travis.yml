@@ -27,7 +27,7 @@ addons:
     - ubuntu-toolchain-r-test
     - llvm-toolchain-precise-3.9
     - george-edison55-precise-backports
-    - beineri-opt-qt593-trusty
+    - sourceline: 'ppa:beineri/opt-qt593-trusty'
     packages:
     - cmake
     - cmake-data

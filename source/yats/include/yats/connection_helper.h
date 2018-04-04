@@ -25,8 +25,9 @@ public:
      * @param output_ids Vector with output ids. Index of id in vector must correspond to the position of the output
      * in the return value of the run function. 
      */
-    io_id_helper(const std::vector<uint64_t>&& input_ids, const std::vector<uint64_t>&& output_ids)
-        : m_input_ids(input_ids), m_output_ids(output_ids)
+    io_id_helper(std::vector<uint64_t>&& input_ids, std::vector<uint64_t>&& output_ids)
+        : m_input_ids(std::move(input_ids))
+        , m_output_ids(std::move(output_ids))
     {
     }
 
@@ -116,7 +117,7 @@ public:
     /**
      * Creates and returns a new instance of io_id_helper.
      */
-    virtual io_id_helper get_io_id_helper() const = 0;
+    virtual io_id_helper create_io_id_helper() const = 0;
 
 protected:
     template <typename LocationType, typename SequenceType, size_t... index>
@@ -196,9 +197,9 @@ public:
     /**
     * Creates and returns a new instance of io_id_helper.
     */
-    io_id_helper get_io_id_helper() const override
+    io_id_helper create_io_id_helper() const override
     {
-        return io_id_helper(std::move(input_ids()), std::move(output_ids()));
+        return io_id_helper(input_ids(), output_ids());
     };
 
 protected:

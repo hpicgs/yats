@@ -232,7 +232,7 @@ protected:
     static std::string inputs_to_string(abstract_connection_helper& helper)
     {
         std::stringstream input_id_stream;
-        const io_id_helper io_id_helper = helper.get_io_id_helper();
+        const auto io_id_helper = helper.create_io_id_helper();
 
         for (const auto& input : helper.inputs())
         {
@@ -260,7 +260,7 @@ protected:
     static std::string outputs_to_string(abstract_connection_helper& helper)
     {
         std::stringstream output_id_stream;
-        const io_id_helper io_id_helper = helper.get_io_id_helper();
+        const io_id_helper io_id_helper = helper.create_io_id_helper();
 
         for (const auto& output : helper.outputs())
         {

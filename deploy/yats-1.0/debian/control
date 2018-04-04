@@ -1,0 +1,10 @@
+Source: yats
+Maintainer: Mathias Flueggen <mathias.flueggen@student.hpi.de>
+Section: misc
+Priority: extra
+Standards-Version: 3.8.0
+Build-Depends: build-essential, debhelper (>=9)
+
+Package: yats
+Architecture: any
+Description: YaTS is a general purpose task scheduler library with a focus on computer graphical rendering tasks. Its main goal is to allow parallel execution of connected and unconnected tasks automatically, without explicit handling from the user.

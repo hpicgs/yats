@@ -12,6 +12,51 @@
 namespace yats
 {
 
+/**
+ * Helper class to determine the ids of inputs and outputs of a task. This class could not be created directly.
+ * Call abstract_connection_helper.get_io_id_helper() to receive an instance.
+ */
+class io_id_helper
+{
+public:
+    /**
+     * @param input_ids Vector with input ids. Index of id in vector must correspond to the position of the input
+     * in the parameter list of the run function. 
+     * @param output_ids Vector with output ids. Index of id in vector must correspond to the position of the output
+     * in the return value of the run function. 
+     */
+    io_id_helper(const std::vector<uint64_t>&& input_ids, const std::vector<uint64_t>&& output_ids)
+        : m_input_ids(input_ids), m_output_ids(output_ids)
+    {
+    }
+
+    /**
+    * Returns the id of the input connector with {@code index}
+    * of the run function.
+    * @param index Index of input connector in run functions which id is to be returned.
+    * @return Id;
+    */
+    uint64_t input_id(size_t index) const
+    {
+        return m_input_ids[index];
+    }
+
+    /**
+    * Returns the id of the output connector with {@code index}
+    * of the return value of the run function.
+    * @param index Index of output connector in the return value of the run function.
+    * @return Id;
+    */
+    uint64_t output_id(size_t index) const
+    {
+        return m_output_ids[index];
+    }
+
+protected:
+    std::vector<uint64_t> m_input_ids;
+    std::vector<uint64_t> m_output_ids;
+};
+
 class abstract_connection_helper
 {
 public:
@@ -38,9 +83,6 @@ public:
 
     virtual void bind(const abstract_output_connector* connector, void* callback) = 0;
     virtual void* target(const abstract_input_connector* connector) = 0;
-
-    virtual uint64_t input_id(size_t index) = 0;
-    virtual uint64_t output_id(size_t index) = 0;
 
     /**
      * Returns the name of the task associated with the helper.
@@ -70,6 +112,11 @@ public:
     {
         m_following.insert(following_node);
     }
+
+    /**
+     * Creates and returns a new instance of io_id_helper.
+     */
+    virtual io_id_helper get_io_id_helper() const = 0;
 
 protected:
     template <typename LocationType, typename SequenceType, size_t... index>
@@ -138,43 +185,21 @@ public:
     }
 
     /**
-     * Returns the id of the input connector with {@code index}
-     * in the run function.
-     * @param index Index of input connector in run functions which id is to be returned.
-     * @return Id;
-     */
-    uint64_t input_id(size_t index) override
-    {
-        if (m_input_ids.empty())
-        {
-            initialize_input_ids();
-        }
-        
-        return m_input_ids[index];
-    }
-
-    /**
-    * Returns the id of the output connector with {@code index}
-    * in the return value of the run function.
-    * @param index Index of output connector in the return value of the run function.
-    * @return Id;
-    */
-    uint64_t output_id(size_t index) override
-    {
-        if (m_output_ids.empty())
-        {
-            initialize_output_ids();
-        }
-        return m_output_ids[index];
-    }
-
-    /**
     * Returns the name of the task associated with the helper.
+    * @return Task name
     */
     std::string task_name() const override
     {
         return class_name::get<Task>();
     }
+
+    /**
+    * Creates and returns a new instance of io_id_helper.
+    */
+    io_id_helper get_io_id_helper() const override
+    {
+        return io_id_helper(std::move(input_ids()), std::move(output_ids()));
+    };
 
 protected:
     template <size_t... Index>
@@ -235,59 +260,77 @@ protected:
     }
 
     /**
-    * Iterates through all inputs of the run function and stores the id of each input
-    * in m_input_ids. The index of the id corresponds to position of the input
-    * in parameters of the run function.
-    * <p>
-    * Note: This function should only be called once.
-    * </p>
+    * Iterates through all outputs of the run function and stores the id of each output
+    * in the returned vector. The index of the id corresponds to the position of the output
+    * in the return value of the run function.
+    * @return Vector with output ids. Index of id in vector corresponds to the position of the output
+    * in the return value of the run function. 
     */
-    void initialize_input_ids()
+    std::vector<uint64_t> output_ids() const
     {
-        parse_input_ids(m_input_ids);
+        std::vector<uint64_t> output_ids;
+        parse_output_ids(output_ids);
+        return output_ids;
     }
 
+    /**
+    * Iterates through all inputs of the run function and stores the id of each input
+    * in the returned vector. The index of the id corresponds to the position of the input
+    * parameter of the run function.
+    * @return Vector with input ids. Index of id in vector corresponds to the position of the input
+    * parameter of the run function.
+    */
+    std::vector<uint64_t> input_ids() const
+    {
+        std::vector<uint64_t> input_ids;
+        parse_input_ids(input_ids);
+        return input_ids;
+    }
+
+    /**
+    * Iterates through all inputs of the run function and stores the id of each input
+    * in {@code ids}. The index of the id corresponds to the position of the input
+    * in the parameters of the run function.
+    * @param ids Vector to which the input ids will be saved to.
+    */
     template <size_t Index = 0>
-    std::enable_if_t<Index < helper::input_count> parse_input_ids(std::vector<uint64_t>& ids)
+    std::enable_if_t<Index < helper::input_count> parse_input_ids(std::vector<uint64_t>& ids) const
     {
         ids.push_back(std::tuple_element_t<Index, input_tuple>::id);
         parse_input_ids<Index + 1>(ids);
     }
 
-    template <size_t Index = 0>
-    std::enable_if_t<Index == helper::input_count> parse_input_ids(std::vector<uint64_t>&)
-    {
-    }
-
     /**
-     * Iterates through all outputs of the run function and stores the id of each output
-     * in m_output_ids. The index of the id corresponds to position of the output
-     * in the return value of the run function.
-     * <p>
-     * Note: This function should only be called once.
-     * </p>
+     * End of recursion to determine the ids of the input paramaters
      */
-    void initialize_output_ids()
-    {
-        parse_output_ids(m_output_ids);
-    }
-
     template <size_t Index = 0>
-    std::enable_if_t<Index < helper::output_count> parse_output_ids(std::vector<uint64_t>& ids)
+    std::enable_if_t<Index == helper::input_count> parse_input_ids(std::vector<uint64_t>&) const
+    {
+    }
+    
+    /**
+    * Iterates through all outputs of the run function and stores the id of each output
+    * in {@code ids}. The index of the id corresponds to position of the output
+    * in the return value of the run function.
+    *  @param ids Vector to which the output ids will be saved to.
+    */
+    template <size_t Index = 0>
+    std::enable_if_t<Index < helper::output_count> parse_output_ids(std::vector<uint64_t>& ids) const
     {
         ids.push_back(std::tuple_element_t<Index, output_tuple>::id);
         parse_output_ids<Index + 1>(ids);
     }
 
+    /**
+    * End of recursion to determine the ids of the output paramaters
+    */
     template <size_t Index = 0>
-    std::enable_if_t<Index == helper::output_count> parse_output_ids(std::vector<uint64_t>&)
+    std::enable_if_t<Index == helper::output_count> parse_output_ids(std::vector<uint64_t>&) const
     {
     }
 
     input_queue_ptr m_input;
     output_callbacks m_output;
     input_callbacks m_callbacks;
-    std::vector<uint64_t> m_input_ids;
-    std::vector<uint64_t> m_output_ids;
 };
 }

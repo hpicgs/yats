@@ -232,11 +232,12 @@ protected:
     static std::string inputs_to_string(abstract_connection_helper& helper)
     {
         std::stringstream input_id_stream;
+        const io_id_helper io_id_helper = helper.get_io_id_helper();
 
         for (const auto& input : helper.inputs())
         {
             const auto index = input.second;
-            input_id_stream << "<i" << index << ">" << yats::identifier::id_to_string(helper.input_id(index)) << "|";
+            input_id_stream << "<i" << index << ">" << yats::identifier::id_to_string(io_id_helper.input_id(index)) << "|";
         }
 
         auto tmp = input_id_stream.str();
@@ -259,11 +260,12 @@ protected:
     static std::string outputs_to_string(abstract_connection_helper& helper)
     {
         std::stringstream output_id_stream;
+        const io_id_helper io_id_helper = helper.get_io_id_helper();
 
         for (const auto& output : helper.outputs())
         {
             const auto index = output.second;
-            output_id_stream << "<o" << index << ">" << yats::identifier::id_to_string(helper.output_id(index)) << "|";
+            output_id_stream << "<o" << index << ">" << yats::identifier::id_to_string(io_id_helper.output_id(index)) << "|";
         }
 
         auto tmp = output_id_stream.str();

@@ -6,7 +6,7 @@ osx_image: xcode9.2
 
 install:
 - if [ "$CXX" = "g++" ]; then export CXX="g++-5" CC="gcc-5"; fi
-- if [ $TRAVIS_OS_NAME == linux ]; then sudo apt-get install -qq qt5-default; fi
+- if [ $TRAVIS_OS_NAME == linux ]; then sudo add-apt-repository ppa:beineri/opt-qt593-trusty && sudo apt-get update && sudo apt-get install qt59base; fi
 - if [ $TRAVIS_OS_NAME == osx ]; then brew update && brew install qt5 cppcheck; fi
 - if [ $TRAVIS_OS_NAME = linux ]; then
        QTDIR="/opt/qt56"

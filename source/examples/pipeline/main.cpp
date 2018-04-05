@@ -4,6 +4,9 @@
 
 #include <yats/scheduler.h>
 
+/**
+ * This class implements 2 pass block blur on a QImage that works entirely on the cpu.
+ */
 struct block_filter
 {
     enum class Direction : int8_t { X, Y };
@@ -76,21 +79,25 @@ int main(int, char **)
 {
     yats::pipeline pipeline;
 
-    // Adding tasks
+    // Add a task to load the images from disk.
     auto image_loader = pipeline.add([](yats::slot<QString, "filename"_id> filename) -> yats::output_bundle<yats::slot<QImage, "image"_id>, yats::slot<QString, "name"_id>>
     {
         QFileInfo info(filename);
         return { QImage(filename), info.baseName() };
     });
 
+    // Add blur tasks.
     auto x_filter = pipeline.add<block_filter>(block_filter::Direction::X);
-    x_filter->add_thread_constraint(yats::thread_group("first"));
     auto y_filter = pipeline.add<block_filter>(block_filter::Direction::Y);
+
+    // Prevent blur tasks itself from being multithreaded. 
+    // This prevents images from overtaking and ruining the sequence order.
+    x_filter->add_thread_constraint(yats::thread_group("first"));
     y_filter->add_thread_constraint(yats::thread_group("second"));
 
+    // Example lambda task that saves the manipulated image under a different name.
     auto image_writer = pipeline.add([](yats::slot<QImage, "image"_id> image, yats::slot<QString, "name"_id> name)
     {
-        qDebug() << "storing";
         image->save(name + "_processed.png");
         qDebug() << "finished";
     });
@@ -103,13 +110,17 @@ int main(int, char **)
 
     image_loader->output<"name"_id>() >> image_writer->input<"name"_id>();
 
-    // External in-/output
+    // Declare filename input as external so we can add them later.
     auto writer = image_loader->mark_as_external<"filename"_id>();
+
+    // Example of a listener function for debug output.
     image_loader->add_listener<"name"_id>([](QString name)
     {
         qDebug() << "Processing file" << name;
     });
 
+    // Instantiate and run the pipeline in a different thread.
+    // We stay on the main thread and process the user input.
     yats::scheduler scheduler(std::move(pipeline));
     std::thread thread([&scheduler]() mutable
     {
@@ -121,18 +132,9 @@ int main(int, char **)
         std::string command;
         std::getline(std::cin, command);
 
-        auto pos = command.find("--quit");
-        if (pos == command.npos)
-        {
-            writer(QString(command.c_str()), false);
-        }
-        else
-        {
-            writer(QString(command.substr(0, pos - 1).c_str()), true);
-            break;
-        }
+        // Asynchronously add a filename to the pipeline that gets processed.
+        writer(QString(command.c_str()), false);
     }
-
     thread.join();
     return 0;
 }

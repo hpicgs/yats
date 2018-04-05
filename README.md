@@ -11,6 +11,7 @@ The time required to find a solution to a problem can be reduced if the problem 
 These subproblems can then be distributed onto several threads and be solved in parallel, reducing the overall computation time. 
 
 Figure 1 shows an example pipeline. The pipeline consists out of five tasks (subproblems).
+
 ![figure 1]( https://github.com/hpicgs/yats/blob/master/docs/images/abstract_example_pipeline.png "Abstract example pipeline")
 
 In general, a task consumes an arbitrary number of inputs and produces an arbitrary number of outputs.
@@ -45,6 +46,7 @@ YaTS supports the following constraints:
 ## Export pipeline
 YaTS offers the functionality to export the created pipeline in a format that can be converted into an image file using graphviz DOT (https://www.graphviz.org/).
 Figure 2 shows a graphical representation of a small example pipeline consisting out of two tasks.
+
 ![figure 2]( https://github.com/hpicgs/yats/blob/master/docs/images/debug_output1.png "Exported pipeline")
 
 ## When not to use YaTS

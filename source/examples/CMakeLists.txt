@@ -5,4 +5,5 @@ if(NOT OPTION_BUILD_EXAMPLES)
 endif()
 
 # Example applications
+add_subdirectory(citric_acid_cycle)
 add_subdirectory(pipeline)

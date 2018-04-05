@@ -28,6 +28,7 @@ class output_connector : public abstract_output_connector
 {
 public:
     output_connector() = default;
+    ~output_connector() = default;
 
     output_connector(const output_connector<T>& other) = delete;
     output_connector(output_connector<T>&& other) = delete;

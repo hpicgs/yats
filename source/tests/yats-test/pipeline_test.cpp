@@ -4,13 +4,15 @@
 #include <yats/scheduler.h>
 #include <yats/slot.h>
 
+#include <algorithm>
+
 using namespace yats;
 
 TEST(pipeline_test, add_lambda_task)
 {
     pipeline pipeline;
 
-    int test_int = 25;
+    auto test_int = 25;
     auto lambda_source = pipeline.add([]() -> slot<int, 1> { return 30; });
     auto lambda_target = pipeline.add([&test_int](slot<int, 1> value) mutable { test_int = value; });
 
@@ -28,7 +30,7 @@ TEST(pipeline_test, add_one_listener)
 
     auto lambda_source = pipeline.add([]() -> slot<int, 0> { return 30; });
 
-    int output = 0;
+    auto output = 0;
     lambda_source->add_listener<0>([&output](int value) { output = value; });
 
     scheduler scheduler(std::move(pipeline));
@@ -44,7 +46,7 @@ TEST(pipeline_test, add_listener_and_task)
     auto lambda_source = pipeline.add([]() -> slot<int, 0> { return 30; });
     auto lambda_target = pipeline.add([](slot<int, 0>) {});
 
-    int output = 0;
+    auto output = 0;
     lambda_source->add_listener<0>([&output](int value) { output = value; });
 
     lambda_source->output<0>() >> lambda_target->input<0>();
@@ -72,8 +74,8 @@ TEST(pipeline_test, add_multiple_listener)
 
     auto lambda_source = pipeline.add([]() -> slot<int, 0> { return 30; });
 
-    int output1 = 0;
-    int output2 = 0;
+    auto output1 = 0;
+    auto output2 = 0;
     lambda_source->add_listener<0>([&output1](int value) { output1 = value; });
     lambda_source->add_listener<0>([&output2](int value) { output2 = value; });
 
@@ -86,13 +88,13 @@ TEST(pipeline_test, add_multiple_listener)
 
 TEST(pipeline_test, use_external_input)
 {
-    yats::pipeline pipeline;
-    int expected_value = 0;
+    pipeline pipeline;
+    auto expected_value = 0;
 
-    auto lambda_target = pipeline.add([&expected_value](yats::slot<int, 0> input) { expected_value = input; });
+    auto lambda_target = pipeline.add([&expected_value](slot<int, 0> input) { expected_value = input; });
     auto writer = lambda_target->mark_as_external<0>();
 
-    yats::scheduler scheduler(std::move(pipeline));
+    scheduler scheduler(std::move(pipeline));
 
     writer(15, true);
     scheduler.run();
@@ -105,10 +107,10 @@ TEST(pipeline_test, use_external_input)
 
 TEST(pipeline_test, external_input_by_move)
 {
-    yats::pipeline pipeline;
-    int expected_value = 0;
+    pipeline pipeline;
+    auto expected_value = 0;
 
-    auto lambda_target = pipeline.add([&expected_value](yats::slot<std::unique_ptr<int>, 0> input) { expected_value = **input; });
+    auto lambda_target = pipeline.add([&expected_value](slot<std::unique_ptr<int>, 0> input) { expected_value = **input; });
     auto writer = lambda_target->mark_as_external<0>();
 
     yats::scheduler scheduler(std::move(pipeline));

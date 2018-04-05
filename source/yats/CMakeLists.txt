@@ -16,6 +16,7 @@ message(STATUS "Header Only Library ${target}")
 set(include_path "${CMAKE_CURRENT_SOURCE_DIR}/include/${target}")
 
 set(headers
+    ${include_path}/class_name.h
     ${include_path}/condition.h
     ${include_path}/connection_helper.h
     ${include_path}/constraint.h

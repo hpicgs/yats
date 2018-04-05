@@ -3,7 +3,8 @@
 # External dependencies
 # 
 
-# find_package(THIRDPARTY REQUIRED)
+find_package(Qt5Core     5.9 REQUIRED)
+find_package(Qt5Gui      5.9 REQUIRED)
 
 
 # 
@@ -11,7 +12,7 @@
 # 
 
 # Target name
-set(target compilation)
+set(target pipeline)
 
 # Exit here if required dependencies are not met
 message(STATUS "Example ${target}")
@@ -58,7 +59,6 @@ set_target_properties(${target}
 target_include_directories(${target}
     PRIVATE
     ${DEFAULT_INCLUDE_DIRECTORIES}
-    ${PROJECT_BINARY_DIR}/source/include
 )
 
 
@@ -70,6 +70,8 @@ target_link_libraries(${target}
     PRIVATE
     ${DEFAULT_LIBRARIES}
     yats-include
+    Qt5::Core
+    Qt5::Gui
 )
 
 

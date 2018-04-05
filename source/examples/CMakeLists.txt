@@ -6,4 +6,4 @@ endif()
 
 # Example applications
 add_subdirectory(citric_acid_cycle)
-add_subdirectory(compilation)
+add_subdirectory(pipeline)

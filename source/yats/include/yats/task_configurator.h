@@ -49,7 +49,7 @@ public:
 protected:
     bool mark_as_external(const abstract_input_connector* connector)
     {
-        auto inserted = m_externals.insert(connector);
+        const auto inserted = m_externals.insert(connector);
         return inserted.second;
     }
 

@@ -19,6 +19,7 @@ public:
         lock guard(m_mutex);
         auto value = std::move(m_queue.front());
         m_queue.pop();
+        --m_num_reserved;
         return value;
     }
 
@@ -34,20 +35,25 @@ public:
         m_queue.push(value);
     }
 
-    size_t size()
-    {
-        lock guard(m_mutex);
-        return m_queue.size();
-    }
-
     bool empty()
     {
         lock guard(m_mutex);
-        return m_queue.empty();
+        return m_queue.empty() || m_queue.size() == m_num_reserved;
+    }
+
+    void reserve_one()
+    {
+        lock guard(m_mutex);
+        if (m_num_reserved == m_queue.size())
+        {
+            throw std::runtime_error("Trying to reserve more elements than the queue currently holds.");
+        }
+        ++m_num_reserved;
     }
 
 protected:
     std::queue<ValueType> m_queue;
     std::mutex m_mutex;
+    size_t m_num_reserved;
 };
 }

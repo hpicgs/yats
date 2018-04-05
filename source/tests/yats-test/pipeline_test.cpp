@@ -96,11 +96,11 @@ TEST(pipeline_test, use_external_input)
 
     scheduler scheduler(std::move(pipeline));
 
-    writer(15);
+    writer(15, true);
     scheduler.run();
     EXPECT_EQ(expected_value, 15);
 
-    writer(30);
+    writer(30, true);
     scheduler.run();
     EXPECT_EQ(expected_value, 30);
 }
@@ -113,8 +113,8 @@ TEST(pipeline_test, external_input_by_move)
     auto lambda_target = pipeline.add([&expected_value](slot<std::unique_ptr<int>, 0> input) { expected_value = **input; });
     auto writer = lambda_target->mark_as_external<0>();
 
-    scheduler scheduler(std::move(pipeline));
-    writer(std::make_unique<int>(15));
+    yats::scheduler scheduler(std::move(pipeline));
+    writer(std::make_unique<int>(15), true);
 
     scheduler.run();
     EXPECT_EQ(expected_value, 15);

@@ -45,13 +45,7 @@ public:
         return static_cast<task_configurator<Task, Parameters...>*>(m_tasks.back().get());
     }
 
-    /**
-     * Builds the pipeline
-     * <p>
-     * Note: Following tasks are referenced by the position of the task in the returned vector
-     * </p>
-     */
-    std::vector<std::unique_ptr<abstract_task_container>> build(const std::function<void(abstract_task_container*)>& external_callback) const &&
+    std::vector<std::unique_ptr<abstract_task_container>> build(const external_function& external_callback) const &&
     {
         auto helpers = get_helpers();
         auto output_owners = get_output_owners(helpers);

@@ -16,17 +16,21 @@ class output_connector;
 template <typename T, uint64_t Id>
 class slot;
 
+class abstract_task_container;
+
 template <typename Parameter>
 struct writer
 {
-    writer()
-        : external_function([this](Parameter parameter) { internal_function(std::move(parameter)); })
+    void initialize_external_function()
     {
+        external_function = [this](Parameter parameter, bool finished) { internal_function(std::move(parameter), finished); };
     }
 
-    std::function<void(Parameter)> internal_function;
-    std::function<void(Parameter)> external_function;
+    std::function<void(Parameter, bool)> internal_function;
+    std::function<void(Parameter, bool)> external_function;
 };
+
+using external_function = std::function<void(abstract_task_container*, size_t, bool)>;
 
 template <typename T>
 struct output_wrapper;

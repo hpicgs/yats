@@ -11,7 +11,7 @@
 # 
 
 # Target name
-set(target compilation)
+set(target citric_acid_cycle)
 
 # Exit here if required dependencies are not met
 message(STATUS "Example ${target}")
@@ -22,6 +22,8 @@ message(STATUS "Example ${target}")
 # 
 
 set(sources
+    compounds.h
+    enzymes.h
     main.cpp
 )
 
@@ -57,6 +59,7 @@ set_target_properties(${target}
 
 target_include_directories(${target}
     PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
     ${DEFAULT_INCLUDE_DIRECTORIES}
     ${PROJECT_BINARY_DIR}/source/include
 )

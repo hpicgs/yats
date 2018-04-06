@@ -6,6 +6,17 @@ osx_image: xcode9.2
 
 install:
 - if [ "$CXX" = "g++" ]; then export CXX="g++-5" CC="gcc-5"; fi
+- if [ $TRAVIS_OS_NAME == osx ]; then brew update && brew install qt5 cppcheck; fi
+- if [ $TRAVIS_OS_NAME = linux ]; then
+       source /opt/qt59/bin/qt59-env.sh
+    ;
+  else
+       QTDIR="/usr/local/opt/qt5"
+    && PATH="$QTDIR/bin:$PATH"
+    && LDFLAGS=-L$QTDIR/lib
+    && CPPFLAGS=-I$QTDIR/include
+    ;
+  fi
 - echo ${PATH}
 - ${CXX} --version
 
@@ -15,6 +26,7 @@ addons:
     - ubuntu-toolchain-r-test
     - llvm-toolchain-precise-3.9
     - george-edison55-precise-backports
+    - sourceline: 'ppa:beineri/opt-qt593-trusty'
     packages:
     - cmake
     - cmake-data
@@ -22,6 +34,7 @@ addons:
     - g++-5
     - clang-3.9
     - cppcheck
+    - qt59-meta-minimal
 
 os:
   - linux

@@ -131,4 +131,4 @@ constexpr T make_from_tuple(Tuple&& t)
 {
     return detail::make_from_tuple_impl<T>(std::forward<Tuple>(t), std::make_index_sequence<std::tuple_size<std::remove_reference_t<Tuple>>::value>{});
 }
-}
+};

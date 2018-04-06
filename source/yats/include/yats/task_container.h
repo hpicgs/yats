@@ -33,6 +33,8 @@ public:
 
     virtual void run() = 0;
     virtual bool can_run() const = 0;
+    virtual void reserve_run() = 0;
+    virtual std::vector<bool> receives_external_input() const = 0;
 
     const std::vector<size_t>& following_nodes()
     {
@@ -51,12 +53,12 @@ public:
 
     bool failed() const
     {
-    	return m_error != nullptr;
+        return m_error != nullptr;
     }
 
     std::exception_ptr get_error() const
     {
-    	return m_error;
+        return m_error;
     }
 
 protected:
@@ -77,7 +79,7 @@ class task_container : public abstract_task_container
     using output_type = typename helper::output_type;
 
 public:
-    task_container(connection_helper<Task>* connection, options_ptr<Task> options, input_writers_ptr writers, const std::function<void(abstract_task_container*)>& external_callback, std::tuple<Parameters...> parameter_tuple)
+    task_container(connection_helper<Task>* connection, options_ptr<Task> options, input_writers_ptr writers, const external_function& external_callback, std::tuple<Parameters...> parameter_tuple)
         : abstract_task_container(connection->following_nodes())
         , m_input(connection->queue())
         , m_writers(std::move(writers))
@@ -100,7 +102,8 @@ public:
         {
             m_options->make_updates_visible(&m_task);
             invoke(std::make_index_sequence<helper::input_count>());
-        } catch (const std::exception&)
+        }
+        catch (const std::exception&)
         {
             m_error = std::current_exception();
             return;
@@ -113,6 +116,16 @@ public:
     bool can_run() const override
     {
         return can_run_impl(std::make_index_sequence<helper::input_count>());
+    }
+
+    void reserve_run() override
+    {
+        reserve_input();
+    }
+
+    std::vector<bool> receives_external_input() const override
+    {
+        return receives_external_input_impl(std::make_index_sequence<helper::input_count>());
     }
 
 protected:
@@ -157,9 +170,9 @@ protected:
     }
 
     /**
-    * Writes value of output into the inputs of the following tasks
-    * @param output The output used to pass values to following inputs.
-    */
+     * Writes value of output into the inputs of the following tasks
+     * @param output The output used to pass values to following inputs.
+     */
     template <size_t Index = 0, typename Output = output_type>
     std::enable_if_t<(Index < helper::output_count)> write(Output output)
     {
@@ -196,7 +209,19 @@ protected:
     template <size_t Index>
     bool check_input() const
     {
-        return std::get<Index>(*m_input).size() > 0;
+        return !std::get<Index>(*m_input).empty();
+    }
+
+    template <size_t Index = 0>
+    std::enable_if_t<(Index < helper::input_count)> reserve_input()
+    {
+        std::get<Index>(*m_input).reserve_one();
+        reserve_input<Index + 1>();
+    }
+
+    template <size_t Index = 0>
+    std::enable_if_t<Index == helper::input_count> reserve_input()
+    {
     }
 
     template <size_t... Index>
@@ -213,20 +238,31 @@ protected:
     }
 
     template <size_t Index = 0>
-    std::enable_if_t<(Index < helper::input_count)> initialize_writers(const std::function<void(abstract_task_container*)>& external_callback)
+    std::enable_if_t<(Index < helper::input_count)> initialize_writers(const external_function& external_callback)
     {
         using parameter_type = typename std::tuple_element_t<Index, input_tuple>::value_type;
-        std::get<Index>(*m_writers).internal_function = [this, external_callback](parameter_type parameter)
-        {
+        std::get<Index>(*m_writers).internal_function = [this, external_callback](parameter_type parameter, bool finished) {
             std::get<Index>(*m_input).push(std::move(parameter));
-            external_callback(this);
+            external_callback(this, Index, finished);
         };
         initialize_writers<Index + 1>(external_callback);
     }
 
     template <size_t Index = 0>
-    std::enable_if_t<Index == helper::input_count> initialize_writers(const std::function<void(abstract_task_container*)>&)
+    std::enable_if_t<Index == helper::input_count> initialize_writers(const external_function&)
     {
+    }
+
+    template <size_t... Index>
+    std::vector<bool> receives_external_input_impl(std::index_sequence<Index...>) const
+    {
+        return std::vector<bool>{ check_receives_external_input<Index>()... };
+    }
+
+    template <size_t Index>
+    bool check_receives_external_input() const
+    {
+        return static_cast<bool>(std::get<Index>(*m_writers).external_function);
     }
 
     input_queue_ptr m_input;

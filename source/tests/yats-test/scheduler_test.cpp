@@ -85,7 +85,6 @@ TEST(scheduler_test, schedule_correctly_use_main_thread)
 
         void run()
         {
-            std::cout << "main thread" << std::endl;
             *m_id = std::this_thread::get_id();
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }

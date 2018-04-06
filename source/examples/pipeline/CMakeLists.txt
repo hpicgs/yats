@@ -3,15 +3,19 @@
 # External dependencies
 # 
 
-find_package(${META_PROJECT_NAME} REQUIRED HINTS "${CMAKE_CURRENT_SOURCE_DIR}/../../../")
+find_package(Qt5Core     5.9 REQUIRED)
+find_package(Qt5Gui      5.9 REQUIRED)
+
 
 # 
 # Executable name and options
 # 
 
 # Target name
-set(target yats-test)
-message(STATUS "Test ${target}")
+set(target pipeline)
+
+# Exit here if required dependencies are not met
+message(STATUS "Example ${target}")
 
 
 # 
@@ -19,25 +23,9 @@ message(STATUS "Test ${target}")
 # 
 
 set(sources
-    class_name_test.cpp
-    connection_test.cpp
-    constraints_test.cpp
-    custom_constructor_test.cpp
-    identifier_test.cpp
     main.cpp
-    options_test.cpp
-    pipeline_test.cpp
-    queue_test.cpp
-    scheduler_test.cpp
-    slot_test.cpp
-    task_configurator_test.cpp
-    task_container_test.cpp
-    util_test.cpp
 )
 
-set(includes
-    test_util.h
-)
 
 # 
 # Create executable
@@ -45,9 +33,12 @@ set(includes
 
 # Build executable
 add_executable(${target}
+    MACOSX_BUNDLE
     ${sources}
-    ${includes}
 )
+
+# Create namespaced alias
+add_executable(${META_PROJECT_NAME}::${target} ALIAS ${target})
 
 
 # 
@@ -66,11 +57,8 @@ set_target_properties(${target}
 # 
 
 target_include_directories(${target}
-    PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}
     PRIVATE
     ${DEFAULT_INCLUDE_DIRECTORIES}
-    ${PROJECT_BINARY_DIR}/source/include
 )
 
 
@@ -82,8 +70,10 @@ target_link_libraries(${target}
     PRIVATE
     ${DEFAULT_LIBRARIES}
     yats-include
-    gmock-dev
+    Qt5::Core
+    Qt5::Gui
 )
+
 
 # 
 # Compile definitions
@@ -112,4 +102,25 @@ target_compile_options(${target}
 target_link_libraries(${target}
     PRIVATE
     ${DEFAULT_LINKER_OPTIONS}
+)
+
+
+#
+# Target Health
+#
+
+perform_health_checks(
+    ${target}
+    ${sources}
+)
+
+
+# 
+# Deployment
+# 
+
+# Executable
+install(TARGETS ${target}
+    RUNTIME DESTINATION ${INSTALL_BIN} COMPONENT examples
+    BUNDLE  DESTINATION ${INSTALL_BIN} COMPONENT examples
 )

@@ -15,13 +15,13 @@ class identifier
 {
 public:
     /**
-    * Converts {@code character} to an unsigned int.
-    * Supported characters are [a-z],[A-Z], ' ', '*', '/', '&', '#' and '_'.
-    * Other characters wil be treated like '_'. Characters [a-z] and [A-Z]
-    * are represented by the same unsigned int.
-    * @param character Character to convert
-    * @return Numeric representation of character as 64-bit unsigned int-
-    */
+     * Converts {@code character} to an unsigned int.
+     * Supported characters are [a-z],[A-Z], ' ', '*', '/', '&', '#' and '_'.
+     * Other characters wil be treated like '_'. Characters [a-z] and [A-Z]
+     * are represented by the same unsigned int.
+     * @param character Character to convert
+     * @return Numeric representation of character as 64-bit unsigned int-
+     */
     static constexpr uint64_t char_to_int(char character)
     {
         // Upper case

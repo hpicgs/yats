@@ -20,6 +20,8 @@ public:
     ValueType extract()
     {
         lock guard(m_mutex);
+        assert(m_num_reserved);
+
         auto value = std::move(m_queue.front());
         m_queue.pop();
         --m_num_reserved;
@@ -57,6 +59,6 @@ public:
 protected:
     std::queue<ValueType> m_queue;
     std::mutex m_mutex;
-    size_t m_num_reserved;
+    size_t m_num_reserved = 0;
 };
 }

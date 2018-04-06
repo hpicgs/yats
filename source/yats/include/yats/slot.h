@@ -29,8 +29,8 @@ protected:
 
 /**
  * Main class to represent a slot.
- * <p>T: Type of slot value</p>
- * <p>Id: Unique identifier of slot.</p>
+ * @param T Type of slot value
+ * @param Id Unique identifier of slot.
  */
 template <typename T, uint64_t Id>
 class slot

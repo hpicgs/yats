@@ -86,9 +86,7 @@ public:
 
     /**
      * Converts {@code id} to a string. This function is the inverse to {@link identifier#string_to_id(const char*, size_t) string_to_id}.
-     * <p>
      * Note: Keep in mind that the hashing process is not lossless.
-     * </p>
      * @param id Id to convert to a string.
      * @return String
      */

@@ -44,8 +44,8 @@ protected:
 
 /**
  * Represents an input (the target) to which an output (the source) can be connected.
- * <p>Note: Each input may only be connected to one output.</p>
- * <p>T: Type of input value</p>
+ * Note: Each input may only be connected to one output.
+ * @param T Type of input value
  */
 template <typename T>
 class input_connector : public abstract_input_connector

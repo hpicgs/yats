@@ -24,8 +24,8 @@ public:
 
 /**
  * Represents an output (the source) which can be connected to an input (the target).
- * <p>Note: An output may be connected to more than one input.</p>
- * <p>T: Type of output value</p>
+ * Note: An output may be connected to more than one input.
+ * @param T Type of output value
  */
 template <typename T>
 class output_connector : public abstract_output_connector

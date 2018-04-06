@@ -6,6 +6,9 @@
 namespace yats
 {
 
+/**
+ * Thread safe wrapper for an std::queue.
+ */
 template <typename ValueType>
 class thread_safe_queue
 {
@@ -38,7 +41,7 @@ public:
     bool empty()
     {
         lock guard(m_mutex);
-        return m_queue.empty() || m_queue.size() == m_num_reserved;
+        return m_queue.size() == m_num_reserved;
     }
 
     void reserve_one()

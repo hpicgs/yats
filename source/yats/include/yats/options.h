@@ -50,6 +50,9 @@ struct member_pointer
 template <typename Task>
 using options_map = std::map<std::string, member_pointer<Task>>;
 
+/**
+ * Class to allow access to options defined by a Task.
+ */
 template <typename Task>
 class option_storage
 {
@@ -59,6 +62,12 @@ public:
     {
     }
 
+    /**
+     * Schedules an update to a variable that was declared as an option.
+     * The update becomes visible immediately befor the next execution of the task.
+     * @param key The name of the option
+     * @param value The new value. Must be move assignable.
+     */
     template <typename Type>
     void update(const std::string& key, Type value)
     {
@@ -81,6 +90,9 @@ public:
         });
     }
 
+    /**
+     * Internal helper function to make updates visible.
+     */
     void make_updates_visible(Task* task)
     {
         std::lock_guard<std::mutex> lock(m_mutex);

@@ -11,6 +11,9 @@
 namespace yats
 {
 
+/**
+ * Helper class to control execution and waiting of tread_pools. Wraps a std::condition_variable.
+ */
 class condition
 {
 public:
@@ -25,6 +28,9 @@ public:
         m_notify_count[m_thread_identifier] = m_number_of_threads;
     }
 
+    /**
+     * RAII wrapper for athread resource. Used to limit the maximum amount of concurrent tasks.
+     */
     class thread_guard
     {
     public:
@@ -114,6 +120,7 @@ public:
         std::unique_lock<std::mutex> guard(m_mutex);
         if (has_finished())
         {
+            // Notify but do not increment m_notify_count.
             m_task_added[thread_group::MAIN].notify_one();
         }
     }

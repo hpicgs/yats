@@ -102,7 +102,8 @@ public:
         {
             m_options->make_updates_visible(&m_task);
             invoke(std::make_index_sequence<helper::input_count>());
-        } catch (const std::exception&)
+        }
+        catch (const std::exception&)
         {
             m_error = std::current_exception();
             return;
@@ -169,9 +170,9 @@ protected:
     }
 
     /**
-    * Writes value of output into the inputs of the following tasks
-    * @param output The output used to pass values to following inputs.
-    */
+     * Writes value of output into the inputs of the following tasks
+     * @param output The output used to pass values to following inputs.
+     */
     template <size_t Index = 0, typename Output = output_type>
     std::enable_if_t<(Index < helper::output_count)> write(Output output)
     {
@@ -240,8 +241,7 @@ protected:
     std::enable_if_t<(Index < helper::input_count)> initialize_writers(const external_function& external_callback)
     {
         using parameter_type = typename std::tuple_element_t<Index, input_tuple>::value_type;
-        std::get<Index>(*m_writers).internal_function = [this, external_callback](parameter_type parameter, bool finished)
-        {
+        std::get<Index>(*m_writers).internal_function = [this, external_callback](parameter_type parameter, bool finished) {
             std::get<Index>(*m_input).push(std::move(parameter));
             external_callback(this, Index, finished);
         };

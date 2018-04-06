@@ -14,6 +14,7 @@ TEST(queue_test, correct_size)
     queue.push(1);
     EXPECT_FALSE(queue.empty());
 
+    queue.reserve_one();
     auto value = queue.extract();
     EXPECT_TRUE(queue.empty());
     EXPECT_EQ(value, 1);
@@ -27,6 +28,7 @@ TEST(queue_test, push_extract_no_copy)
     queue.push(std::make_unique<int>(42));
     EXPECT_FALSE(queue.empty());
 
+    queue.reserve_one();
     auto unique_ptr = queue.extract();
     EXPECT_TRUE(queue.empty());
     EXPECT_EQ(*unique_ptr, 42);

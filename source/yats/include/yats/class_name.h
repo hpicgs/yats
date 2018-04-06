@@ -14,9 +14,7 @@ class class_name
 public:
     /**
      * Determines the class name {@code T}.
-     * <p>
-     * T: Class/struct whose name is to be determined.
-     * </p>
+     * @param T Class/struct whose name is to be determined.
      */
     template <typename T>
     static std::string get()

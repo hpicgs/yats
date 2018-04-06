@@ -16,6 +16,9 @@
 namespace yats
 {
 
+/*
+ * Class representing the pipeline containing multiple user-defined tasks and their connections.
+ */
 class pipeline
 {
 public:
@@ -28,6 +31,13 @@ public:
     pipeline& operator=(const pipeline& other) = delete;
     pipeline& operator=(pipeline&& other) = default;
 
+    /**
+     * Adds a {@code task} to the pipeline.
+     * The task has to implement the operator() method.
+     * This method adds wraps the {@code task} in an extra class taking the {@code task} as construction parameter.
+     * @param task Callable object which implements the operator() method
+     * @return Returns a configuration object for this task
+     */
     template <typename LambdaTask>
     auto* add(LambdaTask task)
     {
@@ -35,6 +45,13 @@ public:
         return add<type>(typename type::function_type(task));
     }
 
+    /**
+     * Adds a task to the pipeline.
+     * This method does not yet construct the task. It will only an instance of this type of task to the pipeline.
+     * The {@code parameters} will later be used to construct the task.
+     * @param parameters Parameters given to the constructor of the task
+     * @return Returns a configuration object for this task
+     */
     template <typename Task, typename... Parameters>
     task_configurator<Task, Parameters...>* add(Parameters&&... parameters)
     {
@@ -45,6 +62,13 @@ public:
         return static_cast<task_configurator<Task, Parameters...>*>(m_tasks.back().get());
     }
 
+    /**
+     * Builds the pipeline.
+     * This includes creating all concrete connections and construction of the added tasks.
+     * This method throws if an input not marked as external is not connected to an output.
+     * @param external_callback Function object which will be called every time a input marked as external received a value
+     * @return Returns a vector of task_containers holding the constructed tasks
+     */
     std::vector<std::unique_ptr<abstract_task_container>> build(const external_function& external_callback) const &&
     {
         auto helpers = get_helpers();

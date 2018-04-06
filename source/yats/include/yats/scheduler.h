@@ -12,9 +12,22 @@
 
 namespace yats
 {
+
+/**
+ * Class used to asynchronously execute a pipeline. 
+ */
 class scheduler
 {
 public:
+    /**
+     * Constructs the scheduler using the given {@code pipeline}.
+     * The tasks of the {@code pipeline} will be constructed now.
+     * The scheduler will not use more than {@code number_of_threads} threads at the same time.
+     * @param pipeline Pipeline the scheduler should work with
+     * @param number_of_threads Maximum number of threads allowed to run at the same time
+     * @throws runtime_error Thrown if the pipeline is invalid.
+     * @throws runtime_error Thrown if {@code number_of_threads} is 0.
+     */
     explicit scheduler(pipeline pipeline, size_t number_of_threads = std::max(std::thread::hardware_concurrency(), 1u))
         : m_is_running(false)
         , m_externals_finished(false)
@@ -70,6 +83,9 @@ public:
     scheduler& operator=(const scheduler& other) = delete;
     scheduler& operator=(scheduler&& other) = delete;
 
+    /**
+     * Executes the pipeline exactly once.
+     */
     void run()
     {
         m_is_running = true;
@@ -108,7 +124,6 @@ protected:
         const auto& constraints = m_tasks[index]->constraints();
 
         // If there are multiple threads we choose the one with the smallest current workload
-        // TODO: there's probably a better method to check which thread to take
         auto constraint_it = std::min_element(constraints.cbegin(), constraints.cend(), [this](size_t lhs, size_t rhs) {
             return m_tasks_to_process[lhs].size() < m_tasks_to_process[rhs].size();
         });

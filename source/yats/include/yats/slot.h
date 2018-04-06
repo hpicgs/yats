@@ -27,11 +27,11 @@ protected:
     std::tuple<Args...> m_return_values;
 };
 
-/// <summary>
-/// <para>Main class to represent an slot</para>
-/// <para><c>T</c> Type of slot value</para>
-/// <para><c>Id</c> Unique identifier of slot</para>
-/// </summary>
+/**
+ * Main class to represent a slot.
+ * @param T Type of slot value
+ * @param Id Unique identifier of slot.
+ */
 template <typename T, uint64_t Id>
 class slot
 {
@@ -41,8 +41,10 @@ public:
 
     static_assert(std::is_move_constructible<value_type>::value, "The slots value type has to be move constructible.");
 
-    /// <summary>Creates a new slot object.</summary>
-    /// <param name = "value">Initial value of slot</param>
+    /**
+     * Creates a new slot object.
+     * @param value Initial value of slot
+     */
     slot(value_type value)
         : m_value{ std::move(value) }
     {

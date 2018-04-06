@@ -7,6 +7,10 @@
 namespace yats
 {
 
+/**
+ * Manager class that holds an arbitrary amount of threads that are synchonized 
+ * using an externally controlled condition variable.
+ */
 class thread_pool
 {
 public:
@@ -30,6 +34,9 @@ public:
         }
     }
 
+    /**
+     * Executes a user thread and places it into a constraint group.
+     */
     template <typename Callable>
     void execute(Callable thread_function, size_t constraint)
     {

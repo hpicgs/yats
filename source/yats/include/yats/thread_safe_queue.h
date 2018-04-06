@@ -1,11 +1,15 @@
 #pragma once
 
+#include <cassert>
 #include <mutex>
 #include <queue>
 
 namespace yats
 {
 
+/**
+ * Thread safe wrapper for an std::queue.
+ */
 template <typename ValueType>
 class thread_safe_queue
 {
@@ -17,6 +21,8 @@ public:
     ValueType extract()
     {
         lock guard(m_mutex);
+        assert(m_num_reserved);
+
         auto value = std::move(m_queue.front());
         m_queue.pop();
         --m_num_reserved;
@@ -38,7 +44,7 @@ public:
     bool empty()
     {
         lock guard(m_mutex);
-        return m_queue.empty() || m_queue.size() == m_num_reserved;
+        return m_queue.size() == m_num_reserved;
     }
 
     void reserve_one()
@@ -54,6 +60,6 @@ public:
 protected:
     std::queue<ValueType> m_queue;
     std::mutex m_mutex;
-    size_t m_num_reserved;
+    size_t m_num_reserved = 0;
 };
 }

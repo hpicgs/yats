@@ -23,10 +23,10 @@ public:
      * Constructs the scheduler using the given {@code pipeline}.
      * The tasks of the {@code pipeline} will be constructed now.
      * The scheduler will not use more than {@code number_of_threads} threads at the same time.
-     * Throws if the pipeline is invalid.
-     * Throws if {@code number_of_threads} is 0.
      * @param pipeline Pipeline the scheduler should work with
      * @param number_of_threads Maximum number of threads allowed to run at the same time
+     * @throws runtime_error Thrown if the pipeline is invalid.
+     * @throws runtime_error Thrown if {@code number_of_threads} is 0.
      */
     explicit scheduler(pipeline pipeline, size_t number_of_threads = std::max(std::thread::hardware_concurrency(), 1u))
         : m_is_running(false)
